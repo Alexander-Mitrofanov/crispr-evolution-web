@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#102822" />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <meta
+      name="description"
+      content="Detect CRISPR arrays and reconstruct spacer-array evolution with CRISPRidentify, SpacerPlacer, and CRISPR-evOr."
+    />
+    <title>CRISPR Evolution Workbench</title>
+  </head>
+  <body>
+    <a id="skip-link" class="skip-link" href="#analysis-form" hidden>Skip to analysis form</a>
+    <main id="frame-blocked-message" class="frame-blocked-message" aria-labelledby="frame-blocked-title" hidden>
+      <section>
+        <p class="eyebrow">Submission safety</p>
+        <h1 id="frame-blocked-title">Open this workbench in its own tab.</h1>
+        <p>The analysis interface is unavailable inside an embedded frame. No sequence was loaded or sent.</p>
+        <a href="./" target="_blank" rel="noopener noreferrer">Open in a new tab</a>
+      </section>
+    </main>
+    <div id="root" hidden></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
