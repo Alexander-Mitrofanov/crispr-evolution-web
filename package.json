@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && npm run scan:public",
     "preview": "vite preview",
+    "scan:public": "node scripts/scan-public-example.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

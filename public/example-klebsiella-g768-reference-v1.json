@@ -1,0 +1,848 @@
+{
+  "schema": {
+    "name": "crispr-evolution-web-example",
+    "version": "2.0.0"
+  },
+  "example": {
+    "id": "klebsiella-g768-reference-v1",
+    "kind": "Publication cohort · genome references only",
+    "title": "Klebsiella pneumoniae I-E CRISPR orientation cohort",
+    "organism": "Klebsiella pneumoniae",
+    "description": "Twelve accession-referenced CRISPR locus windows from the CRISPR-evOr publication bundle exercise detection, cohort integration, ancestral reconstruction, and orientation likelihood comparison without hosting nucleotide sequence.",
+    "biological_question": "Across related Klebsiella pneumoniae I-E arrays, which spacer-array order is better supported by the gain/loss model after CRISPRidentify detects loci directly from genomic context?",
+    "biological_takeaway": "The workflow separates detection from evolutionary interpretation: every referenced locus is detected, seven arrays form two comparable cohorts, SpacerPlacer reconstructs explicit gain/loss histories, and CRISPR-evOr shows one decisive forward cohort plus one unresolved cohort rather than forcing a single overconfident answer.",
+    "publication_baseline_note": "The direct publication-bundle baseline selected this cohort because the supplied spacer arrays had forward-minus-reverse BDM support of +60.515288. The web example re-detects arrays from genomic windows, so its fresh grouped results are related but not expected to be numerically identical."
+  },
+  "sources": {
+    "publication_url": "https://doi.org/10.1371/journal.pcbi.1013706",
+    "frozen_workflow_url": "CRISPR-evOr/example_datasets/orientation_paper_examples/g_768_klebsiella_pneumoniae_I-E",
+    "frozen_source_commit": "local-publication-bundle-2026-08-03",
+    "repository": "local CRISPR-evOr publication example bundle",
+    "retrieval_date": "2026-08-03",
+    "extraction_policy": "Exact accession records; complete published spacer-chain span plus up to 250 bases of flanking genomic context on each available side; genome references only are published.",
+    "analyzed_span_bases": 15128,
+    "source_genome_total_bases": 65247466,
+    "analyzed_fraction_percent": 0.023185574747071405,
+    "flank_bases_each_side": 250
+  },
+  "references": [
+    {
+      "accession": "CP025633.1",
+      "region_start_1based": 2672426,
+      "region_end_1based": 2673874,
+      "analyzed_span_bases": 1449,
+      "publication_array_orientation": "+",
+      "published_spacer_count": 16,
+      "ncbi_url": "https://www.ncbi.nlm.nih.gov/nuccore/CP025633.1"
+    },
+    {
+      "accession": "CP027189.1",
+      "region_start_1based": 3248820,
+      "region_end_1based": 3249597,
+      "analyzed_span_bases": 778,
+      "publication_array_orientation": "+",
+      "published_spacer_count": 5,
+      "ncbi_url": "https://www.ncbi.nlm.nih.gov/nuccore/CP027189.1"
+    },
+    {
+      "accession": "CP034082.1",
+      "region_start_1based": 2370621,
+      "region_end_1based": 2372190,
+      "analyzed_span_bases": 1570,
+      "publication_array_orientation": "+",
+      "published_spacer_count": 18,
+      "ncbi_url": "https://www.ncbi.nlm.nih.gov/nuccore/CP034082.1"
+    },
+    {
+      "accession": "CP035383.1",
+      "region_start_1based": 2367718,
+      "region_end_1based": 2368861,
+      "analyzed_span_bases": 1144,
+      "publication_array_orientation": "+",
+      "published_spacer_count": 11,
+      "ncbi_url": "https://www.ncbi.nlm.nih.gov/nuccore/CP035383.1"
+    },
+    {
+      "accession": "CP053862.1",
+      "region_start_1based": 2321781,
+      "region_end_1based": 2322924,
+      "analyzed_span_bases": 1144,
+      "publication_array_orientation": "+",
+      "published_spacer_count": 11,
+      "ncbi_url": "https://www.ncbi.nlm.nih.gov/nuccore/CP053862.1"
+    },
+    {
+      "accession": "CP064205.1",
+      "region_start_1based": 2376910,
+      "region_end_1based": 2377625,
+      "analyzed_span_bases": 716,
+      "publication_array_orientation": "+",
+      "published_spacer_count": 4,
+      "ncbi_url": "https://www.ncbi.nlm.nih.gov/nuccore/CP064205.1"
+    },
+    {
+      "accession": "CP067060.1",
+      "region_start_1based": 2324697,
+      "region_end_1based": 2325718,
+      "analyzed_span_bases": 1022,
+      "publication_array_orientation": "+",
+      "published_spacer_count": 9,
+      "ncbi_url": "https://www.ncbi.nlm.nih.gov/nuccore/CP067060.1"
+    },
+    {
+      "accession": "CP073285.1",
+      "region_start_1based": 2375193,
+      "region_end_1based": 2376580,
+      "analyzed_span_bases": 1388,
+      "publication_array_orientation": "+",
+      "published_spacer_count": 15,
+      "ncbi_url": "https://www.ncbi.nlm.nih.gov/nuccore/CP073285.1"
+    },
+    {
+      "accession": "LR890464.1",
+      "region_start_1based": 2287646,
+      "region_end_1based": 2289765,
+      "analyzed_span_bases": 2120,
+      "publication_array_orientation": "+",
+      "published_spacer_count": 27,
+      "ncbi_url": "https://www.ncbi.nlm.nih.gov/nuccore/LR890464.1"
+    },
+    {
+      "accession": "CP025087.1",
+      "region_start_1based": 2792991,
+      "region_end_1based": 2794439,
+      "analyzed_span_bases": 1449,
+      "publication_array_orientation": "-",
+      "published_spacer_count": 16,
+      "ncbi_url": "https://www.ncbi.nlm.nih.gov/nuccore/CP025087.1"
+    },
+    {
+      "accession": "CP063890.1",
+      "region_start_1based": 213452,
+      "region_end_1based": 214900,
+      "analyzed_span_bases": 1449,
+      "publication_array_orientation": "-",
+      "published_spacer_count": 16,
+      "ncbi_url": "https://www.ncbi.nlm.nih.gov/nuccore/CP063890.1"
+    },
+    {
+      "accession": "CP069940.1",
+      "region_start_1based": 162716,
+      "region_end_1based": 163614,
+      "analyzed_span_bases": 899,
+      "publication_array_orientation": "-",
+      "published_spacer_count": 7,
+      "ncbi_url": "https://www.ncbi.nlm.nih.gov/nuccore/CP069940.1"
+    }
+  ],
+  "findings": {
+    "detection": {
+      "source_count": 12,
+      "array_count": 12,
+      "selected_array_count": 12,
+      "unselected_array_count": 0,
+      "report_count": 12,
+      "category_counts": {
+        "Bona-fide": 10,
+        "Possible": 2
+      },
+      "selected_category_counts": {
+        "Bona-fide": 10,
+        "Possible": 2
+      },
+      "strand_counts": {
+        "+": 9,
+        "-": 3
+      },
+      "spacer_count_range": [
+        2,
+        6
+      ],
+      "model_score_range": [
+        0.5071551201764604,
+        0.768823742823583
+      ],
+      "arrays": [
+        {
+          "array_id": "array_001",
+          "source_id": "CP025633.1",
+          "start": 223,
+          "end": 678,
+          "category": "Bona-fide",
+          "strand": "+",
+          "spacer_count": 6,
+          "repeat_count": 7,
+          "model_score": 0.7660802710024474,
+          "model_score_is_probability": false,
+          "selected_for_analysis": true
+        },
+        {
+          "array_id": "array_002",
+          "source_id": "CP027189.1",
+          "start": 224,
+          "end": 494,
+          "category": "Possible",
+          "strand": "+",
+          "spacer_count": 4,
+          "repeat_count": 5,
+          "model_score": 0.5071551201764604,
+          "model_score_is_probability": false,
+          "selected_for_analysis": true
+        },
+        {
+          "array_id": "array_003",
+          "source_id": "CP034082.1",
+          "start": 1018,
+          "end": 1165,
+          "category": "Bona-fide",
+          "strand": "+",
+          "spacer_count": 2,
+          "repeat_count": 3,
+          "model_score": 0.7644387499114931,
+          "model_score_is_probability": false,
+          "selected_for_analysis": true
+        },
+        {
+          "array_id": "array_004",
+          "source_id": "CP035383.1",
+          "start": 223,
+          "end": 433,
+          "category": "Bona-fide",
+          "strand": "+",
+          "spacer_count": 3,
+          "repeat_count": 4,
+          "model_score": 0.7577645124243373,
+          "model_score_is_probability": false,
+          "selected_for_analysis": true
+        },
+        {
+          "array_id": "array_005",
+          "source_id": "CP053862.1",
+          "start": 223,
+          "end": 433,
+          "category": "Bona-fide",
+          "strand": "+",
+          "spacer_count": 3,
+          "repeat_count": 4,
+          "model_score": 0.7577645124243373,
+          "model_score_is_probability": false,
+          "selected_for_analysis": true
+        },
+        {
+          "array_id": "array_006",
+          "source_id": "CP064205.1",
+          "start": 223,
+          "end": 433,
+          "category": "Possible",
+          "strand": "+",
+          "spacer_count": 3,
+          "repeat_count": 4,
+          "model_score": 0.5500877218668278,
+          "model_score_is_probability": false,
+          "selected_for_analysis": true
+        },
+        {
+          "array_id": "array_007",
+          "source_id": "CP067060.1",
+          "start": 225,
+          "end": 431,
+          "category": "Bona-fide",
+          "strand": "+",
+          "spacer_count": 3,
+          "repeat_count": 4,
+          "model_score": 0.768823742823583,
+          "model_score_is_probability": false,
+          "selected_for_analysis": true
+        },
+        {
+          "array_id": "array_008",
+          "source_id": "CP073285.1",
+          "start": 223,
+          "end": 617,
+          "category": "Bona-fide",
+          "strand": "+",
+          "spacer_count": 5,
+          "repeat_count": 6,
+          "model_score": 0.7658850707204718,
+          "model_score_is_probability": false,
+          "selected_for_analysis": true
+        },
+        {
+          "array_id": "array_009",
+          "source_id": "LR890464.1",
+          "start": 1263,
+          "end": 1410,
+          "category": "Bona-fide",
+          "strand": "+",
+          "spacer_count": 2,
+          "repeat_count": 3,
+          "model_score": 0.7655400945419075,
+          "model_score_is_probability": false,
+          "selected_for_analysis": true
+        },
+        {
+          "array_id": "array_010",
+          "source_id": "CP025087.1",
+          "start": 772,
+          "end": 1227,
+          "category": "Bona-fide",
+          "strand": "-",
+          "spacer_count": 6,
+          "repeat_count": 7,
+          "model_score": 0.7660802710024474,
+          "model_score_is_probability": false,
+          "selected_for_analysis": true
+        },
+        {
+          "array_id": "array_011",
+          "source_id": "CP063890.1",
+          "start": 772,
+          "end": 1227,
+          "category": "Bona-fide",
+          "strand": "-",
+          "spacer_count": 6,
+          "repeat_count": 7,
+          "model_score": 0.7660802710024474,
+          "model_score_is_probability": false,
+          "selected_for_analysis": true
+        },
+        {
+          "array_id": "array_012",
+          "source_id": "CP069940.1",
+          "start": 409,
+          "end": 556,
+          "category": "Bona-fide",
+          "strand": "-",
+          "spacer_count": 2,
+          "repeat_count": 3,
+          "model_score": 0.7655400945419075,
+          "model_score_is_probability": false,
+          "selected_for_analysis": true
+        }
+      ]
+    },
+    "preflight": {
+      "input_array_count": 12,
+      "selected_array_count": 12,
+      "modeled_arrays": 7,
+      "eligible_groups": 2,
+      "excluded_arrays": 5,
+      "unknown_strand_excluded_count": 0,
+      "skipped_by_reason": {
+        "undersized_repeat_overlap_group": 5
+      },
+      "groups": [
+        {
+          "name": "cohort_001",
+          "array_count": 4
+        },
+        {
+          "name": "cohort_002",
+          "array_count": 3
+        }
+      ]
+    },
+    "reconstruction": {
+      "selected_reconstruction_count": 2,
+      "tree_policy": "estimated_separately",
+      "totals": {
+        "insertions": 13,
+        "deletions": 5,
+        "duplications": 0,
+        "rearrangements": 0
+      },
+      "groups": [
+        {
+          "name": "cohort_001",
+          "Deletion model preferred by LRT": "IDM",
+          "ln_lh_bdm": -3.4428313395027437,
+          "reversed_ln_lh_bdm": 0,
+          "ln_lh_bdm - reversed_ln_lh_bdm": -3.4428313395027437,
+          "nb of reconstructed insertions": 6,
+          "nb of reconstructed deletions": 1,
+          "nb of reconstructed duplications": 0,
+          "nb of reconstructed rearrangements": 0,
+          "nb of unique spacers": 6,
+          "nb of spacers in model matrix": 6,
+          "nb of leafs (after combining non-uniques)": 4,
+          "deletion_rate_bdm": 145.87229113445107,
+          "insertion_rate_bdm": 838.7656740230937,
+          "run_time": 0.020453741002711467,
+          "predicted orientation": "Unresolved",
+          "recommend reversing array": "nd"
+        },
+        {
+          "name": "cohort_002",
+          "Deletion model preferred by LRT": "IDM",
+          "ln_lh_bdm": -6.376573445825002,
+          "reversed_ln_lh_bdm": -12.54777488376234,
+          "ln_lh_bdm - reversed_ln_lh_bdm": 6.171201437937338,
+          "nb of reconstructed insertions": 7,
+          "nb of reconstructed deletions": 4,
+          "nb of reconstructed duplications": 0,
+          "nb of reconstructed rearrangements": 0,
+          "nb of unique spacers": 7,
+          "nb of spacers in model matrix": 7,
+          "nb of leafs (after combining non-uniques)": 3,
+          "deletion_rate_bdm": 72.4883443570935,
+          "insertion_rate_bdm": 323.01576215879584,
+          "run_time": 0.015118684998014942,
+          "predicted orientation": "Forward",
+          "recommend reversing array": "False"
+        }
+      ]
+    },
+    "orientation": {
+      "status": "completed",
+      "tree_policy": "estimated_separately",
+      "comparison_count": 2,
+      "decisive_count": 1,
+      "unresolved_count": 1,
+      "strongest_group": "cohort_002",
+      "strongest_delta_ln_likelihood": 6.171201437937338,
+      "confidence_threshold": 5,
+      "decision": "Forward",
+      "comparisons": [
+        {
+          "group": "cohort_001",
+          "prediction": "Unresolved",
+          "recommended_reverse": null,
+          "decisive": false,
+          "confidence_threshold": 5,
+          "forward_ln_likelihood_bdm": -3.4428313395027437,
+          "reverse_ln_likelihood_bdm": 0,
+          "forward_minus_reverse_ln_likelihood_bdm": -3.4428313395027437,
+          "decision": "Unresolved"
+        },
+        {
+          "group": "cohort_002",
+          "prediction": "Forward",
+          "recommended_reverse": false,
+          "decisive": true,
+          "confidence_threshold": 5,
+          "forward_ln_likelihood_bdm": -6.376573445825002,
+          "reverse_ln_likelihood_bdm": -12.54777488376234,
+          "forward_minus_reverse_ln_likelihood_bdm": 6.171201437937338,
+          "decision": "Forward"
+        }
+      ]
+    },
+    "deliverables": {
+      "registered_artifact_count": 39,
+      "zero_registered_artifact_count": 0,
+      "logical_outputs": [
+        {
+          "name": "Sanitized integration adapter manifest",
+          "count": 1,
+          "status": "nonempty"
+        },
+        {
+          "name": "CRISPR-evOr likelihood table",
+          "count": 1,
+          "status": "nonempty"
+        },
+        {
+          "name": "Other nonempty outputs",
+          "count": 8,
+          "status": "nonempty"
+        },
+        {
+          "name": "Accession-derived orientation tree payload",
+          "count": 1,
+          "status": "nonempty"
+        },
+        {
+          "name": "CRISPR-evOr structured result",
+          "count": 1,
+          "status": "nonempty"
+        },
+        {
+          "name": "CRISPRidentify per-record summary tables",
+          "count": 12,
+          "status": "nonempty"
+        },
+        {
+          "name": "CRISPRidentify per-record JSON reports",
+          "count": 12,
+          "status": "nonempty"
+        },
+        {
+          "name": "CRISPRidentify cohort summary table",
+          "count": 1,
+          "status": "nonempty"
+        },
+        {
+          "name": "Run provenance manifest",
+          "count": 1,
+          "status": "nonempty"
+        },
+        {
+          "name": "Private authenticated result bundle",
+          "count": 1,
+          "status": "nonempty"
+        }
+      ]
+    },
+    "warnings": [
+      {
+        "code": "operational_notice_01",
+        "stage": "packaging",
+        "message": "Adapter manifest published with 20 private field(s) removed."
+      },
+      {
+        "code": "operational_notice_02",
+        "stage": "packaging",
+        "message": "Public artifact omitted because it was invalid or contained a private path: crispr_evor/summary.txt"
+      },
+      {
+        "code": "operational_notice_03",
+        "stage": "packaging",
+        "message": "Public artifact omitted because it was invalid or contained a private path: logs/crispridentify.stderr.log"
+      },
+      {
+        "code": "operational_notice_04",
+        "stage": "packaging",
+        "message": "Worker log omitted because it contained a private path: attempt-001.stdout.log"
+      }
+    ]
+  },
+  "release": {
+    "backend_version": "1.0.0",
+    "backend_release_id": "c8124a9e7db82c24b9d7040a7895b705b5812c77f2f9472d3bbd2b988936ed99",
+    "backend_wheel_sha256": "4b894c5e32c3d4c347cb6c75ca72486eb0aad96b28cb0752036211cf2e551c00",
+    "scientific_release_manifest_sha256": "178f45ddd4080e30774d9e92d913a35088e253c24116e7149d6859639278ff42",
+    "scientific_artifacts": {
+      "crispr_evor": {
+        "display_name": "CRISPR-evOr",
+        "version": "1.0.2",
+        "kind": "wheel",
+        "sha256": "8698dc14f58b7b98bb532e9b3389eb9df59ddc6b9dc46819c3857838efdbab4e",
+        "sha256_scope": "file_bytes"
+      },
+      "crispridentify": {
+        "display_name": "CRISPRidentify",
+        "version": "2.0.0",
+        "kind": "source_tree",
+        "sha256": "cc3ba7c683a137a45b91e1432a1cbdbf16cf9b705354b37ed7e677d759a16962",
+        "sha256_scope": "source_tree_v1"
+      },
+      "integration": {
+        "display_name": "CRISPR tool integration",
+        "version": "0.2.6",
+        "kind": "wheel",
+        "sha256": "04e5e8b532987918bff273f12c4e296f5ce8aaa558939e818045fce12c6c9e79",
+        "sha256_scope": "file_bytes"
+      },
+      "spacerplacer": {
+        "display_name": "SpacerPlacer",
+        "version": "1.0.1.post2",
+        "kind": "wheel",
+        "sha256": "d774a22a7f6a985adbe75de05b3c85fdd70eaa3180c84ae4087c4d6adecf548e",
+        "sha256_scope": "file_bytes"
+      }
+    }
+  },
+  "result": {
+    "status": "completed",
+    "mode": "orientation",
+    "summary": {
+      "schema_version": "2.0.0-reference-projection",
+      "pipeline_status": "completed",
+      "detection": {
+        "source_count": 12,
+        "array_count": 12,
+        "selected_array_count": 12,
+        "unselected_array_count": 0,
+        "category_counts": {
+          "Bona-fide": 10,
+          "Possible": 2
+        },
+        "selected_category_counts": {
+          "Bona-fide": 10,
+          "Possible": 2
+        },
+        "score_semantics": {
+          "primary_interpretation": "category",
+          "model_score_is_probability": false,
+          "note": "Raw model scores are not calibrated probabilities."
+        },
+        "arrays": [
+          {
+            "array_id": "array_001",
+            "source_id": "CP025633.1",
+            "start": 223,
+            "end": 678,
+            "category": "Bona-fide",
+            "strand": "+",
+            "spacer_count": 6,
+            "repeat_count": 7,
+            "model_score": 0.7660802710024474,
+            "model_score_is_probability": false,
+            "selected_for_analysis": true
+          },
+          {
+            "array_id": "array_002",
+            "source_id": "CP027189.1",
+            "start": 224,
+            "end": 494,
+            "category": "Possible",
+            "strand": "+",
+            "spacer_count": 4,
+            "repeat_count": 5,
+            "model_score": 0.5071551201764604,
+            "model_score_is_probability": false,
+            "selected_for_analysis": true
+          },
+          {
+            "array_id": "array_003",
+            "source_id": "CP034082.1",
+            "start": 1018,
+            "end": 1165,
+            "category": "Bona-fide",
+            "strand": "+",
+            "spacer_count": 2,
+            "repeat_count": 3,
+            "model_score": 0.7644387499114931,
+            "model_score_is_probability": false,
+            "selected_for_analysis": true
+          },
+          {
+            "array_id": "array_004",
+            "source_id": "CP035383.1",
+            "start": 223,
+            "end": 433,
+            "category": "Bona-fide",
+            "strand": "+",
+            "spacer_count": 3,
+            "repeat_count": 4,
+            "model_score": 0.7577645124243373,
+            "model_score_is_probability": false,
+            "selected_for_analysis": true
+          },
+          {
+            "array_id": "array_005",
+            "source_id": "CP053862.1",
+            "start": 223,
+            "end": 433,
+            "category": "Bona-fide",
+            "strand": "+",
+            "spacer_count": 3,
+            "repeat_count": 4,
+            "model_score": 0.7577645124243373,
+            "model_score_is_probability": false,
+            "selected_for_analysis": true
+          },
+          {
+            "array_id": "array_006",
+            "source_id": "CP064205.1",
+            "start": 223,
+            "end": 433,
+            "category": "Possible",
+            "strand": "+",
+            "spacer_count": 3,
+            "repeat_count": 4,
+            "model_score": 0.5500877218668278,
+            "model_score_is_probability": false,
+            "selected_for_analysis": true
+          },
+          {
+            "array_id": "array_007",
+            "source_id": "CP067060.1",
+            "start": 225,
+            "end": 431,
+            "category": "Bona-fide",
+            "strand": "+",
+            "spacer_count": 3,
+            "repeat_count": 4,
+            "model_score": 0.768823742823583,
+            "model_score_is_probability": false,
+            "selected_for_analysis": true
+          },
+          {
+            "array_id": "array_008",
+            "source_id": "CP073285.1",
+            "start": 223,
+            "end": 617,
+            "category": "Bona-fide",
+            "strand": "+",
+            "spacer_count": 5,
+            "repeat_count": 6,
+            "model_score": 0.7658850707204718,
+            "model_score_is_probability": false,
+            "selected_for_analysis": true
+          },
+          {
+            "array_id": "array_009",
+            "source_id": "LR890464.1",
+            "start": 1263,
+            "end": 1410,
+            "category": "Bona-fide",
+            "strand": "+",
+            "spacer_count": 2,
+            "repeat_count": 3,
+            "model_score": 0.7655400945419075,
+            "model_score_is_probability": false,
+            "selected_for_analysis": true
+          },
+          {
+            "array_id": "array_010",
+            "source_id": "CP025087.1",
+            "start": 772,
+            "end": 1227,
+            "category": "Bona-fide",
+            "strand": "-",
+            "spacer_count": 6,
+            "repeat_count": 7,
+            "model_score": 0.7660802710024474,
+            "model_score_is_probability": false,
+            "selected_for_analysis": true
+          },
+          {
+            "array_id": "array_011",
+            "source_id": "CP063890.1",
+            "start": 772,
+            "end": 1227,
+            "category": "Bona-fide",
+            "strand": "-",
+            "spacer_count": 6,
+            "repeat_count": 7,
+            "model_score": 0.7660802710024474,
+            "model_score_is_probability": false,
+            "selected_for_analysis": true
+          },
+          {
+            "array_id": "array_012",
+            "source_id": "CP069940.1",
+            "start": 409,
+            "end": 556,
+            "category": "Bona-fide",
+            "strand": "-",
+            "spacer_count": 2,
+            "repeat_count": 3,
+            "model_score": 0.7655400945419075,
+            "model_score_is_probability": false,
+            "selected_for_analysis": true
+          }
+        ],
+        "arrays_truncated": false
+      },
+      "adapter": {
+        "input_array_count": 12,
+        "selected_array_count": 12,
+        "emitted_array_count": 7,
+        "emitted_group_count": 2,
+        "skipped_array_count": 5,
+        "unknown_strand_excluded_count": 0,
+        "skipped_by_reason": {
+          "undersized_repeat_overlap_group": 5
+        },
+        "groups": [
+          {
+            "name": "cohort_001",
+            "array_count": 4
+          },
+          {
+            "name": "cohort_002",
+            "array_count": 3
+          }
+        ]
+      },
+      "orientation": {
+        "status": "completed",
+        "tree_policy": "estimated_separately",
+        "comparisons": [
+          {
+            "group": "cohort_001",
+            "prediction": "Unresolved",
+            "recommended_reverse": null,
+            "decisive": false,
+            "confidence_threshold": 5,
+            "forward_ln_likelihood_bdm": -3.4428313395027437,
+            "reverse_ln_likelihood_bdm": 0,
+            "forward_minus_reverse_ln_likelihood_bdm": -3.4428313395027437,
+            "decision": "Unresolved"
+          },
+          {
+            "group": "cohort_002",
+            "prediction": "Forward",
+            "recommended_reverse": false,
+            "decisive": true,
+            "confidence_threshold": 5,
+            "forward_ln_likelihood_bdm": -6.376573445825002,
+            "reverse_ln_likelihood_bdm": -12.54777488376234,
+            "forward_minus_reverse_ln_likelihood_bdm": 6.171201437937338,
+            "decision": "Forward"
+          }
+        ],
+        "comparisons_truncated": false,
+        "selected_reconstructions": [
+          {
+            "name": "cohort_001",
+            "Deletion model preferred by LRT": "IDM",
+            "ln_lh_bdm": -3.4428313395027437,
+            "reversed_ln_lh_bdm": 0,
+            "ln_lh_bdm - reversed_ln_lh_bdm": -3.4428313395027437,
+            "nb of reconstructed insertions": 6,
+            "nb of reconstructed deletions": 1,
+            "nb of reconstructed duplications": 0,
+            "nb of reconstructed rearrangements": 0,
+            "nb of unique spacers": 6,
+            "nb of spacers in model matrix": 6,
+            "nb of leafs (after combining non-uniques)": 4,
+            "deletion_rate_bdm": 145.87229113445107,
+            "insertion_rate_bdm": 838.7656740230937,
+            "run_time": 0.020453741002711467,
+            "predicted orientation": "Unresolved",
+            "recommend reversing array": "nd"
+          },
+          {
+            "name": "cohort_002",
+            "Deletion model preferred by LRT": "IDM",
+            "ln_lh_bdm": -6.376573445825002,
+            "reversed_ln_lh_bdm": -12.54777488376234,
+            "ln_lh_bdm - reversed_ln_lh_bdm": 6.171201437937338,
+            "nb of reconstructed insertions": 7,
+            "nb of reconstructed deletions": 4,
+            "nb of reconstructed duplications": 0,
+            "nb of reconstructed rearrangements": 0,
+            "nb of unique spacers": 7,
+            "nb of spacers in model matrix": 7,
+            "nb of leafs (after combining non-uniques)": 3,
+            "deletion_rate_bdm": 72.4883443570935,
+            "insertion_rate_bdm": 323.01576215879584,
+            "run_time": 0.015118684998014942,
+            "predicted orientation": "Forward",
+            "recommend reversing array": "False"
+          }
+        ],
+        "selected_reconstructions_truncated": false
+      },
+      "reconstruction": null,
+      "warnings": [],
+      "provenance": {
+        "versions": {
+          "CRISPR-evOr": "1.0.2",
+          "CRISPRidentify": "2.0.0",
+          "CRISPR tool integration": "0.2.6",
+          "SpacerPlacer": "1.0.1.post2"
+        },
+        "parameters": {
+          "mode": "orientation",
+          "category_policy": "bona_fide_possible",
+          "spacer_edit_distance": 1,
+          "bias_corrections": "enabled",
+          "tree_policy": "estimated_separately"
+        }
+      }
+    }
+  },
+  "snapshot": {
+    "generated_at": "2026-08-03T20:37:15.302Z",
+    "run_prefix": "4c7bb3fe",
+    "production_run_started_at": "2026-08-03T20:07:52.311824Z",
+    "production_run_finished_at": "2026-08-03T20:09:27.138055Z",
+    "operational_warnings_omitted_from_results_panel": 4,
+    "public_data_policy": "Genome references only; no nucleotide bases, repeats, spacers, alignments, sequence-file hashes, complete run payloads, credentials, or artifact URLs are hosted.",
+    "sanitizer": "frontend/scripts/build-reference-example.mjs"
+  }
+}

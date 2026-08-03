@@ -1,38 +1,24 @@
 # CRISPR Evolution Workbench frontend
 
-Static React/Vite frontend for GitHub Pages. The analysis API is operator-provided at build time. Job credentials exist only in the current tab's React memory, are sent in `Authorization` headers, and are never added to URLs or browser storage. A user can explicitly download a versioned recovery JSON file and must protect it like a password until the job expires.
+Static React frontend for the public CRISPRidentify v2, SpacerPlacer, and CRISPR-evOr web workflow.
 
-## Local development
+## Built-in biological example
+
+“Explore Klebsiella publication cohort” fetches one precomputed JSON snapshot from `public/example-klebsiella-g768-reference-v1.json`. The snapshot is derived from the local CRISPR-evOr publication bundle `g_768_klebsiella_pneumoniae_I-E` and contains 12 exact NCBI accessions with 1-based inclusive coordinates, publication orientation classes, and derived pipeline summaries.
+
+The public example hosts genome references only. It does not host nucleotide bases, repeat/spacer strings, alignments, complete run payloads, bearer credentials, artifact URLs, sequence files, or sequence-file hashes. Opening the example does not populate the FASTA form and does not submit a job.
+
+The snapshot demonstrates the full workflow: CRISPRidentify detects arrays from referenced genomic context, the integration adapter selects comparable cohorts, SpacerPlacer reconstructs spacer gain/loss histories, and CRISPR-evOr compares forward versus reverse likelihoods while preserving uncertainty. CRISPRidentify v2 and other tools may change future fresh-run results; the bundled snapshot is version-bound to its recorded backend/scientific release identities.
+
+## Development
 
 ```bash
-cp .env.example .env.local
-npm ci --ignore-scripts
-npm run dev
+npm ci
+npm test
+VITE_API_BASE_URL=https://crispr-evor-web-server.tail58d78e.ts.net \
+  VITE_BASE_PATH=/crispr-evolution-web/ npm run build
 ```
 
-Use an HTTPS API URL in production. Plain HTTP is accepted only for `localhost`, `127.0.0.1`, or `::1` during development.
+`npm run build` also runs `scripts/scan-public-example.mjs`, which validates the reference-only snapshot and fails if public assets contain stale example files, sequence-like assets, long IUPAC-only strings, private payload fields, repeat-derived IDs, or other forbidden public payloads.
 
-## GitHub Pages
-
-Create the repository variable `VITE_API_BASE_URL` with the public HTTPS origin of the de.NBI API. The Pages workflow derives the correct project-site base path from the repository name, tests the application, builds it, and deploys the static artifact.
-
-For the production repository, the public settings are:
-
-```text
-repository: Alexander-Mitrofanov/crispr-evolution-web
-site:       https://alexander-mitrofanov.github.io/crispr-evolution-web/
 API origin: https://crispr-evor-web-server.tail58d78e.ts.net
-```
-
-The workflow deploys only `main`; a manual run selected on another branch is
-rejected. Configure Pages to use GitHub Actions (`build_type=workflow`) and set
-the repository variable before the first push so the initial deployment is not
-an intentionally failed run.
-
-The backend must allow the final Pages origin in its CORS allowlist. No secret is required to build the frontend: `VITE_API_BASE_URL` is a public endpoint, not a credential.
-
-GitHub project Pages sites share an origin with other repositories under the same account. Memory-only credentials prevent passive cross-project storage reads, but a compromised sibling Pages deployment could still attack an open tab. A dedicated custom hostname is the preferred production isolation boundary.
-
-GitHub Pages does not let this project emit operator-controlled response headers such as `Content-Security-Policy: frame-ancestors 'none'` or `X-Frame-Options`, and an HTML meta policy cannot enforce `frame-ancestors`. As a fail-closed defense, `index.html` ships the application, skip link, and framed-load notice hidden. The boot guard mounts React only after confirming that the page is its own top-level browsing context; framed or inaccessible ancestry reveals only an “open in a new tab” notice, so no analysis API request or sequence submission UI starts in the frame. This is defense in depth, not a substitute for a dedicated hostname behind an edge that sets response headers.
-
-The public Pages interface is for non-sensitive research data only. Do not submit personal, clinical, controlled, or unpublished sensitive sequences. Use an institutionally approved private route for those data.

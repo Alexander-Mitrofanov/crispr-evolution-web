@@ -3,6 +3,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, api } from "./api.js";
 import { inspectFasta, readableBases } from "./fasta.js";
 import {
+  EXAMPLE_RESULT_PATH,
+  validateExampleSnapshot,
+} from "./example.js";
+import {
   normalizeJobCredential,
   parseJobCredential,
   serializeJobCredential,
@@ -270,7 +274,7 @@ function AdvancedOptions({ mode, options, setOptions }) {
   );
 }
 
-export function InputPanel({ sequence, setSequence, filename, setFilename, inspection, loadExample, loadingExample, maxRequestBytes = 0 }) {
+export function InputPanel({ sequence, setSequence, filename, setFilename, inspection, loadExample, loadingExample, exampleDisabled = false, maxRequestBytes = 0 }) {
   const fileRef = useRef(null);
   const [fileError, setFileError] = useState("");
   const onFile = async (event) => {
@@ -295,7 +299,7 @@ export function InputPanel({ sequence, setSequence, filename, setFilename, inspe
     <div className="input-panel">
       <div className="input-heading">
         <div><label htmlFor="fasta-input">Related contigs or small genomes</label><p>Paste FASTA or upload a plain-text file. The first token in every header must be unique.</p></div>
-        <button className="text-button" type="button" onClick={loadExample} disabled={loadingExample}>{loadingExample ? "Loading…" : "Use example isolates"}</button>
+        <button className="text-button" type="button" onClick={loadExample} disabled={loadingExample || exampleDisabled} title={exampleDisabled ? "Finish or leave the current job before opening the example." : undefined}>{loadingExample ? "Opening example…" : "Explore Klebsiella publication cohort"}</button>
       </div>
       <div className="upload-strip">
         <button className="upload-button" type="button" onClick={() => fileRef.current?.click()}><Icon name="upload" size={18}/> Upload FASTA</button>
@@ -310,7 +314,7 @@ export function InputPanel({ sequence, setSequence, filename, setFilename, inspe
   );
 }
 
-export function AnalysisForm({ service, limits, onSubmitted, hasActiveJob = false }) {
+export function AnalysisForm({ service, limits, onSubmitted, onExampleLoaded = () => {}, hasActiveJob = false }) {
   const [mode, setMode] = useState("orientation");
   const [sequence, setSequence] = useState("");
   const [filename, setFilename] = useState("input.fasta");
@@ -330,12 +334,14 @@ export function AnalysisForm({ service, limits, onSubmitted, hasActiveJob = fals
     setLoadingExample(true);
     setError("");
     try {
-      const response = await fetch(`${import.meta.env.BASE_URL}example-related-isolates.fasta`);
-      if (!response.ok) throw new Error("Example input could not be loaded.");
-      setSequence(await response.text());
-      setFilename("example-related-isolates.fasta");
+      const resultResponse = await fetch(`${import.meta.env.BASE_URL}${EXAMPLE_RESULT_PATH}`);
+      if (!resultResponse.ok) {
+        throw new Error("The publication example could not be loaded.");
+      }
+      const snapshot = validateExampleSnapshot(await resultResponse.json());
+      onExampleLoaded(snapshot);
     } catch (loadError) {
-      setError(loadError.message);
+      setError(loadError.message || "The publication example could not be loaded.");
     } finally {
       setLoadingExample(false);
     }
@@ -375,7 +381,7 @@ export function AnalysisForm({ service, limits, onSubmitted, hasActiveJob = fals
         <div className="input-section">
           <div className="section-title"><span><b>2</b> Provide related genomic records</span><small>DNA FASTA · unique sequence identifiers</small></div>
           <div className="input-layout">
-            <InputPanel sequence={sequence} setSequence={setSequence} filename={filename} setFilename={setFilename} inspection={inspection} loadExample={loadExample} loadingExample={loadingExample} maxRequestBytes={limits.maxRequestBytes}/>
+            <InputPanel sequence={sequence} setSequence={setSequence} filename={filename} setFilename={setFilename} inspection={inspection} loadExample={loadExample} loadingExample={loadingExample} exampleDisabled={hasActiveJob} maxRequestBytes={limits.maxRequestBytes}/>
             <Readiness inspection={inspection} selectedMode={selectedMode} limits={limits} service={service} requestBytes={requestBytes}/>
           </div>
         </div>
@@ -493,7 +499,9 @@ function CategorySummary({ summary, arrays }) {
       {arrays.length > 0 && <div className="table-wrap"><table><thead><tr><th>Record</th><th>Coordinates</th><th>Category</th><th>Strand</th><th>Spacers</th><th>Raw CRISPRidentify Model score</th></tr></thead><tbody>{arrays.map((row, index) => {
         const start = getValue(row, "start", "Start");
         const end = getValue(row, "end", "End");
-        return <tr key={getValue(row, "array_id", "id", "Name") || index}><td><strong>{getValue(row, "source_id", "record_id", "sequence_id", "Name") || "—"}</strong><small>{getValue(row, "array_id", "id") || ""}</small></td><td>{start != null && end != null ? `${formatNumber(start)}–${formatNumber(end)}` : "—"}</td><td><span className={`category-pill category-${categoryClass(getValue(row, "category", "Category"))}`}>{getValue(row, "category", "Category") || "Unclassified"}</span></td><td>{getValue(row, "strand", "Strand") || "Unknown"}</td><td>{formatNumber(getValue(row, "spacer_count", "Number of spacers"))}</td><td><span className="raw-score">{formatNumber(getValue(row, "model_score", "score", "Confidence score"), 4)}</span></td></tr>;
+        const sourceId = getValue(row, "source_id", "record_id", "sequence_id", "Name") || "unknown-source";
+        const arrayId = getValue(row, "array_id", "id", "Name") || "unknown-array";
+        return <tr key={`${sourceId}:${arrayId}:${index}`}><td><strong>{sourceId === "unknown-source" ? "—" : sourceId}</strong><small>{arrayId === "unknown-array" ? "" : arrayId}</small></td><td>{start != null && end != null ? `${formatNumber(start)}–${formatNumber(end)}` : "—"}</td><td><span className={`category-pill category-${categoryClass(getValue(row, "category", "Category"))}`}>{getValue(row, "category", "Category") || "Unclassified"}</span></td><td>{getValue(row, "strand", "Strand") || "Unknown"}</td><td>{formatNumber(getValue(row, "spacer_count", "Number of spacers"))}</td><td><span className="raw-score">{formatNumber(getValue(row, "model_score", "score", "Confidence score"), 4)}</span></td></tr>;
       })}</tbody></table></div>}
       <div className="interpretation-note"><Icon name="info" size={18}/><p><strong>About the raw Model score:</strong> this is the value emitted by CRISPRidentify’s classifier. It is <strong>not a calibrated probability</strong>, is never shown as a percentage, and should be interpreted together with the reported category and array context.</p></div>
     </section>
@@ -610,7 +618,7 @@ function ReconstructionResults({ summary }) {
   );
 }
 
-function Provenance({ job, summary }) {
+function Provenance({ job, summary, exampleSnapshot = null }) {
   const warnings = [...asArray(summary?.warnings), ...asArray(job?.options?.warnings), ...asArray(job?.warnings)].filter(Boolean);
   const provenance = summary?.provenance || job?.provenance || {};
   const versions = provenance.tool_versions || provenance.versions || {};
@@ -618,7 +626,8 @@ function Provenance({ job, summary }) {
   return (
     <section className="result-section provenance-section" aria-labelledby="provenance-heading">
       <div className="result-heading"><div><p className="eyebrow">Reproducibility</p><h3 id="provenance-heading">Warnings & provenance</h3></div><p>Warnings remain part of the result bundle and should travel with downstream interpretations.</p></div>
-      {warnings.length ? <ul className="warning-list">{warnings.map((warning, index) => <li key={`${warning?.stage || "workflow"}:${warning?.group || ""}:${warning?.orientation || ""}:${warning?.code || "warning"}:${index}`}><Icon name="warning" size={18}/><span><strong>{warning.title || warning.code || "Analysis warning"}</strong>{warning.message || String(warning)}</span></li>)}</ul> : <p className="no-warnings"><Icon name="check" size={17}/> No workflow warnings were reported.</p>}
+      {exampleSnapshot && <div className="snapshot-provenance-note"><Icon name="info" size={17}/><p><strong>Immutable demonstration snapshot.</strong> Generated {formatDate(exampleSnapshot.snapshot.generated_at)} from public job <code>{exampleSnapshot.snapshot.run_prefix}…</code>. It preserves biological summary fields and exact release identities; {exampleSnapshot.snapshot.operational_warnings_omitted_from_results_panel} operational packaging notices are intentionally not presented as biological warnings. No nucleotide bases, artifact URLs, or private credentials are hosted in this public example.</p></div>}
+      {warnings.length ? <ul className="warning-list">{warnings.map((warning, index) => <li key={`${warning?.stage || "workflow"}:${warning?.group || ""}:${warning?.orientation || ""}:${warning?.code || "warning"}:${index}`}><Icon name="warning" size={18}/><span><strong>{warning.title || warning.code || "Analysis warning"}</strong>{warning.message || String(warning)}</span></li>)}</ul> : <p className="no-warnings"><Icon name="check" size={17}/> {exampleSnapshot ? "No biological workflow warnings are included in this snapshot." : "No workflow warnings were reported."}</p>}
       <div className="provenance-grid">
         <div><h4>Tool versions</h4>{Object.keys(versions).length ? <dl>{Object.entries(versions).map(([key, value]) => <div key={key}><dt>{key.replaceAll("_", " ")}</dt><dd>{String(value)}</dd></div>)}</dl> : <p className="muted">See the provenance manifest in the result bundle.</p>}</div>
         <div><h4>Recorded policy</h4>{Object.keys(parameters).length ? <dl>{Object.entries(parameters).map(([key, value]) => <div key={key}><dt>{key.replaceAll("_", " ")}</dt><dd>{typeof value === "boolean" ? (value ? "enabled" : "disabled") : String(value)}</dd></div>)}</dl> : <p className="muted">See the provenance manifest in the result bundle.</p>}</div>
@@ -630,7 +639,10 @@ function Provenance({ job, summary }) {
 function Downloads({ job, credential, maxArchiveBytes = 0 }) {
   const [downloading, setDownloading] = useState("");
   const [error, setError] = useState("");
-  const artifacts = asArray(job?.artifacts || job?.summary?.artifacts);
+  const artifacts = asArray(job?.artifacts || job?.summary?.artifacts).filter((artifact) => {
+    const size = Number(artifact?.size_bytes);
+    return !Number.isFinite(size) || size > 0;
+  });
   const bundleArtifact = artifacts.find((artifact) => {
     const label = `${artifact?.kind || ""} ${artifact?.filename || artifact?.name || ""}`.toLowerCase();
     return label.includes("bundle") || label.includes("archive") || label.includes("results.zip");
@@ -676,7 +688,88 @@ function Downloads({ job, credential, maxArchiveBytes = 0 }) {
   );
 }
 
-export function Results({ job, credential, maxArchiveBytes = 0 }) {
+export function ExampleOverview({ snapshot, onClose = () => {} }) {
+  const { example, findings, references, sources } = snapshot;
+  const { detection, preflight, reconstruction, orientation } = findings;
+  const categorySummary = Object.entries(detection.category_counts || {})
+    .map(([label, count]) => `${formatNumber(count)} ${label}`)
+    .join(" and ");
+  const skippedReasons = Object.entries(preflight.skipped_by_reason || {})
+    .map(([reason, count]) => `${formatNumber(count)} ${String(reason).replaceAll("_", " ")}`)
+    .join("; ");
+  const totals = reconstruction.totals;
+  const duplicationWord = totals.duplications === 1 ? "duplication" : "duplications";
+  const strongestDelta = Number(orientation.strongest_delta_ln_likelihood);
+  return (
+    <section className="example-overview" aria-labelledby="example-overview-heading">
+      <div className="example-overview-top">
+        <span className="example-badge"><Icon name="check" size={16}/> Precomputed result · no job submitted</span>
+        <span className="example-badge"><Icon name="shield" size={16}/> Genome references only · no nucleotide sequence hosted</span>
+        <button className="example-close" type="button" onClick={onClose} aria-label="Close example result"><Icon name="close" size={18}/></button>
+      </div>
+      <div className="example-lead">
+        <div>
+          <p className="eyebrow">{example.kind}</p>
+          <h2 id="example-overview-heading">{example.title}</h2>
+        </div>
+        <p>{example.description}</p>
+      </div>
+      <div className="example-authenticity" role="note" aria-label="Real biological data and subset-size explanation">
+        <span>Real data</span>
+        <div><strong>Exact accession coordinates, not hosted bases</strong><p>The public example references {readableBases(sources.analyzed_span_bases)} of CRISPR-locus context from {formatNumber(sources.source_genome_total_bases)} source-genome bases. The browser receives coordinates and derived summaries, never nucleotide strings.</p></div>
+        <dl><div><dt>Accessions</dt><dd>{references.length}</dd></div><div><dt>Analyzed fraction</dt><dd>{formatNumber(sources.analyzed_fraction_percent, 5)}%</dd></div></dl>
+      </div>
+      <div className="example-question"><span>Biological question</span><p>{example.biological_question}</p></div>
+      <div className="example-story" aria-label="What each pipeline stage contributes">
+        <article>
+          <span>01 · CRISPRidentify</span>
+          <strong>{formatNumber(detection.array_count)} arrays detected</strong>
+          <p>{categorySummary}; detected strands split {formatNumber(detection.strand_counts?.["+"] || 0)} forward and {formatNumber(detection.strand_counts?.["-"] || 0)} reverse, with {detection.spacer_count_range[0]}–{detection.spacer_count_range[1]} spacers per detected array.</p>
+        </article>
+        <article>
+          <span>02 · Integration preflight</span>
+          <strong>{formatNumber(preflight.modeled_arrays)} arrays in {formatNumber(preflight.eligible_groups)} comparable groups</strong>
+          <p>{formatNumber(preflight.excluded_arrays)} arrays were excluded with recorded reasons{skippedReasons ? `: ${skippedReasons}` : "."} Cohort labels are neutral and not derived from repeat sequences.</p>
+        </article>
+        <article>
+          <span>03 · SpacerPlacer</span>
+          <strong>{formatNumber(totals.insertions)} gains · {formatNumber(totals.deletions)} losses · {formatNumber(totals.duplications)} {duplicationWord}</strong>
+          <p>{formatNumber(reconstruction.selected_reconstruction_count)} selected reconstructions convert observed spacer presence patterns into gain/loss histories under the reported {String(reconstruction.tree_policy).replaceAll("_", " ")} tree policy.</p>
+        </article>
+        <article>
+          <span>04 · CRISPR-evOr</span>
+          <strong>{formatNumber(orientation.decisive_count)} decisive · {formatNumber(orientation.unresolved_count)} unresolved</strong>
+          <p>The strongest cohort has ΔlnL {strongestDelta > 0 ? "+" : ""}{formatNumber(strongestDelta, 2)} against a ±{formatNumber(orientation.confidence_threshold, 0)} threshold and is called {orientation.decision}. The result keeps uncertainty visible instead of collapsing every cohort into one headline.</p>
+        </article>
+      </div>
+      <div className="example-takeaway"><Icon name="helix"/><div><strong>Why this is biologically useful</strong><p>{example.biological_takeaway}</p></div></div>
+      <details className="example-provenance">
+        <summary>Dataset provenance · {references.length} NCBI accessions and exact coordinates</summary>
+        <p>The cohort is the locally frozen CRISPR-evOr publication example `g_768_klebsiella_pneumoniae_I-E`. Public data is limited to versioned accessions, 1-based inclusive coordinates, publication orientation classes, and derived workflow summaries.</p>
+        <ul>{references.map((record) => <li key={record.accession}><a href={record.ncbi_url} target="_blank" rel="noopener noreferrer">{record.accession}</a><span>{record.publication_array_orientation === "+" ? "publication +" : "publication −"} · {record.published_spacer_count} published spacers</span><code>{formatNumber(record.region_start_1based)}–{formatNumber(record.region_end_1based)}</code></li>)}</ul>
+        <div><a href={sources.publication_url} target="_blank" rel="noopener noreferrer">CRISPR-evOr publication ↗</a><a href="#references">Method references ↗</a></div>
+      </details>
+      <div className="example-actions">
+        <a className="example-primary-action" href="#analysis-form">Analyze your own FASTA with the current pipeline <Icon name="arrow" size={17}/></a>
+        <small>The example opens a fixed, sequence-free snapshot. It does not populate the FASTA form or submit a job.</small>
+      </div>
+    </section>
+  );
+}
+
+function ExampleExport({ snapshot }) {
+  return (
+    <section className="result-section example-export" aria-labelledby="example-export-heading">
+      <div className="result-heading"><div><p className="eyebrow">Inspect</p><h3 id="example-export-heading">Reference-only demonstration data</h3></div><p>The public snapshot contains genome references, derived summaries, software identities, and no private job token.</p></div>
+      <div>
+        <a href={`${import.meta.env.BASE_URL}${EXAMPLE_RESULT_PATH}`} download><Icon name="download" size={17}/><span><strong>Sanitized result JSON</strong><small>{snapshot.references.length} accessions · {formatNumber(snapshot.sources.analyzed_span_bases)} referenced bases</small></span></a>
+        <a href="#analysis-form"><Icon name="arrow" size={17}/><span><strong>Run a fresh analysis</strong><small>Your FASTA · current tools · authenticated result bundle</small></span></a>
+      </div>
+    </section>
+  );
+}
+
+export function Results({ job, credential, maxArchiveBytes = 0, exampleSnapshot = null }) {
   if (!["completed", "completed_no_eligible_groups"].includes(job?.status)) return null;
   const summary = job.summary || job.result || {};
   const detection = summary.detection || summary;
@@ -684,14 +777,14 @@ export function Results({ job, credential, maxArchiveBytes = 0 }) {
   const noEligible = job.status === "completed_no_eligible_groups";
   return (
     <section className="results" aria-labelledby="results-heading">
-      <div className="results-title"><div><p className="eyebrow">Analysis result</p><h2 id="results-heading">{noEligible ? "Detection succeeded; evolution was not applicable." : "Evidence, with its limits visible."}</h2></div><span className="complete-stamp"><Icon name="check"/> Completed</span></div>
+      <div className="results-title"><div><p className="eyebrow">{exampleSnapshot ? "Precomputed pipeline result" : "Analysis result"}</p><h2 id="results-heading">{exampleSnapshot ? "Observed variation becomes an evolutionary history—with uncertainty intact." : noEligible ? "Detection succeeded; evolution was not applicable." : "Evidence, with its limits visible."}</h2></div><span className="complete-stamp"><Icon name="check"/> {exampleSnapshot ? "Example snapshot" : "Completed"}</span></div>
       {noEligible && <div className="no-eligible" role="status"><Icon name="info"/><div><strong>No eligible evolutionary groups</strong><p>The workflow completed successfully and the detection results below remain valid. No group passed the selected category, similarity, record-count, and strand preflight rules, so no evolutionary or orientation claim was made.</p></div></div>}
       <CategorySummary summary={detection} arrays={arrays}/>
       <Preflight summary={summary}/>
       <OrientationResults summary={summary}/>
       <ReconstructionResults summary={summary}/>
-      <Provenance job={job} summary={summary}/>
-      <Downloads job={job} credential={credential} maxArchiveBytes={maxArchiveBytes}/>
+      <Provenance job={job} summary={summary} exampleSnapshot={exampleSnapshot}/>
+      {exampleSnapshot ? <ExampleExport snapshot={exampleSnapshot}/> : <Downloads job={job} credential={credential} maxArchiveBytes={maxArchiveBytes}/>}
     </section>
   );
 }
@@ -716,7 +809,7 @@ function References() {
     { tool: "CRISPR-evOr", venue: "PLOS Computational Biology · 2025", title: "An evolutionary approach to predict the orientation of CRISPR arrays", doi: "https://doi.org/10.1371/journal.pcbi.1013706", source: "https://github.com/fbaumdicker/SpacerPlacer" },
   ];
   return (
-    <section className="references" aria-labelledby="references-heading">
+    <section className="references" id="references" aria-labelledby="references-heading">
       <div className="references-heading"><div><p className="eyebrow">Methods & source</p><h2 id="references-heading">Primary references</h2></div><p>Use the archived bundle for run-specific versions and parameters; cite the corresponding methods when publishing results.</p></div>
       <div className="reference-grid">{citations.map((item) => (
         <article key={item.tool}>
@@ -743,6 +836,7 @@ export default function App() {
   const [limits, setLimits] = useState({ maxBases: 0, maxRecordBases: 0, maxRecords: 0, maxRequestBytes: 0, maxArchiveBytes: 0, maxHeaderCharacters: 200 });
   const [credential, setCredential] = useState(null);
   const [job, setJob] = useState(null);
+  const [exampleSnapshot, setExampleSnapshot] = useState(null);
   const [pollError, setPollError] = useState("");
   const [cancelling, setCancelling] = useState(false);
 
@@ -806,10 +900,16 @@ export default function App() {
   }, [credential]);
 
   const onSubmitted = useCallback((nextCredential, initialJob) => {
+    setExampleSnapshot(null);
     setCredential(nextCredential);
     setJob(initialJob);
     setPollError("");
     window.setTimeout(() => document.getElementById("job-status")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  }, []);
+
+  const onExampleLoaded = useCallback((snapshot) => {
+    setExampleSnapshot(snapshot);
+    window.setTimeout(() => document.getElementById("example-result")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   }, []);
 
   const cancel = async () => {
@@ -836,8 +936,9 @@ export default function App() {
     <div className="site-shell">
       <Hero service={service}/>
       <main>
-        {!credential && <ResumeJob onResume={(nextCredential) => { setCredential(nextCredential); setJob(null); setPollError(""); }}/>}
-        <AnalysisForm service={service} limits={limits} onSubmitted={onSubmitted} hasActiveJob={Boolean(credential)}/>
+        {!credential && <ResumeJob onResume={(nextCredential) => { setExampleSnapshot(null); setCredential(nextCredential); setJob(null); setPollError(""); }}/>}
+        <AnalysisForm service={service} limits={limits} onSubmitted={onSubmitted} onExampleLoaded={onExampleLoaded} hasActiveJob={Boolean(credential)}/>
+        {exampleSnapshot && <div id="example-result" className="example-anchor" aria-live="polite"><ExampleOverview snapshot={exampleSnapshot} onClose={() => setExampleSnapshot(null)}/><Results job={exampleSnapshot.result} exampleSnapshot={exampleSnapshot}/></div>}
         {credential && <div id="job-status" className="job-anchor" aria-live="polite" aria-atomic="false"><JobProgress job={job || { status: "queued" }} credential={credential} onCancel={cancel} onForget={forget} cancelling={cancelling}/><Results job={job} credential={credential} maxArchiveBytes={limits.maxArchiveBytes}/></div>}
         {pollError && <p className="poll-error" role="alert">{pollError}</p>}
         <ScopeSection/>
