@@ -367,7 +367,7 @@
           "nb of leafs (after combining non-uniques)": 4,
           "deletion_rate_bdm": 145.87229113445107,
           "insertion_rate_bdm": 838.7656740230937,
-          "run_time": 0.020453741002711467,
+          "run_time": 0.01565515399852302,
           "predicted orientation": "Unresolved",
           "recommend reversing array": "nd"
         },
@@ -386,7 +386,7 @@
           "nb of leafs (after combining non-uniques)": 3,
           "deletion_rate_bdm": 72.4883443570935,
           "insertion_rate_bdm": 323.01576215879584,
-          "run_time": 0.015118684998014942,
+          "run_time": 0.01475400201161392,
           "predicted orientation": "Forward",
           "recommend reversing array": "False"
         }
@@ -492,24 +492,149 @@
       {
         "code": "operational_notice_02",
         "stage": "packaging",
-        "message": "Public artifact omitted because it was invalid or contained a private path: crispr_evor/summary.txt"
+        "message": "Bundle file omitted because it is empty: logs/crispridentify.stderr.log"
       },
       {
         "code": "operational_notice_03",
         "stage": "packaging",
-        "message": "Public artifact omitted because it was invalid or contained a private path: logs/crispridentify.stderr.log"
+        "message": "Bundle file omitted because it is empty: logs/crispr_evor.stderr.log"
       },
       {
         "code": "operational_notice_04",
         "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/012_CP069940_publication_CRISPR_locus/Possible_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_05",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/012_CP069940_publication_CRISPR_locus/Low_Score_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_06",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/003_CP034082_publication_CRISPR_locus/Possible_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_07",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/003_CP034082_publication_CRISPR_locus/Low_Score_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_08",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/007_CP067060_publication_CRISPR_locus/Possible_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_09",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/007_CP067060_publication_CRISPR_locus/Low_Score_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_10",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/002_CP027189_publication_CRISPR_locus/Low_Score_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_11",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/009_LR890464_publication_CRISPR_locus/Possible_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_12",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/009_LR890464_publication_CRISPR_locus/Low_Score_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_13",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/004_CP035383_publication_CRISPR_locus/Possible_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_14",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/004_CP035383_publication_CRISPR_locus/Low_Score_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_15",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/001_CP025633_publication_CRISPR_locus/Possible_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_16",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/001_CP025633_publication_CRISPR_locus/Low_Score_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_17",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/011_CP063890_publication_CRISPR_locus/Possible_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_18",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/011_CP063890_publication_CRISPR_locus/Low_Score_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_19",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/010_CP025087_publication_CRISPR_locus/Possible_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_20",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/010_CP025087_publication_CRISPR_locus/Low_Score_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_21",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/005_CP053862_publication_CRISPR_locus/Possible_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_22",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/005_CP053862_publication_CRISPR_locus/Low_Score_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_23",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/006_CP064205_publication_CRISPR_locus/Low_Score_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_24",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/008_CP073285_publication_CRISPR_locus/Possible_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_25",
+        "stage": "packaging",
+        "message": "Bundle file omitted because it is empty: crispridentify/008_CP073285_publication_CRISPR_locus/Low_Score_Candidates.txt"
+      },
+      {
+        "code": "operational_notice_26",
+        "stage": "packaging",
+        "message": "Public artifact omitted because it was invalid or contained a private path: crispr_evor/summary.txt"
+      },
+      {
+        "code": "operational_notice_27",
+        "stage": "packaging",
+        "message": "Public artifact omitted because it was invalid or contained a private path: logs/crispridentify.stdout.log"
+      },
+      {
+        "code": "operational_notice_28",
+        "stage": "packaging",
         "message": "Worker log omitted because it contained a private path: attempt-001.stdout.log"
+      },
+      {
+        "code": "operational_notice_29",
+        "stage": "packaging",
+        "message": "Worker log omitted because it was empty: attempt-001.stderr.log"
       }
     ]
   },
   "release": {
     "backend_version": "1.0.0",
-    "backend_release_id": "c8124a9e7db82c24b9d7040a7895b705b5812c77f2f9472d3bbd2b988936ed99",
-    "backend_wheel_sha256": "4b894c5e32c3d4c347cb6c75ca72486eb0aad96b28cb0752036211cf2e551c00",
+    "backend_release_id": "bef6bbd62ac2ca97e10c13d66d6a61c73cf1876cc98db43ae79ce367db42eaae",
+    "backend_wheel_sha256": "ded1434034265d802b8ff755da9d3bcc1a96fbdbddcf92e9e6de91333a9daf00",
     "scientific_release_manifest_sha256": "178f45ddd4080e30774d9e92d913a35088e253c24116e7149d6859639278ff42",
     "scientific_artifacts": {
       "crispr_evor": {
@@ -562,9 +687,9 @@
           "Possible": 2
         },
         "score_semantics": {
-          "primary_interpretation": "category",
           "model_score_is_probability": false,
-          "note": "Raw model scores are not calibrated probabilities."
+          "note": "Raw model scores are not calibrated probabilities.",
+          "primary_interpretation": "category"
         },
         "arrays": [
           {
@@ -791,7 +916,7 @@
             "nb of leafs (after combining non-uniques)": 4,
             "deletion_rate_bdm": 145.87229113445107,
             "insertion_rate_bdm": 838.7656740230937,
-            "run_time": 0.020453741002711467,
+            "run_time": 0.01565515399852302,
             "predicted orientation": "Unresolved",
             "recommend reversing array": "nd"
           },
@@ -810,7 +935,7 @@
             "nb of leafs (after combining non-uniques)": 3,
             "deletion_rate_bdm": 72.4883443570935,
             "insertion_rate_bdm": 323.01576215879584,
-            "run_time": 0.015118684998014942,
+            "run_time": 0.01475400201161392,
             "predicted orientation": "Forward",
             "recommend reversing array": "False"
           }
@@ -837,11 +962,11 @@
     }
   },
   "snapshot": {
-    "generated_at": "2026-08-03T20:37:15.302Z",
-    "run_prefix": "4c7bb3fe",
-    "production_run_started_at": "2026-08-03T20:07:52.311824Z",
-    "production_run_finished_at": "2026-08-03T20:09:27.138055Z",
-    "operational_warnings_omitted_from_results_panel": 4,
+    "generated_at": "2026-08-03T21:07:34.637Z",
+    "run_prefix": "1c136079",
+    "production_run_started_at": "2026-08-03T21:06:02.643851Z",
+    "production_run_finished_at": "2026-08-03T21:06:48.606410Z",
+    "operational_warnings_omitted_from_results_panel": 29,
     "public_data_policy": "Genome references only; no nucleotide bases, repeats, spacers, alignments, sequence-file hashes, complete run payloads, credentials, or artifact URLs are hosted.",
     "sanitizer": "frontend/scripts/build-reference-example.mjs"
   }
