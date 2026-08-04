@@ -1,200 +1,219 @@
-export const EXAMPLE_RESULT_PATH = "example-klebsiella-g768-reference-v1.json";
-export const EXAMPLE_SCHEMA_VERSION = "2.0.0";
+import { inspectFasta } from "./fasta.js";
 
-const REFERENCE_COUNT = 12;
-const ANALYZED_SPAN_BASES = 15_128;
-const SOURCE_GENOME_TOTAL_BASES = 65_247_466;
+export const EXAMPLE_FASTA_PATH = "example-input.fasta";
+export const EXAMPLE_RESULT_PATH = "example-result.json";
+export const EXAMPLE_SCHEMA_VERSION = "1.1.0";
+
+const SHA256_HEX = /^[0-9a-f]{64}$/;
+const MASKED_RECORD_ID = /^example_record_\d{2}$/;
+const FORBIDDEN_KEYS = new Set([
+  "access_token",
+  "artifact_url",
+  "download_url",
+  "job_id",
+  "organism",
+  "strain",
+  "accession",
+  "ncbi_url",
+  "region_start_1based",
+  "region_end_1based",
+  "token",
+  "token_digest",
+]);
 const DNA_ONLY = /^[ACGTRYSWKMBDHVN]+$/i;
-const SEQUENCE_EXTENSION = /\.(?:fa|fasta|fna|ffn|fas)(?:$|[?#])/i;
-const FORBIDDEN_KEY = /(^|_)(?:sequence|repeat_key|spacer_sequence|consensus|alignment|fasta|token|request|raw|raw_job|artifact_url|job)(?:_|$)/i;
+const FORBIDDEN_IDENTITY = /(?:CP|FR)\d{6}/i;
 
-const ROOT_KEYS = ["schema", "example", "sources", "references", "findings", "release", "result", "snapshot"];
-const SHAPES = {
-  schema: ["name", "version"],
-  example: ["id", "kind", "title", "organism", "description", "biological_question", "biological_takeaway", "publication_baseline_note"],
-  sources: ["publication_url", "frozen_workflow_url", "frozen_source_commit", "repository", "retrieval_date", "extraction_policy", "analyzed_span_bases", "source_genome_total_bases", "analyzed_fraction_percent", "flank_bases_each_side"],
-  reference: ["accession", "region_start_1based", "region_end_1based", "analyzed_span_bases", "publication_array_orientation", "published_spacer_count", "ncbi_url"],
-  findings: ["detection", "preflight", "reconstruction", "orientation", "deliverables", "warnings"],
-  detection: ["source_count", "array_count", "selected_array_count", "unselected_array_count", "report_count", "category_counts", "selected_category_counts", "strand_counts", "spacer_count_range", "model_score_range", "arrays"],
-  array: ["array_id", "source_id", "start", "end", "category", "strand", "spacer_count", "repeat_count", "model_score", "model_score_is_probability", "selected_for_analysis"],
-  preflight: ["input_array_count", "selected_array_count", "modeled_arrays", "eligible_groups", "excluded_arrays", "unknown_strand_excluded_count", "skipped_by_reason", "groups"],
-  group: ["name", "array_count"],
-  reconstruction: ["selected_reconstruction_count", "tree_policy", "totals", "groups"],
-  totals: ["insertions", "deletions", "duplications", "rearrangements"],
-  reconstructionGroup: ["name", "Deletion model preferred by LRT", "ln_lh_bdm", "reversed_ln_lh_bdm", "ln_lh_bdm - reversed_ln_lh_bdm", "nb of reconstructed insertions", "nb of reconstructed deletions", "nb of reconstructed duplications", "nb of reconstructed rearrangements", "nb of unique spacers", "nb of spacers in model matrix", "nb of leafs (after combining non-uniques)", "deletion_rate_bdm", "insertion_rate_bdm", "run_time", "predicted orientation", "recommend reversing array"],
-  orientation: ["status", "tree_policy", "comparison_count", "decisive_count", "unresolved_count", "strongest_group", "strongest_delta_ln_likelihood", "confidence_threshold", "decision", "comparisons"],
-  comparison: ["group", "prediction", "recommended_reverse", "decisive", "confidence_threshold", "forward_ln_likelihood_bdm", "reverse_ln_likelihood_bdm", "forward_minus_reverse_ln_likelihood_bdm", "decision"],
-  deliverables: ["registered_artifact_count", "zero_registered_artifact_count", "logical_outputs"],
-  deliverable: ["name", "count", "status"],
-  warning: ["code", "stage", "message"],
-  release: ["backend_version", "backend_release_id", "backend_wheel_sha256", "scientific_release_manifest_sha256", "scientific_artifacts"],
-  tool: ["display_name", "version", "kind", "sha256", "sha256_scope"],
-  result: ["status", "mode", "summary"],
-  resultSummary: ["schema_version", "pipeline_status", "detection", "adapter", "orientation", "reconstruction", "warnings", "provenance"],
-  resultDetection: ["source_count", "array_count", "selected_array_count", "unselected_array_count", "category_counts", "selected_category_counts", "score_semantics", "arrays", "arrays_truncated"],
-  scoreSemantics: ["primary_interpretation", "model_score_is_probability", "note"],
-  resultAdapter: ["input_array_count", "selected_array_count", "emitted_array_count", "emitted_group_count", "skipped_array_count", "unknown_strand_excluded_count", "skipped_by_reason", "groups"],
-  resultOrientation: ["status", "tree_policy", "comparisons", "comparisons_truncated", "selected_reconstructions", "selected_reconstructions_truncated"],
-  provenance: ["versions", "parameters"],
-  parameters: ["mode", "category_policy", "spacer_edit_distance", "bias_corrections", "tree_policy"],
-  snapshot: ["generated_at", "run_prefix", "production_run_started_at", "production_run_finished_at", "operational_warnings_omitted_from_results_panel", "public_data_policy", "sanitizer"],
-};
-
-function fail() {
-  throw new Error("The example result is incomplete or incompatible with this interface.");
+function fail(message = "The example result is incomplete or incompatible with this interface.") {
+  throw new Error(message);
 }
 
-function isObject(value) {
+function object(value) {
   return value != null && typeof value === "object" && !Array.isArray(value);
-}
-
-function assertObject(value, shape, path) {
-  if (!isObject(value)) fail();
-  const allowed = new Set(shape);
-  for (const key of Object.keys(value)) {
-    if (!allowed.has(key) || FORBIDDEN_KEY.test(key)) fail();
-  }
-}
-
-function assertDynamicObject(value, label) {
-  if (!isObject(value)) fail();
-  for (const [key, item] of Object.entries(value)) {
-    if (!String(key).trim() || FORBIDDEN_KEY.test(key)) fail();
-    scanScalar(key);
-    scanAny(item, label);
-  }
-}
-
-function scanScalar(value) {
-  if (typeof value !== "string") return;
-  if (value.length >= 20 && DNA_ONLY.test(value)) fail();
-  if (SEQUENCE_EXTENSION.test(value)) fail();
-  if (/repeat_[0-9a-f]{8,}/i.test(value)) fail();
-}
-
-function scanAny(value) {
-  if (typeof value === "string") scanScalar(value);
-  else if (Array.isArray(value)) value.forEach(scanAny);
-  else if (isObject(value)) {
-    for (const [key, item] of Object.entries(value)) {
-      if (FORBIDDEN_KEY.test(key)) fail();
-      scanScalar(key);
-      scanAny(item);
-    }
-  }
 }
 
 function finite(value) {
   return Number.isFinite(Number(value));
 }
 
-function integer(value) {
-  return Number.isInteger(Number(value));
+function positiveInteger(value) {
+  return Number.isInteger(Number(value)) && Number(value) > 0;
 }
 
-function validateReference(record) {
-  assertObject(record, SHAPES.reference, "reference");
-  if (!/^([A-Z]{1,4}_?\d+)\.\d+$/.test(record.accession)) fail();
-  if (!/^https:\/\/www\.ncbi\.nlm\.nih\.gov\/nuccore\/[A-Z]{1,4}_?\d+\.\d+$/.test(record.ncbi_url)) fail();
-  if (!integer(record.region_start_1based) || !integer(record.region_end_1based) || !integer(record.analyzed_span_bases)) fail();
-  if (record.region_start_1based <= 0 || record.region_end_1based < record.region_start_1based) fail();
-  if (record.region_end_1based - record.region_start_1based + 1 !== record.analyzed_span_bases) fail();
-  if (!["+", "-"].includes(record.publication_array_orientation)) fail();
-  if (!integer(record.published_spacer_count) || record.published_spacer_count <= 0) fail();
-}
-
-function validateArrayRow(array) {
-  assertObject(array, SHAPES.array, "array");
-  if (!/^array_\d{3}$/.test(array.array_id)) fail();
-  if (!/^([A-Z]{1,4}_?\d+)\.\d+$/.test(array.source_id)) fail();
-  for (const key of ["start", "end", "spacer_count", "repeat_count"]) {
-    if (!integer(array[key]) || array[key] < 0) fail();
+function scanPublicSnapshot(value) {
+  if (typeof value === "string") {
+    if ((value.length >= 40 && DNA_ONLY.test(value)) || FORBIDDEN_IDENTITY.test(value)) fail();
+    return;
   }
-  if (array.end < array.start) fail();
-  if (!finite(array.model_score)) fail();
-  if (!["Bona-fide", "Possible", "Possible discarded", "Low score"].includes(array.category)) fail();
-  if (!["+", "-", "Unknown"].includes(array.strand)) fail();
+  if (Array.isArray(value)) {
+    value.forEach(scanPublicSnapshot);
+    return;
+  }
+  if (!object(value)) return;
+  for (const [key, item] of Object.entries(value)) {
+    if (FORBIDDEN_KEYS.has(key.toLowerCase())) fail();
+    scanPublicSnapshot(item);
+  }
+}
+
+function validateRecord(record) {
+  const allowedKeys = new Set([
+    "record_id",
+    "sequence_length",
+    "source_array_orientation",
+    "expected_spacer_count",
+  ]);
+  if (
+    !object(record)
+    || Object.keys(record).some((key) => !allowedKeys.has(key))
+    || !MASKED_RECORD_ID.test(record.record_id)
+    || !positiveInteger(record.sequence_length)
+    || !["pos", "neg"].includes(record.source_array_orientation)
+    || !positiveInteger(record.expected_spacer_count)
+  ) fail();
 }
 
 function validateComparison(comparison) {
-  assertObject(comparison, SHAPES.comparison, "comparison");
-  if (!/^cohort_\d{3}$/.test(comparison.group)) fail();
-  for (const key of ["confidence_threshold", "forward_ln_likelihood_bdm", "reverse_ln_likelihood_bdm", "forward_minus_reverse_ln_likelihood_bdm"]) {
+  if (!object(comparison)) fail();
+  for (const key of [
+    "confidence_threshold",
+    "forward_ln_likelihood_bdm",
+    "reverse_ln_likelihood_bdm",
+    "forward_minus_reverse_ln_likelihood_bdm",
+  ]) {
     if (!finite(comparison[key])) fail();
   }
-  const delta = comparison.forward_ln_likelihood_bdm - comparison.reverse_ln_likelihood_bdm;
-  if (Math.abs(delta - comparison.forward_minus_reverse_ln_likelihood_bdm) > 1e-9) fail();
-  const expected = delta > comparison.confidence_threshold ? "Forward" : delta < -comparison.confidence_threshold ? "Reverse" : "Unresolved";
-  if (comparison.decision !== expected) fail();
-  if (!["Forward", "Reverse", "Unresolved"].includes(comparison.prediction)) fail();
+  const delta = Number(comparison.forward_ln_likelihood_bdm) - Number(comparison.reverse_ln_likelihood_bdm);
+  if (Math.abs(delta - Number(comparison.forward_minus_reverse_ln_likelihood_bdm)) > 1e-9) fail();
+  const expected = delta > Number(comparison.confidence_threshold)
+    ? "Forward"
+    : delta < -Number(comparison.confidence_threshold)
+      ? "Reverse"
+      : "ND";
+  if (comparison.prediction !== expected) fail();
 }
 
-function validateResult(result) {
-  assertObject(result, SHAPES.result, "result");
-  if (result.status !== "completed" || result.mode !== "orientation") fail();
-  const summary = result.summary;
-  assertObject(summary, SHAPES.resultSummary, "result.summary");
-  assertObject(summary.detection, SHAPES.resultDetection, "result.summary.detection");
-  assertObject(summary.adapter, SHAPES.resultAdapter, "result.summary.adapter");
-  assertObject(summary.orientation, SHAPES.resultOrientation, "result.summary.orientation");
-  if (summary.reconstruction !== null) fail();
-  if (!Array.isArray(summary.warnings) || summary.warnings.length !== 0) fail();
-  assertObject(summary.provenance, SHAPES.provenance, "provenance");
-  assertDynamicObject(summary.provenance.versions, "versions");
-  assertObject(summary.provenance.parameters, SHAPES.parameters, "parameters");
-  summary.detection.arrays.forEach(validateArrayRow);
-  summary.adapter.groups.forEach((group) => assertObject(group, SHAPES.group, "group"));
-  summary.orientation.comparisons.forEach(validateComparison);
-  summary.orientation.selected_reconstructions.forEach((row) => assertObject(row, SHAPES.reconstructionGroup, "reconstruction"));
+function validateTeachingClaims(example, job) {
+  const findings = example.findings;
+  const summary = job.summary;
+  const detection = summary.detection;
+  const adapter = summary.adapter;
+  const comparisons = summary.orientation.comparisons;
+  const reconstructions = summary.orientation.selected_reconstructions;
+  if (
+    findings.detection.arrays !== detection.array_count
+    || findings.detection.bona_fide !== detection.category_counts?.["Bona-fide"]
+    || findings.detection.possible !== detection.category_counts?.Possible
+    || findings.preflight.modeled_arrays !== adapter.emitted_array_count
+    || findings.preflight.eligible_groups !== adapter.emitted_group_count
+    || findings.preflight.excluded_arrays !== adapter.skipped_array_count
+    || !Array.isArray(comparisons)
+    || comparisons.length < 1
+    || !Array.isArray(reconstructions)
+    || reconstructions.length < 1
+  ) fail();
+  comparisons.forEach(validateComparison);
+  const mainComparison = comparisons.find((item) => item.group === findings.orientation.group);
+  const mainReconstruction = reconstructions.find((item) => item.name === findings.reconstruction.group);
+  if (
+    !mainComparison
+    || !mainReconstruction
+    || findings.orientation.delta_ln_likelihood !== mainComparison.forward_minus_reverse_ln_likelihood_bdm
+    || findings.orientation.confidence_threshold !== mainComparison.confidence_threshold
+    || findings.orientation.decision !== "Unresolved"
+    || Math.abs(Number(findings.orientation.delta_ln_likelihood)) >= Number(findings.orientation.confidence_threshold)
+    || findings.reconstruction.insertions !== mainReconstruction["nb of reconstructed insertions"]
+    || findings.reconstruction.deletions !== mainReconstruction["nb of reconstructed deletions"]
+    || findings.reconstruction.duplications !== mainReconstruction["nb of reconstructed duplications"]
+  ) fail();
 }
 
 export function validateExampleSnapshot(value) {
-  assertObject(value, ROOT_KEYS, "root");
-  scanAny(value);
-  assertObject(value.schema, SHAPES.schema, "schema");
-  if (value.schema.name !== "crispr-evolution-web-example" || value.schema.version !== EXAMPLE_SCHEMA_VERSION) fail();
-  assertObject(value.example, SHAPES.example, "example");
-  assertObject(value.sources, SHAPES.sources, "sources");
-  if (!Array.isArray(value.references) || value.references.length !== REFERENCE_COUNT) fail();
-  value.references.forEach(validateReference);
-  if (new Set(value.references.map((record) => record.accession)).size !== REFERENCE_COUNT) fail();
-  if (new Set(value.references.map((record) => record.ncbi_url)).size !== REFERENCE_COUNT) fail();
-  const span = value.references.reduce((sum, record) => sum + record.analyzed_span_bases, 0);
-  if (span !== ANALYZED_SPAN_BASES || value.sources.analyzed_span_bases !== ANALYZED_SPAN_BASES) fail();
-  if (value.sources.source_genome_total_bases !== SOURCE_GENOME_TOTAL_BASES) fail();
-  if (Math.abs(value.sources.analyzed_fraction_percent - ((ANALYZED_SPAN_BASES / SOURCE_GENOME_TOTAL_BASES) * 100)) > 1e-12) fail();
-
-  assertObject(value.findings, SHAPES.findings, "findings");
-  const { detection, preflight, reconstruction, orientation, deliverables } = value.findings;
-  assertObject(detection, SHAPES.detection, "detection");
-  assertObject(preflight, SHAPES.preflight, "preflight");
-  assertObject(reconstruction, SHAPES.reconstruction, "reconstruction");
-  assertObject(reconstruction.totals, SHAPES.totals, "totals");
-  assertObject(orientation, SHAPES.orientation, "orientation");
-  assertObject(deliverables, SHAPES.deliverables, "deliverables");
-  if (!Array.isArray(detection.arrays) || detection.arrays.length !== detection.array_count) fail();
-  detection.arrays.forEach(validateArrayRow);
-  preflight.groups.forEach((group) => assertObject(group, SHAPES.group, "group"));
-  reconstruction.groups.forEach((row) => assertObject(row, SHAPES.reconstructionGroup, "reconstruction group"));
-  orientation.comparisons.forEach(validateComparison);
-  if (orientation.comparison_count !== orientation.comparisons.length) fail();
-  if (orientation.decisive_count + orientation.unresolved_count !== orientation.comparisons.length) fail();
-  if (!finite(orientation.strongest_delta_ln_likelihood) || !finite(orientation.confidence_threshold)) fail();
-  if (!["Forward", "Reverse", "Unresolved"].includes(orientation.decision)) fail();
-  if (deliverables.zero_registered_artifact_count !== 0 || deliverables.registered_artifact_count <= 0) fail();
-  if (!Array.isArray(deliverables.logical_outputs) || deliverables.logical_outputs.length === 0) fail();
-  deliverables.logical_outputs.forEach((item) => {
-    assertObject(item, SHAPES.deliverable, "deliverable");
-    if (!integer(item.count) || item.count <= 0 || item.status !== "nonempty") fail();
-  });
-  if (!Array.isArray(value.findings.warnings)) fail();
-  value.findings.warnings.forEach((warning) => assertObject(warning, SHAPES.warning, "warning"));
-
-  assertObject(value.release, SHAPES.release, "release");
-  assertDynamicObject(value.release.scientific_artifacts, "scientific artifacts");
-  for (const tool of Object.values(value.release.scientific_artifacts)) assertObject(tool, SHAPES.tool, "tool");
-  validateResult(value.result);
-  assertObject(value.snapshot, SHAPES.snapshot, "snapshot");
-  if (!/^\w{8}$/.test(value.snapshot.run_prefix)) fail();
+  scanPublicSnapshot(value);
+  const example = value?.example;
+  const source = example?.source;
+  const input = example?.input;
+  const records = example?.records;
+  const job = value?.job;
+  const summary = job?.summary;
+  if (
+    value?.schema?.name !== "crispr-evolution-web-example"
+    || value?.schema?.version !== EXAMPLE_SCHEMA_VERSION
+    || !object(example)
+    || typeof example.analysis_question !== "string"
+    || typeof example.analysis_takeaway !== "string"
+    || !object(source)
+    || typeof source.masking_policy !== "string"
+    || typeof source.provenance_note !== "string"
+    || !object(input)
+    || !Array.isArray(records)
+    || records.length < 3
+    || records.length !== input.record_count
+    || !positiveInteger(input.base_count)
+    || typeof input.filename !== "string"
+    || !/\.fasta$/i.test(input.filename)
+    || !SHA256_HEX.test(input.file_sha256)
+    || !SHA256_HEX.test(input.normalized_sha256)
+    || source.displayed_locus_bases !== input.base_count
+    || job?.status !== "completed"
+    || job?.mode !== "orientation"
+    || !object(summary?.detection)
+    || !object(summary?.adapter)
+    || !object(summary?.orientation)
+    || summary.pipeline_status !== "completed"
+    || !Array.isArray(job.artifacts)
+    || job.artifacts.length !== 0
+    || job.options?.category_policy !== "bona_fide_possible"
+    || job.options?.spacer_distance !== 1
+    || job.options?.bias_corrections_requested !== true
+    || job.options?.bias_corrections_effective !== true
+  ) fail();
+  records.forEach(validateRecord);
+  if (
+    new Set(records.map((record) => record.record_id)).size !== records.length
+    || records.reduce((total, record) => total + record.sequence_length, 0) !== input.base_count
+  ) fail();
+  validateTeachingClaims(example, job);
   return value;
+}
+
+function normalizedFasta(inspection) {
+  const lines = [];
+  for (const record of inspection.records) {
+    lines.push(`>${record.normalizedIdentifier}`);
+    for (let offset = 0; offset < record.sequence.length; offset += 80) {
+      lines.push(record.sequence.slice(offset, offset + 80));
+    }
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+async function sha256Hex(value) {
+  if (!globalThis.crypto?.subtle) {
+    fail("This browser cannot verify the stored example input.");
+  }
+  const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+export async function validateExampleInput(snapshotValue, sequence, { maxHeaderCharacters = 200 } = {}) {
+  const snapshot = validateExampleSnapshot(snapshotValue);
+  const inspection = inspectFasta(sequence, { maxHeaderCharacters });
+  const expectedIds = snapshot.example.records.map((record) => record.record_id);
+  const observedIds = inspection.records.map((record) => record.identifier);
+  if (
+    !inspection.valid
+    || inspection.recordCount !== snapshot.example.input.record_count
+    || inspection.baseCount !== snapshot.example.input.base_count
+    || observedIds.length !== expectedIds.length
+    || observedIds.some((identifier, index) => identifier !== expectedIds[index])
+  ) fail("The stored example input does not match its precomputed result.");
+  const [fileHash, normalizedHash] = await Promise.all([
+    sha256Hex(sequence),
+    sha256Hex(normalizedFasta(inspection)),
+  ]);
+  if (
+    fileHash !== snapshot.example.input.file_sha256
+    || normalizedHash !== snapshot.example.input.normalized_sha256
+  ) fail("The stored example input does not match its precomputed result.");
+  return { snapshot, inspection };
 }

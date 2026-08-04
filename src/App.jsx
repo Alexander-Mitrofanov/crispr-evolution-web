@@ -3,8 +3,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, api } from "./api.js";
 import { inspectFasta, readableBases } from "./fasta.js";
 import {
+  EXAMPLE_FASTA_PATH,
   EXAMPLE_RESULT_PATH,
-  validateExampleSnapshot,
+  validateExampleInput,
 } from "./example.js";
 import {
   normalizeJobCredential,
@@ -184,7 +185,7 @@ function ModeSelector({ mode, onChange }) {
   return (
     <fieldset className="mode-fieldset">
       <legend className="section-title">
-        <span><b>1</b> Choose the biological question</span>
+        <span><b>1</b> Choose the analysis goal</span>
         <small>The workflow only runs the tools needed for your question.</small>
       </legend>
       <div className="mode-grid">
@@ -299,7 +300,7 @@ export function InputPanel({ sequence, setSequence, filename, setFilename, inspe
     <div className="input-panel">
       <div className="input-heading">
         <div><label htmlFor="fasta-input">Related contigs or small genomes</label><p>Paste FASTA or upload a plain-text file. The first token in every header must be unique.</p></div>
-        <button className="text-button" type="button" onClick={loadExample} disabled={loadingExample || exampleDisabled} title={exampleDisabled ? "Finish or leave the current job before opening the example." : undefined}>{loadingExample ? "Opening example…" : "Explore Klebsiella publication cohort"}</button>
+        <button className="text-button" type="button" onClick={loadExample} disabled={loadingExample || exampleDisabled} title={exampleDisabled ? "Finish or leave the current job before opening the example." : undefined}>{loadingExample ? "Loading example…" : "Run example"}</button>
       </div>
       <div className="upload-strip">
         <button className="upload-button" type="button" onClick={() => fileRef.current?.click()}><Icon name="upload" size={18}/> Upload FASTA</button>
@@ -322,26 +323,48 @@ export function AnalysisForm({ service, limits, onSubmitted, onExampleLoaded = (
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [loadingExample, setLoadingExample] = useState(false);
+  const [preparedExample, setPreparedExample] = useState(null);
   const inspection = useMemo(() => inspectFasta(sequence, { maxHeaderCharacters: limits.maxHeaderCharacters || 200 }), [sequence, limits.maxHeaderCharacters]);
   const selectedMode = ANALYSIS_MODES.find((item) => item.id === mode);
   const submission = useMemo(() => buildSubmission({ sequence, filename, mode, options }), [sequence, filename, mode, options]);
   const requestBytes = useMemo(() => new TextEncoder().encode(JSON.stringify(submission)).byteLength, [submission]);
+  const recordedExampleOptions = preparedExample?.job?.options;
+  const precomputedPolicyMatches = Boolean(
+    preparedExample
+    && mode === preparedExample.job?.mode
+    && submission.category_policy === recordedExampleOptions?.category_policy
+    && submission.spacer_distance === recordedExampleOptions?.spacer_distance
+    && submission.bias_corrections === recordedExampleOptions?.bias_corrections_requested
+  );
   const withinLimits = (!limits.maxRecords || inspection.recordCount <= limits.maxRecords) && (!limits.maxBases || inspection.baseCount <= limits.maxBases) && (!limits.maxRecordBases || inspection.records.every((record) => record.sequence.length <= limits.maxRecordBases));
   const withinRequest = !limits.maxRequestBytes || requestBytes <= limits.maxRequestBytes;
-  const ready = inspection.valid && inspection.recordCount >= selectedMode.minimumRecords && withinLimits && withinRequest && service.state === "online" && !hasActiveJob;
-
+  const ready = inspection.valid && inspection.recordCount >= selectedMode.minimumRecords && withinLimits && withinRequest && (service.state === "online" || precomputedPolicyMatches) && !hasActiveJob;
   const loadExample = async () => {
     setLoadingExample(true);
     setError("");
     try {
-      const resultResponse = await fetch(`${import.meta.env.BASE_URL}${EXAMPLE_RESULT_PATH}`);
-      if (!resultResponse.ok) {
-        throw new Error("The publication example could not be loaded.");
+      const [inputResponse, resultResponse] = await Promise.all([
+        fetch(`${import.meta.env.BASE_URL}${EXAMPLE_FASTA_PATH}`, { cache: "no-store", credentials: "omit" }),
+        fetch(`${import.meta.env.BASE_URL}${EXAMPLE_RESULT_PATH}`, { cache: "no-store", credentials: "omit" }),
+      ]);
+      if (!inputResponse.ok || !resultResponse.ok) {
+        throw new Error("The example demonstration could not be loaded.");
       }
-      const snapshot = validateExampleSnapshot(await resultResponse.json());
-      onExampleLoaded(snapshot);
+      const [exampleSequence, rawSnapshot] = await Promise.all([
+        inputResponse.text(),
+        resultResponse.json(),
+      ]);
+      const { snapshot } = await validateExampleInput(rawSnapshot, exampleSequence, {
+        maxHeaderCharacters: limits.maxHeaderCharacters || 200,
+      });
+      setMode("orientation");
+      setOptions({ ...INITIAL_OPTIONS });
+      setSequence(exampleSequence);
+      setFilename(snapshot.example.input.filename);
+      setPreparedExample(snapshot);
+      onExampleLoaded(null);
     } catch (loadError) {
-      setError(loadError.message || "The publication example could not be loaded.");
+      setError(loadError.message || "The example demonstration could not be loaded.");
     } finally {
       setLoadingExample(false);
     }
@@ -353,6 +376,17 @@ export function AnalysisForm({ service, limits, onSubmitted, onExampleLoaded = (
     setSubmitting(true);
     setError("");
     try {
+      if (precomputedPolicyMatches) {
+        try {
+          await validateExampleInput(preparedExample, sequence, {
+            maxHeaderCharacters: limits.maxHeaderCharacters || 200,
+          });
+          onExampleLoaded(preparedExample);
+          return;
+        } catch {
+          setPreparedExample(null);
+        }
+      }
       const response = await api.submit(submission);
       const submittedJob = response?.job || response;
       const jobId = response?.job_id || submittedJob?.job_id || submittedJob?.id;
@@ -393,11 +427,11 @@ export function AnalysisForm({ service, limits, onSubmitted, onExampleLoaded = (
         {hasActiveJob && <div className="active-job-lock" role="status"><Icon name="info"/><span><strong>Another job is open.</strong> Save its recovery file, then cancel it or use “Leave this job and start another” after it reaches a terminal state.</span></div>}
         <div className="privacy-notice" role="note" aria-label="Sequence privacy and retention notice">
           <Icon name="shield"/>
-          <p><strong>This public interface is for non-sensitive research data only.</strong> Submission sends sequence data to the service operator for analysis. The job token protects result retrieval; it is not end-to-end encryption from the operator. Terminal job data is automatically deleted {service.expiresHours ? `${service.expiresHours} hours after the run finishes` : "under the configured retention policy"}. Do not submit personal, clinical, controlled, or unpublished sensitive sequences; use an institutionally approved private route instead.</p>
+          <p><strong>This public interface is for non-sensitive research data only.</strong> Submission sends sequence data to the service operator for analysis. The exact bundled masked example is matched locally and its cached result is never submitted. The job token protects result retrieval; it is not end-to-end encryption from the operator. Terminal job data is automatically deleted {service.expiresHours ? `${service.expiresHours} hours after the run finishes` : "under the configured retention policy"}. Do not submit personal, clinical, controlled, or unpublished sensitive sequences; use an institutionally approved private route instead.</p>
         </div>
         <div className="submit-bar">
           <div><strong>{selectedMode.title}</strong><span>{selectedMode.tools.join(" → ")}</span></div>
-          <button className="primary-button" type="submit" disabled={!ready || submitting}>{submitting ? "Submitting…" : hasActiveJob ? "Current job still open" : "Submit analysis"}<Icon name="arrow"/></button>
+          <button className="primary-button" type="submit" disabled={!ready || submitting}>{submitting ? (precomputedPolicyMatches ? "Loading result…" : "Submitting…") : hasActiveJob ? "Current job still open" : "Compute"}<Icon name="arrow"/></button>
         </div>
       </form>
     </section>
@@ -476,7 +510,7 @@ export function JobProgress({ job, credential, onCancel, onForget, cancelling })
       {!terminal && job?.status === "running" && !job?.stage && <p className="stage-unavailable"><Icon name="info" size={15}/> The worker reports that the workflow is running, but does not expose a reliable tool-level stage. Planned stages are shown without guessing which one is active.</p>}
       {!terminal && <div className="queue-row"><span>{job?.queue_position ? `Queue position ${job.queue_position}` : "Keep this tab open, or download the recovery file before closing it."}</span><button className="cancel-button" type="button" onClick={onCancel} disabled={cancelling}><Icon name="stop" size={16}/>{cancelling ? "Cancelling…" : "Cancel job"}</button></div>}
       {job?.status === "failed" && <div className="job-message error" role="alert"><Icon name="warning"/><div><strong>The workflow did not complete</strong><p>{job.error?.message || job.error || "The service reported an analysis failure. Downloadable diagnostics may still be available."}</p></div></div>}
-      {job?.status === "cancelled" && <div className="job-message"><Icon name="info"/><div><strong>Job cancelled</strong><p>Partial working files are not presented as biological results.</p></div></div>}
+      {job?.status === "cancelled" && <div className="job-message"><Icon name="info"/><div><strong>Job cancelled</strong><p>Partial working files are not presented as completed results.</p></div></div>}
       {terminal && <div className="queue-row"><span>Download any result or recovery files you need before leaving this job.</span><button className="leave-job-button" type="button" onClick={onForget}>Leave this job and start another</button></div>}
     </section>
   );
@@ -618,7 +652,7 @@ function ReconstructionResults({ summary }) {
   );
 }
 
-function Provenance({ job, summary, exampleSnapshot = null }) {
+function Provenance({ job, summary }) {
   const warnings = [...asArray(summary?.warnings), ...asArray(job?.options?.warnings), ...asArray(job?.warnings)].filter(Boolean);
   const provenance = summary?.provenance || job?.provenance || {};
   const versions = provenance.tool_versions || provenance.versions || {};
@@ -626,8 +660,7 @@ function Provenance({ job, summary, exampleSnapshot = null }) {
   return (
     <section className="result-section provenance-section" aria-labelledby="provenance-heading">
       <div className="result-heading"><div><p className="eyebrow">Reproducibility</p><h3 id="provenance-heading">Warnings & provenance</h3></div><p>Warnings remain part of the result bundle and should travel with downstream interpretations.</p></div>
-      {exampleSnapshot && <div className="snapshot-provenance-note"><Icon name="info" size={17}/><p><strong>Immutable demonstration snapshot.</strong> Generated {formatDate(exampleSnapshot.snapshot.generated_at)} from public job <code>{exampleSnapshot.snapshot.run_prefix}…</code>. It preserves biological summary fields and exact release identities; {exampleSnapshot.snapshot.operational_warnings_omitted_from_results_panel} operational packaging notices are intentionally not presented as biological warnings. No nucleotide bases, artifact URLs, or private credentials are hosted in this public example.</p></div>}
-      {warnings.length ? <ul className="warning-list">{warnings.map((warning, index) => <li key={`${warning?.stage || "workflow"}:${warning?.group || ""}:${warning?.orientation || ""}:${warning?.code || "warning"}:${index}`}><Icon name="warning" size={18}/><span><strong>{warning.title || warning.code || "Analysis warning"}</strong>{warning.message || String(warning)}</span></li>)}</ul> : <p className="no-warnings"><Icon name="check" size={17}/> {exampleSnapshot ? "No biological workflow warnings are included in this snapshot." : "No workflow warnings were reported."}</p>}
+      {warnings.length ? <ul className="warning-list">{warnings.map((warning, index) => <li key={`${warning?.stage || "workflow"}:${warning?.group || ""}:${warning?.orientation || ""}:${warning?.code || "warning"}:${index}`}><Icon name="warning" size={18}/><span><strong>{warning.title || warning.code || "Analysis warning"}</strong>{warning.message || String(warning)}</span></li>)}</ul> : <p className="no-warnings"><Icon name="check" size={17}/> No workflow warnings were reported.</p>}
       <div className="provenance-grid">
         <div><h4>Tool versions</h4>{Object.keys(versions).length ? <dl>{Object.entries(versions).map(([key, value]) => <div key={key}><dt>{key.replaceAll("_", " ")}</dt><dd>{String(value)}</dd></div>)}</dl> : <p className="muted">See the provenance manifest in the result bundle.</p>}</div>
         <div><h4>Recorded policy</h4>{Object.keys(parameters).length ? <dl>{Object.entries(parameters).map(([key, value]) => <div key={key}><dt>{key.replaceAll("_", " ")}</dt><dd>{typeof value === "boolean" ? (value ? "enabled" : "disabled") : String(value)}</dd></div>)}</dl> : <p className="muted">See the provenance manifest in the result bundle.</p>}</div>
@@ -688,87 +721,6 @@ function Downloads({ job, credential, maxArchiveBytes = 0 }) {
   );
 }
 
-export function ExampleOverview({ snapshot, onClose = () => {} }) {
-  const { example, findings, references, sources } = snapshot;
-  const { detection, preflight, reconstruction, orientation } = findings;
-  const categorySummary = Object.entries(detection.category_counts || {})
-    .map(([label, count]) => `${formatNumber(count)} ${label}`)
-    .join(" and ");
-  const skippedReasons = Object.entries(preflight.skipped_by_reason || {})
-    .map(([reason, count]) => `${formatNumber(count)} ${String(reason).replaceAll("_", " ")}`)
-    .join("; ");
-  const totals = reconstruction.totals;
-  const duplicationWord = totals.duplications === 1 ? "duplication" : "duplications";
-  const strongestDelta = Number(orientation.strongest_delta_ln_likelihood);
-  return (
-    <section className="example-overview" aria-labelledby="example-overview-heading">
-      <div className="example-overview-top">
-        <span className="example-badge"><Icon name="check" size={16}/> Precomputed result · no job submitted</span>
-        <span className="example-badge"><Icon name="shield" size={16}/> Genome references only · no nucleotide sequence hosted</span>
-        <button className="example-close" type="button" onClick={onClose} aria-label="Close example result"><Icon name="close" size={18}/></button>
-      </div>
-      <div className="example-lead">
-        <div>
-          <p className="eyebrow">{example.kind}</p>
-          <h2 id="example-overview-heading">{example.title}</h2>
-        </div>
-        <p>{example.description}</p>
-      </div>
-      <div className="example-authenticity" role="note" aria-label="Real biological data and subset-size explanation">
-        <span>Real data</span>
-        <div><strong>Exact accession coordinates, not hosted bases</strong><p>The public example references {readableBases(sources.analyzed_span_bases)} of CRISPR-locus context from {formatNumber(sources.source_genome_total_bases)} source-genome bases. The browser receives coordinates and derived summaries, never nucleotide strings.</p></div>
-        <dl><div><dt>Accessions</dt><dd>{references.length}</dd></div><div><dt>Analyzed fraction</dt><dd>{formatNumber(sources.analyzed_fraction_percent, 5)}%</dd></div></dl>
-      </div>
-      <div className="example-question"><span>Biological question</span><p>{example.biological_question}</p></div>
-      <div className="example-story" aria-label="What each pipeline stage contributes">
-        <article>
-          <span>01 · CRISPRidentify</span>
-          <strong>{formatNumber(detection.array_count)} arrays detected</strong>
-          <p>{categorySummary}; detected strands split {formatNumber(detection.strand_counts?.["+"] || 0)} forward and {formatNumber(detection.strand_counts?.["-"] || 0)} reverse, with {detection.spacer_count_range[0]}–{detection.spacer_count_range[1]} spacers per detected array.</p>
-        </article>
-        <article>
-          <span>02 · Integration preflight</span>
-          <strong>{formatNumber(preflight.modeled_arrays)} arrays in {formatNumber(preflight.eligible_groups)} comparable groups</strong>
-          <p>{formatNumber(preflight.excluded_arrays)} arrays were excluded with recorded reasons{skippedReasons ? `: ${skippedReasons}` : "."} Cohort labels are neutral and not derived from repeat sequences.</p>
-        </article>
-        <article>
-          <span>03 · SpacerPlacer</span>
-          <strong>{formatNumber(totals.insertions)} gains · {formatNumber(totals.deletions)} losses · {formatNumber(totals.duplications)} {duplicationWord}</strong>
-          <p>{formatNumber(reconstruction.selected_reconstruction_count)} selected reconstructions convert observed spacer presence patterns into gain/loss histories under the reported {String(reconstruction.tree_policy).replaceAll("_", " ")} tree policy.</p>
-        </article>
-        <article>
-          <span>04 · CRISPR-evOr</span>
-          <strong>{formatNumber(orientation.decisive_count)} decisive · {formatNumber(orientation.unresolved_count)} unresolved</strong>
-          <p>The strongest cohort has ΔlnL {strongestDelta > 0 ? "+" : ""}{formatNumber(strongestDelta, 2)} against a ±{formatNumber(orientation.confidence_threshold, 0)} threshold and is called {orientation.decision}. The result keeps uncertainty visible instead of collapsing every cohort into one headline.</p>
-        </article>
-      </div>
-      <div className="example-takeaway"><Icon name="helix"/><div><strong>Why this is biologically useful</strong><p>{example.biological_takeaway}</p></div></div>
-      <details className="example-provenance">
-        <summary>Dataset provenance · {references.length} NCBI accessions and exact coordinates</summary>
-        <p>The cohort is the locally frozen CRISPR-evOr publication example `g_768_klebsiella_pneumoniae_I-E`. Public data is limited to versioned accessions, 1-based inclusive coordinates, publication orientation classes, and derived workflow summaries.</p>
-        <ul>{references.map((record) => <li key={record.accession}><a href={record.ncbi_url} target="_blank" rel="noopener noreferrer">{record.accession}</a><span>{record.publication_array_orientation === "+" ? "publication +" : "publication −"} · {record.published_spacer_count} published spacers</span><code>{formatNumber(record.region_start_1based)}–{formatNumber(record.region_end_1based)}</code></li>)}</ul>
-        <div><a href={sources.publication_url} target="_blank" rel="noopener noreferrer">CRISPR-evOr publication ↗</a><a href="#references">Method references ↗</a></div>
-      </details>
-      <div className="example-actions">
-        <a className="example-primary-action" href="#analysis-form">Analyze your own FASTA with the current pipeline <Icon name="arrow" size={17}/></a>
-        <small>The example opens a fixed, sequence-free snapshot. It does not populate the FASTA form or submit a job.</small>
-      </div>
-    </section>
-  );
-}
-
-function ExampleExport({ snapshot }) {
-  return (
-    <section className="result-section example-export" aria-labelledby="example-export-heading">
-      <div className="result-heading"><div><p className="eyebrow">Inspect</p><h3 id="example-export-heading">Reference-only demonstration data</h3></div><p>The public snapshot contains genome references, derived summaries, software identities, and no private job token.</p></div>
-      <div>
-        <a href={`${import.meta.env.BASE_URL}${EXAMPLE_RESULT_PATH}`} download><Icon name="download" size={17}/><span><strong>Sanitized result JSON</strong><small>{snapshot.references.length} accessions · {formatNumber(snapshot.sources.analyzed_span_bases)} referenced bases</small></span></a>
-        <a href="#analysis-form"><Icon name="arrow" size={17}/><span><strong>Run a fresh analysis</strong><small>Your FASTA · current tools · authenticated result bundle</small></span></a>
-      </div>
-    </section>
-  );
-}
-
 export function Results({ job, credential, maxArchiveBytes = 0, exampleSnapshot = null }) {
   if (!["completed", "completed_no_eligible_groups"].includes(job?.status)) return null;
   const summary = job.summary || job.result || {};
@@ -777,14 +729,14 @@ export function Results({ job, credential, maxArchiveBytes = 0, exampleSnapshot 
   const noEligible = job.status === "completed_no_eligible_groups";
   return (
     <section className="results" aria-labelledby="results-heading">
-      <div className="results-title"><div><p className="eyebrow">{exampleSnapshot ? "Precomputed pipeline result" : "Analysis result"}</p><h2 id="results-heading">{exampleSnapshot ? "Observed variation becomes an evolutionary history—with uncertainty intact." : noEligible ? "Detection succeeded; evolution was not applicable." : "Evidence, with its limits visible."}</h2></div><span className="complete-stamp"><Icon name="check"/> {exampleSnapshot ? "Example snapshot" : "Completed"}</span></div>
+      <div className="results-title"><div><p className="eyebrow">Analysis result</p><h2 id="results-heading">{noEligible ? "Detection succeeded; evolution was not applicable." : "Evidence, with its limits visible."}</h2></div><span className="complete-stamp"><Icon name="check"/> Completed</span></div>
       {noEligible && <div className="no-eligible" role="status"><Icon name="info"/><div><strong>No eligible evolutionary groups</strong><p>The workflow completed successfully and the detection results below remain valid. No group passed the selected category, similarity, record-count, and strand preflight rules, so no evolutionary or orientation claim was made.</p></div></div>}
       <CategorySummary summary={detection} arrays={arrays}/>
       <Preflight summary={summary}/>
       <OrientationResults summary={summary}/>
       <ReconstructionResults summary={summary}/>
-      <Provenance job={job} summary={summary} exampleSnapshot={exampleSnapshot}/>
-      {exampleSnapshot ? <ExampleExport snapshot={exampleSnapshot}/> : <Downloads job={job} credential={credential} maxArchiveBytes={maxArchiveBytes}/>}
+      <Provenance job={job} summary={summary}/>
+      {!exampleSnapshot && <Downloads job={job} credential={credential} maxArchiveBytes={maxArchiveBytes}/>}
     </section>
   );
 }
@@ -795,7 +747,7 @@ function ScopeSection() {
       <div><p className="eyebrow">Interpretation boundary</p><h2 id="scope-heading">What CRISPR-evOr can—and cannot—tell you.</h2></div>
       <div className="scope-grid">
         <article className="scope-can"><span><Icon name="check"/></span><h3>Evolutionary order evidence</h3><p>CRISPR-evOr compares the likelihood of observed spacer-array histories in input and reversed order, conditional on detected arrays, grouping, tree, and model.</p><ul><li>Relative support for array order</li><li>Selected ancestral reconstruction</li><li>Gain/loss model summaries</li></ul></article>
-        <article className="scope-cannot"><span>≠</span><h3>Not functional annotation</h3><p>Array-order support is not direct experimental evidence of molecular function or expression.</p><ul><li>Does not infer transcription direction or leader sequence</li><li>Does not infer PAMs or biological targets</li><li>Does not design or validate genome-editing guides</li></ul></article>
+        <article className="scope-cannot"><span>≠</span><h3>Not functional annotation</h3><p>Array-order support is not direct experimental evidence of molecular function or expression.</p><ul><li>Does not infer transcription direction or leader sequence</li><li>Does not infer PAMs or target sites</li><li>Does not design or validate genome-editing guides</li></ul></article>
       </div>
       <p className="scope-footnote">Treat “input” and “reverse input” as ordering hypotheses—not automatically as leader-proximal or transcribed orientations.</p>
     </section>
@@ -806,10 +758,10 @@ function References() {
   const citations = [
     { tool: "CRISPRidentify", venue: "Nucleic Acids Research · 2021", title: "Identification of CRISPR arrays using a machine-learning approach", doi: "https://doi.org/10.1093/nar/gkaa1158", source: "https://github.com/BackofenLab/CRISPRidentify" },
     { tool: "SpacerPlacer", venue: "Nucleic Acids Research · 2024", title: "Ancestral reconstruction of CRISPR arrays reveals spacer-deletion dynamics", doi: "https://doi.org/10.1093/nar/gkae772", source: "https://github.com/fbaumdicker/SpacerPlacer" },
-    { tool: "CRISPR-evOr", venue: "PLOS Computational Biology · 2025", title: "An evolutionary approach to predict the orientation of CRISPR arrays", doi: "https://doi.org/10.1371/journal.pcbi.1013706", source: "https://github.com/fbaumdicker/SpacerPlacer" },
+    { tool: "CRISPR-evOr", venue: "PLOS · 2025", title: "An evolutionary approach to predict the orientation of CRISPR arrays", doi: "https://doi.org/10.1371/journal.pcbi.1013706", source: "https://github.com/fbaumdicker/SpacerPlacer" },
   ];
   return (
-    <section className="references" id="references" aria-labelledby="references-heading">
+    <section className="references" aria-labelledby="references-heading">
       <div className="references-heading"><div><p className="eyebrow">Methods & source</p><h2 id="references-heading">Primary references</h2></div><p>Use the archived bundle for run-specific versions and parameters; cite the corresponding methods when publishing results.</p></div>
       <div className="reference-grid">{citations.map((item) => (
         <article key={item.tool}>
@@ -909,7 +861,7 @@ export default function App() {
 
   const onExampleLoaded = useCallback((snapshot) => {
     setExampleSnapshot(snapshot);
-    window.setTimeout(() => document.getElementById("example-result")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    if (snapshot) window.setTimeout(() => document.getElementById("example-result")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   }, []);
 
   const cancel = async () => {
@@ -938,7 +890,7 @@ export default function App() {
       <main>
         {!credential && <ResumeJob onResume={(nextCredential) => { setExampleSnapshot(null); setCredential(nextCredential); setJob(null); setPollError(""); }}/>}
         <AnalysisForm service={service} limits={limits} onSubmitted={onSubmitted} onExampleLoaded={onExampleLoaded} hasActiveJob={Boolean(credential)}/>
-        {exampleSnapshot && <div id="example-result" className="example-anchor" aria-live="polite"><ExampleOverview snapshot={exampleSnapshot} onClose={() => setExampleSnapshot(null)}/><Results job={exampleSnapshot.result} exampleSnapshot={exampleSnapshot}/></div>}
+        {exampleSnapshot && <div id="example-result" className="example-anchor" aria-live="polite"><Results job={exampleSnapshot.job} exampleSnapshot={exampleSnapshot}/></div>}
         {credential && <div id="job-status" className="job-anchor" aria-live="polite" aria-atomic="false"><JobProgress job={job || { status: "queued" }} credential={credential} onCancel={cancel} onForget={forget} cancelling={cancelling}/><Results job={job} credential={credential} maxArchiveBytes={limits.maxArchiveBytes}/></div>}
         {pollError && <p className="poll-error" role="alert">{pollError}</p>}
         <ScopeSection/>

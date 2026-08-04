@@ -1,25 +1,23 @@
 #!/usr/bin/env node
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join, relative, resolve } from "node:path";
 
-import snapshot from "../public/example-klebsiella-g768-reference-v1.json" with { type: "json" };
-import { validateExampleSnapshot } from "../src/example.js";
+import {
+  EXAMPLE_FASTA_PATH,
+  EXAMPLE_RESULT_PATH,
+  validateExampleInput,
+} from "../src/example.js";
 
 const roots = ["public", "dist"].filter((root) => existsSync(root));
 const sequenceExtension = /\.(?:fa|fasta|fna|ffn|fas)$/i;
-const stale = /example-related-isolates|example-listeria|Listeria monocytogenes|Show Listeria example result/i;
-const fastaHeader = /^>[^\n\r]+[\n\r]+[ACGTRYSWKMBDHVN\s]{20,}/im;
-const longIupac = /(?<![A-Za-z0-9])[ACGTRYSWKMBDHVN]{20,}(?![A-Za-z0-9])/gi;
-const forbiddenText = /repeat_key|repeat_[0-9a-f]{8,}|raw_job|artifact_url/i;
+const forbiddenIdentityMetadata = /(?:(?:CP|FR)\d{6}|(?:organism|strain|accession|ncbi_url|region_start_1based|region_end_1based)\s*[=:"])/i;
 
 function fail(message) {
-  console.error(message);
-  process.exitCode = 1;
+  throw new Error(message);
 }
 
 function walk(root) {
   const files = [];
-  if (!existsSync(root)) return files;
   for (const name of readdirSync(root)) {
     const path = join(root, name);
     const stat = statSync(path);
@@ -29,27 +27,34 @@ function walk(root) {
   return files;
 }
 
-try {
-  validateExampleSnapshot(snapshot);
-} catch (error) {
-  fail(`public snapshot failed validation: ${error.message}`);
-}
-
 for (const root of roots) {
+  const fastaPath = resolve(root, EXAMPLE_FASTA_PATH);
+  const resultPath = resolve(root, EXAMPLE_RESULT_PATH);
+  if (!existsSync(fastaPath) || !existsSync(resultPath)) {
+    fail(`bound example assets are missing from ${root}`);
+  }
+  const sequenceAssets = walk(root).filter((path) => sequenceExtension.test(path));
+  if (sequenceAssets.length !== 1 || resolve(sequenceAssets[0]) !== fastaPath) {
+    fail(`unexpected public sequence asset set in ${root}: ${sequenceAssets.map((path) => relative(root, path)).join(", ")}`);
+  }
+  const fasta = readFileSync(fastaPath, "utf8");
+  const snapshot = JSON.parse(readFileSync(resultPath, "utf8"));
+  await validateExampleInput(snapshot, fasta);
+  const headers = fasta.split(/\r?\n/).filter((line) => line.startsWith(">"));
+  const expectedHeaders = snapshot.example.records.map((record) => `>${record.record_id}`);
+  if (headers.length !== expectedHeaders.length || headers.some((header, index) => header !== expectedHeaders[index])) {
+    fail(`example FASTA headers are not fully masked in ${root}`);
+  }
+  if (forbiddenIdentityMetadata.test(fasta) || forbiddenIdentityMetadata.test(JSON.stringify(snapshot))) {
+    fail(`source identity metadata is present in ${root}`);
+  }
   for (const file of walk(root)) {
-    const rel = relative(process.cwd(), file);
-    if (sequenceExtension.test(file)) fail(`sequence-like asset is present: ${rel}`);
+    if (!/\.(?:html|js|json|txt|css)$/i.test(file)) continue;
     const text = readFileSync(file, "utf8");
-    if (stale.test(text) || stale.test(rel)) fail(`stale example text or asset is present: ${rel}`);
-    const publicDataFile = /\.(?:json|html|txt|csv)$/i.test(file);
-    if (publicDataFile && forbiddenText.test(text)) fail(`forbidden private/snapshot field is present: ${rel}`);
-    if (fastaHeader.test(text)) fail(`FASTA-like content is present: ${rel}`);
-    if (publicDataFile) {
-      const matches = text.match(longIupac) || [];
-      if (matches.length) fail(`long IUPAC-only scalar is present: ${rel}`);
+    if (forbiddenIdentityMetadata.test(text) || forbiddenIdentityMetadata.test(relative(root, file))) {
+      fail(`source identity metadata is present: ${relative(root, file)}`);
     }
   }
 }
 
-if (process.exitCode) process.exit(process.exitCode);
-console.log(JSON.stringify({ scanned_roots: roots, snapshot: "ok" }));
+console.log(JSON.stringify({ scanned_roots: roots, stored_input: "sha256-bound", precomputed_result: "validated" }));

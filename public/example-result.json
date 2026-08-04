@@ -1,0 +1,554 @@
+{
+  "schema": {
+    "name": "crispr-evolution-web-example",
+    "version": "1.1.0"
+  },
+  "example": {
+    "id": "masked-input-example-v1",
+    "title": "Precomputed analysis of 11 masked records",
+    "kind": "Bundled masked input",
+    "description": "Eleven compact records form the bundled example. Public headers use neutral sequential identifiers, and loading the example only fills the form; pressing Compute reveals the matching static result without submitting a job.",
+    "analysis_question": "Which arrays are detected, which can be compared as related groups, what gain/loss history explains their spacer variation, and does the likelihood comparison support one spacer order?",
+    "analysis_takeaway": "The pipeline detects array variation and reconstructs acquisitions, deletions, and a duplication, while correctly leaving orientation unresolved because the observed delta log likelihood does not cross the configured evidence threshold.",
+    "source": {
+      "displayed_locus_bases": 9598,
+      "masking_policy": "Headers and public record metadata use neutral example_record identifiers.",
+      "provenance_note": "The public example omits organism, strain, accession, and source-coordinate identity.",
+      "publication_url": "https://doi.org/10.1371/journal.pcbi.1013706"
+    },
+    "records": [
+      {
+        "record_id": "example_record_01",
+        "sequence_length": 1121,
+        "source_array_orientation": "pos",
+        "expected_spacer_count": 10
+      },
+      {
+        "record_id": "example_record_02",
+        "sequence_length": 1121,
+        "source_array_orientation": "pos",
+        "expected_spacer_count": 10
+      },
+      {
+        "record_id": "example_record_03",
+        "sequence_length": 1121,
+        "source_array_orientation": "pos",
+        "expected_spacer_count": 10
+      },
+      {
+        "record_id": "example_record_04",
+        "sequence_length": 731,
+        "source_array_orientation": "pos",
+        "expected_spacer_count": 4
+      },
+      {
+        "record_id": "example_record_05",
+        "sequence_length": 731,
+        "source_array_orientation": "pos",
+        "expected_spacer_count": 4
+      },
+      {
+        "record_id": "example_record_06",
+        "sequence_length": 731,
+        "source_array_orientation": "pos",
+        "expected_spacer_count": 4
+      },
+      {
+        "record_id": "example_record_07",
+        "sequence_length": 1121,
+        "source_array_orientation": "pos",
+        "expected_spacer_count": 10
+      },
+      {
+        "record_id": "example_record_08",
+        "sequence_length": 731,
+        "source_array_orientation": "pos",
+        "expected_spacer_count": 4
+      },
+      {
+        "record_id": "example_record_09",
+        "sequence_length": 795,
+        "source_array_orientation": "pos",
+        "expected_spacer_count": 5
+      },
+      {
+        "record_id": "example_record_10",
+        "sequence_length": 731,
+        "source_array_orientation": "pos",
+        "expected_spacer_count": 4
+      },
+      {
+        "record_id": "example_record_11",
+        "sequence_length": 664,
+        "source_array_orientation": "neg",
+        "expected_spacer_count": 3
+      }
+    ],
+    "input": {
+      "filename": "masked-example-input.fasta",
+      "record_count": 11,
+      "base_count": 9598,
+      "file_sha256": "45a36a7b7d326b02a5c7361ccb66ded6f5ef568423fb77967a8857d65d820c95",
+      "normalized_sha256": "45a36a7b7d326b02a5c7361ccb66ded6f5ef568423fb77967a8857d65d820c95"
+    },
+    "findings": {
+      "detection": {
+        "arrays": 11,
+        "bona_fide": 3,
+        "possible": 8,
+        "spacer_count_range": [
+          2,
+          10
+        ]
+      },
+      "preflight": {
+        "modeled_arrays": 9,
+        "eligible_groups": 2,
+        "excluded_arrays": 2,
+        "exclusion_reason": "undersized repeat-overlap group"
+      },
+      "reconstruction": {
+        "group": "repeat_5d27e0ed7c40_group_001",
+        "array_count": 6,
+        "unique_spacers": 10,
+        "insertions": 11,
+        "deletions": 3,
+        "duplications": 1,
+        "preferred_deletion_model": "IDM"
+      },
+      "orientation": {
+        "group": "repeat_5d27e0ed7c40_group_001",
+        "delta_ln_likelihood": 3.3524011711138924,
+        "confidence_threshold": 5.0,
+        "decision": "Unresolved",
+        "interpretation": "Input order has higher likelihood, but the difference is below the predeclared threshold; no orientation is assigned."
+      }
+    }
+  },
+  "snapshot": {
+    "generated_at": "2026-08-03T15:25:59.365202Z",
+    "operational_warnings_omitted_from_demo": 4,
+    "note": "This static snapshot is returned with the masked input. Loading the example only fills the form, and Compute reveals this cached result without submitting a job or running the analysis pipeline.",
+    "backend": {
+      "service": "crispr-evolution-web",
+      "version": "1.0.0",
+      "release_id": "c8124a9e7db82c24b9d7040a7895b705b5812c77f2f9472d3bbd2b988936ed99",
+      "wheel_sha256": "4b894c5e32c3d4c347cb6c75ca72486eb0aad96b28cb0752036211cf2e551c00"
+    },
+    "scientific_release_manifest_sha256": "178f45ddd4080e30774d9e92d913a35088e253c24116e7149d6859639278ff42",
+    "scientific_artifacts": {
+      "crispr_evor": {
+        "name": "crispr_evor",
+        "display_name": "CRISPR-evOr",
+        "version": "1.0.2",
+        "kind": "wheel",
+        "sha256": "8698dc14f58b7b98bb532e9b3389eb9df59ddc6b9dc46819c3857838efdbab4e",
+        "sha256_scope": "file_bytes"
+      },
+      "crispridentify": {
+        "name": "crispridentify",
+        "display_name": "CRISPRidentify",
+        "version": "2.0.0",
+        "kind": "source_tree",
+        "sha256": "cc3ba7c683a137a45b91e1432a1cbdbf16cf9b705354b37ed7e677d759a16962",
+        "sha256_scope": "source_tree_v1"
+      },
+      "integration": {
+        "name": "integration",
+        "display_name": "CRISPR tool integration",
+        "version": "0.2.6",
+        "kind": "wheel",
+        "sha256": "04e5e8b532987918bff273f12c4e296f5ce8aaa558939e818045fce12c6c9e79",
+        "sha256_scope": "file_bytes"
+      },
+      "spacerplacer": {
+        "name": "spacerplacer",
+        "display_name": "SpacerPlacer",
+        "version": "1.0.1.post2",
+        "kind": "wheel",
+        "sha256": "d774a22a7f6a985adbe75de05b3c85fdd70eaa3180c84ae4087c4d6adecf548e",
+        "sha256_scope": "file_bytes"
+      }
+    }
+  },
+  "job": {
+    "status": "completed",
+    "mode": "orientation",
+    "options": {
+      "category_policy": "bona_fide_possible",
+      "categories": [
+        "Bona-fide",
+        "Possible"
+      ],
+      "spacer_distance": 1,
+      "bias_corrections_requested": true,
+      "bias_corrections_effective": true,
+      "warnings": []
+    },
+    "provenance": {
+      "tool_versions": {
+        "crispr_evor": "1.0.2",
+        "crispridentify": "2.0.0",
+        "integration": "0.2.6",
+        "spacerplacer": "1.0.1.post2"
+      },
+      "parameters": {
+        "category_policy": "bona_fide_possible",
+        "categories": [
+          "Bona-fide",
+          "Possible"
+        ],
+        "spacer_distance": 1,
+        "bias_corrections_requested": true,
+        "bias_corrections_effective": true,
+        "warnings": []
+      }
+    },
+    "summary": {
+      "schema_version": "1.0.0",
+      "pipeline_status": "completed",
+      "pipeline": {
+        "stages": {
+          "adapter": {
+            "status": "completed",
+            "duration_seconds": 0.014838,
+            "emitted_array_count": 9,
+            "emitted_group_count": 2
+          },
+          "crispr_evor": {
+            "status": "completed",
+            "duration_seconds": 2.92613,
+            "tree_source": "crispr_evor_orientation_specific_estimates",
+            "bias_correction_policy": {
+              "alpha_requested": true,
+              "rho_requested": true,
+              "rho_failure": "fallback_uncorrected",
+              "fallback_scope": "per_group_per_orientation",
+              "orientation_likelihood_effect": "none; rho fallback changes rate estimates and the IDM/BDM LRT, not the BDM likelihood used for orientation"
+            },
+            "bias_fallback_count": 0,
+            "bias_warnings": []
+          },
+          "crispridentify": {
+            "status": "completed",
+            "duration_seconds": 36.915393
+          }
+        }
+      },
+      "detection": {
+        "source_count": 11,
+        "report_count": 11,
+        "array_count": 11,
+        "category_counts": {
+          "Bona-fide": 3,
+          "Possible": 8
+        },
+        "selected_array_count": 11,
+        "unselected_array_count": 0,
+        "selected_category_counts": {
+          "Bona-fide": 3,
+          "Possible": 8
+        },
+        "accepted_categories": [
+          "Bona-fide",
+          "Possible"
+        ],
+        "arrays": [
+          {
+            "source_id": "example_record_01",
+            "array_id": "CRISPR-422-579-bf1",
+            "category": "Bona-fide",
+            "model_score": 0.751017684430254,
+            "model_score_is_probability": false,
+            "strand": "+",
+            "spacer_count": 2,
+            "repeat_count": 3,
+            "start": 422,
+            "end": 579,
+            "selected_for_analysis": true
+          },
+          {
+            "source_id": "example_record_02",
+            "array_id": "CRISPR-422-579-bf1",
+            "category": "Bona-fide",
+            "model_score": 0.751017684430254,
+            "model_score_is_probability": false,
+            "strand": "+",
+            "spacer_count": 2,
+            "repeat_count": 3,
+            "start": 422,
+            "end": 579,
+            "selected_for_analysis": true
+          },
+          {
+            "source_id": "example_record_03",
+            "array_id": "CRISPR-422-579-bf1",
+            "category": "Bona-fide",
+            "model_score": 0.751017684430254,
+            "model_score_is_probability": false,
+            "strand": "+",
+            "spacer_count": 2,
+            "repeat_count": 3,
+            "start": 422,
+            "end": 579,
+            "selected_for_analysis": true
+          },
+          {
+            "source_id": "example_record_04",
+            "array_id": "CRISPR-222-444-p1",
+            "category": "Possible",
+            "model_score": 0.7358008493848345,
+            "model_score_is_probability": false,
+            "strand": "+",
+            "spacer_count": 3,
+            "repeat_count": 4,
+            "start": 222,
+            "end": 444,
+            "selected_for_analysis": true
+          },
+          {
+            "source_id": "example_record_05",
+            "array_id": "CRISPR-222-444-p1",
+            "category": "Possible",
+            "model_score": 0.7358008493848345,
+            "model_score_is_probability": false,
+            "strand": "+",
+            "spacer_count": 3,
+            "repeat_count": 4,
+            "start": 222,
+            "end": 444,
+            "selected_for_analysis": true
+          },
+          {
+            "source_id": "example_record_06",
+            "array_id": "CRISPR-222-444-p1",
+            "category": "Possible",
+            "model_score": 0.7358008493848345,
+            "model_score_is_probability": false,
+            "strand": "+",
+            "spacer_count": 3,
+            "repeat_count": 4,
+            "start": 222,
+            "end": 444,
+            "selected_for_analysis": true
+          },
+          {
+            "source_id": "example_record_07",
+            "array_id": "CRISPR-222-900-p1",
+            "category": "Possible",
+            "model_score": 0.7226661994256218,
+            "model_score_is_probability": false,
+            "strand": "+",
+            "spacer_count": 10,
+            "repeat_count": 11,
+            "start": 222,
+            "end": 900,
+            "selected_for_analysis": true
+          },
+          {
+            "source_id": "example_record_08",
+            "array_id": "CRISPR-222-444-p1",
+            "category": "Possible",
+            "model_score": 0.7358008493848345,
+            "model_score_is_probability": false,
+            "strand": "+",
+            "spacer_count": 3,
+            "repeat_count": 4,
+            "start": 222,
+            "end": 444,
+            "selected_for_analysis": true
+          },
+          {
+            "source_id": "example_record_09",
+            "array_id": "CRISPR-223-506-p1",
+            "category": "Possible",
+            "model_score": 0.7307864582457531,
+            "model_score_is_probability": false,
+            "strand": "+",
+            "spacer_count": 4,
+            "repeat_count": 5,
+            "start": 223,
+            "end": 506,
+            "selected_for_analysis": true
+          },
+          {
+            "source_id": "example_record_10",
+            "array_id": "CRISPR-222-444-p1",
+            "category": "Possible",
+            "model_score": 0.7358008493848345,
+            "model_score_is_probability": false,
+            "strand": "+",
+            "spacer_count": 3,
+            "repeat_count": 4,
+            "start": 222,
+            "end": 444,
+            "selected_for_analysis": true
+          },
+          {
+            "source_id": "example_record_11",
+            "array_id": "CRISPR-221-378-p1",
+            "category": "Possible",
+            "model_score": 0.7360121865066697,
+            "model_score_is_probability": false,
+            "strand": "-",
+            "spacer_count": 2,
+            "repeat_count": 3,
+            "start": 221,
+            "end": 378,
+            "selected_for_analysis": true
+          }
+        ],
+        "arrays_scope": "selected_for_analysis",
+        "arrays_truncated": false,
+        "report_schema_versions": {
+          "1.1.0": 11
+        },
+        "score_semantics": {
+          "primary_interpretation": "category",
+          "model_score_is_probability": false,
+          "note": "Raw model scores are not calibrated probabilities."
+        }
+      },
+      "adapter": {
+        "input_array_count": 11,
+        "selected_array_count": 11,
+        "emitted_array_count": 9,
+        "emitted_group_count": 2,
+        "skipped_array_count": 2,
+        "skipped_by_reason": {
+          "undersized_repeat_overlap_group": 2
+        },
+        "skipped_by_reason_truncated": false,
+        "unknown_strand_excluded_count": 0,
+        "groups": [
+          {
+            "name": "repeat_5d27e0ed7c40_group_001",
+            "array_count": 6,
+            "repeat_key": "ATTTACATTTCACAATAAGTAACTAAAAC"
+          },
+          {
+            "name": "repeat_68c8f21b1d14_group_001",
+            "array_count": 3,
+            "repeat_key": "CGTTTTAGTTACTTATTGTGAAATGTAAA"
+          }
+        ],
+        "groups_truncated": false
+      },
+      "orientation": {
+        "status": "completed",
+        "tree_policy": "estimated_separately",
+        "comparisons": [
+          {
+            "group": "repeat_5d27e0ed7c40_group_001",
+            "prediction": "ND",
+            "recommended_reverse": null,
+            "decisive": false,
+            "confidence_threshold": 5.0,
+            "forward_ln_likelihood_bdm": -4.78061746227388,
+            "reverse_ln_likelihood_bdm": -8.133018633387772,
+            "forward_minus_reverse_ln_likelihood_bdm": 3.3524011711138924
+          },
+          {
+            "group": "repeat_68c8f21b1d14_group_001",
+            "prediction": "ND",
+            "recommended_reverse": null,
+            "decisive": false,
+            "confidence_threshold": 5.0,
+            "forward_ln_likelihood_bdm": -0.0000015,
+            "reverse_ln_likelihood_bdm": -0.0000015,
+            "forward_minus_reverse_ln_likelihood_bdm": 0.0
+          }
+        ],
+        "comparisons_truncated": false,
+        "selected_reconstructions": [
+          {
+            "name": "repeat_5d27e0ed7c40_group_001",
+            "deletion_rate_bdm": 60.37274421777424,
+            "alpha_bdm": 4.581805892365196,
+            "per_spacer_deletion_rate_bdm": 276.6161951952548,
+            "insertion_rate_bdm": 1152.5674799802284,
+            "deletion_rate_idm": 94.62660629258735,
+            "insertion_rate_idm": 394.277526219114,
+            "ln_lh_idm": -6.109246315516541,
+            "ln_lh_bdm": -4.78061746227388,
+            "test_statistic (-2*ln_lh_ratio)": 2.6572577064853213,
+            "test result": "False",
+            "Deletion model preferred by LRT": "IDM",
+            "chi2_quantile": 3.8414588206941236,
+            "significance level": 0.05,
+            "avg array length": 4.166666666666667,
+            "nb of spacers in alignment": 11,
+            "nb of unique spacers": 10,
+            "nb of reconstructed insertions": 11,
+            "nb of reconstructed deletions": 3,
+            "nb of reconstructed dup/rearr candidates": 1,
+            "nb of reconstructed rearrangements": 0,
+            "nb of reconstructed duplications": 1,
+            "nb of reconstructed reacquisitions": 0,
+            "nb of reconstructed independent gains": 0,
+            "nb of reconstructed other dup. events": 0,
+            "nb of reconstructed ind. acquisitions, not duplicates": 0,
+            "tree height": 0.005912014585445028,
+            "tree length": 0.011826029170890057,
+            "min/max tree branch lengths": "(0.0, np.float64(0.005912014585445028))",
+            "nb of leafs (before combining non-uniques)": 6,
+            "nb of leafs (after combining non-uniques)": 6,
+            "nb of unique spacer arrays": 2,
+            "run_time": 0.03198617999441922,
+            "recommend reversing array": "nd",
+            "predicted orientation": "ND",
+            "reversed_ln_lh_idm": -9.125757958169787,
+            "reversed_ln_lh_bdm": -8.133018633387772,
+            "confidence threshold": 5,
+            "ln_lh_bdm - reversed_ln_lh_bdm": 3.3524011711138924
+          },
+          {
+            "name": "repeat_68c8f21b1d14_group_001",
+            "deletion_rate_bdm": 0.5,
+            "alpha_bdm": 9007199254740992.0,
+            "per_spacer_deletion_rate_bdm": 4503599627370496.0,
+            "insertion_rate_bdm": 9007199254740992.0,
+            "deletion_rate_idm": 0.000005749176315178769,
+            "insertion_rate_idm": 0.000011498352630357539,
+            "ln_lh_idm": -1.7247528945536306E-11,
+            "ln_lh_bdm": -0.0000015,
+            "test_statistic (-2*ln_lh_ratio)": -0.000002999965504942109,
+            "test result": "False",
+            "Deletion model preferred by LRT": "IDM",
+            "chi2_quantile": 3.8414588206941236,
+            "significance level": 0.05,
+            "avg array length": 2.0,
+            "nb of spacers in alignment": 2,
+            "nb of unique spacers": 2,
+            "nb of reconstructed insertions": 2,
+            "nb of reconstructed deletions": 0,
+            "nb of reconstructed dup/rearr candidates": 0,
+            "nb of reconstructed rearrangements": 0,
+            "nb of reconstructed duplications": 0,
+            "nb of reconstructed reacquisitions": 0,
+            "nb of reconstructed independent gains": 0,
+            "nb of reconstructed other dup. events": 0,
+            "nb of reconstructed ind. acquisitions, not duplicates": 0,
+            "tree height": 5E-7,
+            "tree length": 0.0000015,
+            "min/max tree branch lengths": "(0.0, 5e-07)",
+            "nb of leafs (before combining non-uniques)": 3,
+            "nb of leafs (after combining non-uniques)": 3,
+            "nb of unique spacer arrays": 1,
+            "run_time": 0.009230672003468499,
+            "recommend reversing array": "nd",
+            "predicted orientation": "ND",
+            "reversed_ln_lh_idm": -1.7247528945536306E-11,
+            "reversed_ln_lh_bdm": -0.0000015,
+            "confidence threshold": 5,
+            "ln_lh_bdm - reversed_ln_lh_bdm": 0.0
+          }
+        ],
+        "selected_reconstructions_truncated": false
+      },
+      "reconstruction": null,
+      "warnings": []
+    },
+    "artifacts": []
+  }
+}
