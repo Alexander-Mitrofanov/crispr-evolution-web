@@ -42,6 +42,12 @@ const completedJob = {
     },
     orientation: {
       tree_policy: "estimated_separately",
+      trees: [{
+        group: "group_nd",
+        forward_newick: "(isolate_A:1,isolate_B:1)root:0;",
+        reverse_newick: "(isolate_B:1,isolate_A:1)root:0;",
+        selected_newick: "(isolate_A:1,isolate_B:1)root:0;",
+      }],
       comparisons: [
         { group: "group_nd", prediction: "ND", decisive: false, confidence_threshold: 5, forward_ln_likelihood_bdm: -12.1, reverse_ln_likelihood_bdm: -15.5, forward_minus_reverse_ln_likelihood_bdm: 3.4 },
         { group: "group_input", prediction: "Forward", decisive: true, confidence_threshold: 5, forward_ln_likelihood_bdm: -10, reverse_ln_likelihood_bdm: -17, forward_minus_reverse_ln_likelihood_bdm: 7 },
@@ -50,7 +56,10 @@ const completedJob = {
       selected_reconstructions: [{
         name: "group_nd",
         "Deletion model preferred by LRT": "BDM",
+        ln_lh_idm: -15.225,
         ln_lh_bdm: -12.1,
+        "test_statistic (-2*ln_lh_ratio)": 6.25,
+        chi2_quantile: 3.841,
         "nb of reconstructed insertions": 4,
         "nb of reconstructed deletions": 0,
         deletion_rate_bdm: 0.42,
@@ -74,12 +83,20 @@ describe("scientific result labels", () => {
   it("labels the unresolved orientation zone and avoids p-value claims", () => {
     render(<Results job={completedJob} credential={credential}/>);
     expect(screen.getAllByText("Unresolved").length).toBeGreaterThan(0);
-    expect(screen.getByText(/per-group threshold shown above/i)).toBeInTheDocument();
+    expect(screen.getByText(/threshold is an evidence rule/i)).toBeInTheDocument();
     expect(screen.getByText(/not a p-value or probability/i)).toBeInTheDocument();
-    expect(screen.getByText("Input order supported")).toBeInTheDocument();
-    expect(screen.getByText("Reverse input order supported")).toBeInTheDocument();
+    expect(screen.getAllByText("Input order supported").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Reverse input order supported").length).toBeGreaterThan(0);
     expect(screen.getByText("2 decisive · 1 unresolved")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /Delta log likelihood 3\.40.*minus 5 through plus 5 are unresolved/i })).toBeInTheDocument();
+    expect(screen.getByText("Distance still needed")).toBeInTheDocument();
+  });
+
+  it("renders the selected rooted tree and SpacerPlacer event graphics", () => {
+    render(<Results job={completedJob} credential={credential}/>);
+    expect(screen.getByRole("img", { name: /Selected SpacerPlacer tree for group_nd with 2 leaves/i })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Reconstructed event tally: 4 acquisitions and 0 deletions/i })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Deletion model likelihood-ratio statistic/i })).toBeInTheDocument();
   });
 
   it("surfaces no-deletion caveats and the tree policy", () => {

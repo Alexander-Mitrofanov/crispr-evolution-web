@@ -572,19 +572,77 @@ function Preflight({ summary }) {
   );
 }
 
-function DeltaBar({ value, threshold = 5 }) {
-  const delta = Number(value);
-  if (!Number.isFinite(delta)) return <div className="delta-missing">No finite ΔlnL value reported</div>;
-  const cutoff = Number.isFinite(Number(threshold)) && Number(threshold) >= 0 ? Number(threshold) : 5;
-  const extent = Math.max(20, cutoff * 4);
-  const bounded = Math.max(-extent, Math.min(extent, delta));
+function finiteMetric(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function signedNumber(value, digits = 2) {
+  const number = finiteMetric(value);
+  if (number == null) return "not reported";
+  return (number > 0 ? "+" : "") + number.toFixed(digits);
+}
+
+function groupIdentity(item, index) {
+  return String(item?.group || item?.name || item?.group_id || item?.id || "group_" + (index + 1));
+}
+
+function OrientationEvidencePlot({ comparisons, decisionFor }) {
+  const values = comparisons.map((item) => ({
+    item,
+    delta: finiteMetric(getValue(item, "forward_minus_reverse_ln_likelihood_bdm", "delta_ln_likelihood", "delta_lnL", "delta_log_likelihood")),
+    threshold: decisionFor(item).threshold,
+  }));
+  const extent = Math.max(10, ...values.map(({ delta, threshold }) => Math.max(Math.abs(delta || 0) * 1.18, threshold * 1.65)));
+  const position = (value) => Math.max(0, Math.min(100, ((value + extent) / (extent * 2)) * 100));
   return (
-    <div className="delta-chart" role="img" aria-label={`Delta log likelihood ${delta.toFixed(2)}. Values from minus ${cutoff} through plus ${cutoff} are unresolved.`}>
-      <div className="delta-labels"><span>Reverse input order</span><span>Unresolved</span><span>Input order</span></div>
-      <div className="delta-value"><span>ΔlnL</span><strong>{delta > 0 ? "+" : ""}{delta.toFixed(2)}</strong></div>
-      <input className="delta-track" type="range" min={-extent} max={extent} step="0.01" value={bounded} readOnly tabIndex="-1" aria-hidden="true" />
-      <div className="delta-ticks"><span>≤ −{formatNumber(extent)}</span><span>−{formatNumber(cutoff)}</span><span>0</span><span>+{formatNumber(cutoff)}</span><span>≥ +{formatNumber(extent)}</span></div>
+    <div className="orientation-landscape" aria-label="Orientation evidence overview">
+      <div className="orientation-landscape-header"><span>Reverse order supported</span><span>Unresolved zone</span><span>Input order supported</span></div>
+      <div className="orientation-landscape-scale"><span>{signedNumber(-extent, 1)}</span><span>0</span><span>{signedNumber(extent, 1)}</span></div>
+      <div className="orientation-plot-rows">{values.map(({ item, delta, threshold }, index) => {
+        const group = groupIdentity(item, index);
+        const decision = decisionFor(item).label;
+        const leftBoundary = position(-threshold);
+        const rightBoundary = position(threshold);
+        const marker = position(delta || 0);
+        const aria = delta == null ? "No finite delta log likelihood was reported for " + group : "Delta log likelihood " + delta.toFixed(2) + " for " + group + ". Values from minus " + threshold + " through plus " + threshold + " are unresolved.";
+        return <div className="orientation-plot-row" key={group}>
+          <div className="orientation-plot-label"><strong>Group {index + 1}</strong><code title={group}>{group}</code></div>
+          <div className="orientation-axis" role="img" aria-label={aria}>
+            <span className="orientation-zone orientation-zone-reverse" style={{ width: leftBoundary + "%" }}/>
+            <span className="orientation-zone orientation-zone-unresolved" style={{ left: leftBoundary + "%", width: (rightBoundary - leftBoundary) + "%" }}/>
+            <span className="orientation-zone orientation-zone-input" style={{ left: rightBoundary + "%", width: (100 - rightBoundary) + "%" }}/>
+            <i className="orientation-zero" style={{ left: position(0) + "%" }}/>
+            <i className={"orientation-marker orientation-marker-" + categoryClass(decision)} style={{ left: marker + "%" }}><b>{delta == null ? "?" : signedNumber(delta)}</b></i>
+          </div>
+          <span className={"orientation-chip orientation-" + categoryClass(decision)}>{decision}</span>
+        </div>;
+      })}</div>
     </div>
+  );
+}
+
+function HypothesisComparison({ group, index, decision, threshold }) {
+  const forward = finiteMetric(getValue(group, "forward_ln_likelihood_bdm"));
+  const reverse = finiteMetric(getValue(group, "reverse_ln_likelihood_bdm"));
+  const delta = finiteMetric(getValue(group, "forward_minus_reverse_ln_likelihood_bdm", "delta_ln_likelihood", "delta_lnL", "delta_log_likelihood"));
+  const tied = forward != null && reverse != null && Math.abs(forward - reverse) < 1e-12;
+  const inputLeads = !tied && forward != null && reverse != null && forward > reverse;
+  const reverseLeads = !tied && forward != null && reverse != null && reverse > forward;
+  const distance = delta == null ? null : Math.abs(delta);
+  const gap = distance == null ? null : Math.max(0, threshold - distance);
+  const surplus = distance == null ? null : Math.max(0, distance - threshold);
+  const groupName = groupIdentity(group, index);
+  return (
+    <article className="hypothesis-comparison">
+      <div className="hypothesis-heading"><div><small>Array group {index + 1}</small><strong>{groupName}</strong></div><span className={"orientation-chip orientation-" + categoryClass(decision)}>{decision}</span></div>
+      <div className="hypothesis-pair" aria-label={"Likelihood comparison for " + groupName}>
+        <div className={"hypothesis-card hypothesis-input" + (inputLeads ? " is-leading" : "")}><span>Input spacer order</span><strong>{formatNumber(forward, 3)}</strong><small>BDM log likelihood</small></div>
+        <div className="hypothesis-versus"><span>vs</span><b>{delta == null ? "No delta" : "Delta " + signedNumber(delta, 2)}</b></div>
+        <div className={"hypothesis-card hypothesis-reverse" + (reverseLeads ? " is-leading" : "")}><span>Reversed spacer order</span><strong>{formatNumber(reverse, 3)}</strong><small>BDM log likelihood</small></div>
+      </div>
+      <div className={"decision-distance " + (decision === "Unresolved" ? "is-unresolved" : "is-decisive")}><span>{decision === "Unresolved" ? "Distance still needed" : "Boundary crossed by"}</span><strong>{formatNumber(decision === "Unresolved" ? gap : surplus, 2)} Delta lnL</strong><small>Decision boundary: +/-{formatNumber(threshold, 2)}</small></div>
+    </article>
   );
 }
 
@@ -592,13 +650,7 @@ function OrientationResults({ summary }) {
   const orientation = summary?.orientation || summary?.orientation_evidence;
   if (!orientation) return null;
   const directDelta = getValue(orientation, "delta_ln_likelihood", "delta_lnL", "delta_log_likelihood");
-  const comparisons = asArray(orientation.comparisons).length
-    ? asArray(orientation.comparisons)
-    : asArray(orientation.groups || summary.orientation_groups).length
-      ? asArray(orientation.groups || summary.orientation_groups)
-      : directDelta != null || orientation.decision
-        ? [{ group: "All eligible arrays", ...orientation }]
-        : [];
+  const comparisons = asArray(orientation.comparisons).length ? asArray(orientation.comparisons) : asArray(orientation.groups || summary.orientation_groups).length ? asArray(orientation.groups || summary.orientation_groups) : directDelta != null || orientation.decision ? [{ group: "All eligible arrays", ...orientation }] : [];
   const comparisonDecision = (item) => {
     const thresholdValue = Number(getValue(item, "confidence_threshold") ?? getValue(orientation, "confidence_threshold") ?? 5);
     const threshold = Number.isFinite(thresholdValue) && thresholdValue >= 0 ? thresholdValue : 5;
@@ -609,45 +661,186 @@ function OrientationResults({ summary }) {
   };
   const decisiveCount = comparisons.filter((item) => comparisonDecision(item).label !== "Unresolved").length;
   const treePolicy = orientation.tree_policy || "not_reported";
-  const treePolicyText = treePolicy === "estimated_separately"
-    ? "Input-order and reversed-order trees were estimated separately for each group. Both tree sets and the selected tree are retained in the result bundle."
-    : treePolicy === "provided_shared"
-      ? "Both order hypotheses were evaluated on the same operator-provided tree."
-      : "Consult the provenance manifest for the tree-estimation policy used.";
+  const treePolicyText = treePolicy === "estimated_separately" ? "Input-order and reversed-order trees were estimated separately for each group. The selected topology follows the supported hypothesis." : treePolicy === "provided_shared" ? "Both order hypotheses were evaluated on the same provided rooted tree." : "Consult the provenance manifest for the tree-estimation policy used.";
   return (
     <section className="result-section orientation-section" aria-labelledby="orientation-heading">
-      <div className="result-heading"><div><p className="eyebrow">Orientation evidence</p><h3 id="orientation-heading">{comparisons.length} group {comparisons.length === 1 ? "comparison" : "comparisons"}</h3></div><span className="orientation-chip">{decisiveCount} decisive · {comparisons.length - decisiveCount} unresolved</span></div>
+      <div className="result-heading"><div><p className="eyebrow">CRISPR-evOr hypothesis test</p><h3 id="orientation-heading">Which spacer order is better supported?</h3></div><span className="orientation-chip">{decisiveCount} decisive · {comparisons.length - decisiveCount} unresolved</span></div>
+      <p className="visual-intro">Each marker is the forward-minus-reverse BDM log-likelihood difference. The colored center band is deliberately inconclusive; a marker must cross a boundary before an orientation is assigned.</p>
+      {comparisons.length ? <><OrientationEvidencePlot comparisons={comparisons} decisionFor={comparisonDecision}/><div className="hypothesis-list">{comparisons.map((group, index) => { const result = comparisonDecision(group); return <HypothesisComparison key={groupIdentity(group, index)} group={group} index={index} decision={result.label} threshold={result.threshold}/>; })}</div></> : <div className="empty-result">No finite orientation comparison was produced.</div>}
       <div className="tree-policy"><span className="tree-glyph" aria-hidden="true">⑂</span><div><strong>Tree policy: {String(treePolicy).replaceAll("_", " ")}</strong><p>{treePolicyText}</p></div></div>
-      {comparisons.length ? <div className="orientation-group-list">{comparisons.map((group, index) => {
-        const delta = getValue(group, "forward_minus_reverse_ln_likelihood_bdm", "delta_ln_likelihood", "delta_lnL", "delta_log_likelihood");
-        const { label: decision, threshold } = comparisonDecision(group);
-        return <article className="orientation-group" key={group.group || group.group_id || group.id || index}><div className="orientation-group-head"><div><small>Array group</small><strong>{group.group || group.group_id || group.id || `Group ${index + 1}`}</strong></div><span className={`orientation-chip orientation-${categoryClass(decision)}`}>{decision}</span></div><DeltaBar value={delta} threshold={threshold}/><div className="likelihood-grid"><span>Input-order BDM lnL <b>{formatNumber(getValue(group, "forward_ln_likelihood_bdm"), 3)}</b></span><span>Reverse-order BDM lnL <b>{formatNumber(getValue(group, "reverse_ln_likelihood_bdm"), 3)}</b></span><span>ΔlnL <b>{formatNumber(delta, 3)}</b></span><span>Decision threshold <b>±{formatNumber(threshold, 3)}</b></span></div></article>;
-      })}</div> : <div className="empty-result">No finite orientation comparison was produced.</div>}
-      <div className="threshold-note"><Icon name="info" size={18}/><p><strong>Decision rule:</strong> ΔlnL = lnL(input order) − lnL(reverse input order). Values beyond the <strong>per-group threshold shown above</strong> support input or reverse input order; values at or within that threshold are unresolved. The threshold is an evidence rule, <strong>not a p-value or probability</strong>.</p></div>
+      <div className="threshold-note"><Icon name="info" size={18}/><p><strong>How to read this:</strong> positive Delta lnL favors the supplied spacer order and negative Delta lnL favors the reversed order. The threshold is an evidence rule, <strong>not a p-value or probability</strong>.</p></div>
     </section>
+  );
+}
+
+function parseNewickTree(value) {
+  const source = String(value || "").trim();
+  if (!source || source.length > 10000) return null;
+  let position = 0;
+  let nextId = 0;
+  const skip = () => { while (position < source.length && /\s/.test(source[position])) position += 1; };
+  const readLabel = (required) => {
+    skip();
+    const start = position;
+    while (position < source.length && /[A-Za-z0-9_.+|\-]/.test(source[position])) position += 1;
+    if (required && start === position) throw new Error("missing Newick label");
+    return source.slice(start, position);
+  };
+  const readLength = () => {
+    skip();
+    if (source[position] !== ":") return 0;
+    position += 1;
+    skip();
+    const start = position;
+    while (position < source.length && /[0-9eE+\-.]/.test(source[position])) position += 1;
+    const number = Number(source.slice(start, position));
+    if (!Number.isFinite(number) || number < 0) throw new Error("invalid Newick length");
+    return number;
+  };
+  const readNode = () => {
+    skip();
+    const node = { id: nextId++, name: "", length: 0, children: [] };
+    if (source[position] === "(") {
+      position += 1;
+      node.children.push(readNode());
+      while (true) { skip(); if (source[position] !== ",") break; position += 1; node.children.push(readNode()); }
+      skip();
+      if (source[position] !== ")" || node.children.length < 2) throw new Error("invalid Newick branch");
+      position += 1;
+      node.name = readLabel(false);
+    } else node.name = readLabel(true);
+    node.length = readLength();
+    return node;
+  };
+  try {
+    const root = readNode();
+    skip();
+    if (source[position] !== ";") return null;
+    position += 1;
+    skip();
+    return position === source.length ? root : null;
+  } catch { return null; }
+}
+
+function TreeGraphic({ newick, group }) {
+  const tree = useMemo(() => parseNewickTree(newick), [newick]);
+  if (!tree) return null;
+  const leaves = [];
+  const nodes = [];
+  const visit = (node, depth = 0, distance = 0) => {
+    node.depth = depth;
+    node.distance = distance;
+    nodes.push(node);
+    if (node.children.length) node.children.forEach((child) => visit(child, depth + 1, distance + child.length));
+    else leaves.push(node);
+  };
+  visit(tree);
+  const maxDepth = Math.max(1, ...nodes.map((node) => node.depth));
+  const maxDistance = Math.max(0, ...nodes.map((node) => node.distance));
+  const height = Math.max(170, leaves.length * 38 + 42);
+  const top = 21;
+  const bottom = height - 21;
+  leaves.forEach((leaf, index) => { leaf.y = leaves.length === 1 ? height / 2 : top + (index / (leaves.length - 1)) * (bottom - top); });
+  const placeInternal = (node) => {
+    if (!node.children.length) return node.y;
+    const ys = node.children.map(placeInternal);
+    node.y = ys.reduce((sum, value) => sum + value, 0) / ys.length;
+    return node.y;
+  };
+  placeInternal(tree);
+  nodes.forEach((node) => { const measure = maxDistance > 0 ? node.distance / maxDistance : node.depth / maxDepth; node.x = 25 + measure * 470; });
+  const edgeGroups = nodes.filter((node) => node.children.length);
+  return (
+    <div className="tree-graphic">
+      <div className="graphic-label"><span>Selected rooted tree</span><small>Branch lengths scaled when available</small></div>
+      <svg viewBox={"0 0 720 " + height} role="img" aria-label={"Selected SpacerPlacer tree for " + group + " with " + leaves.length + " leaves"}>
+        {edgeGroups.map((node) => { const ys = node.children.map((child) => child.y); return <g key={"edges-" + node.id}><line x1={node.x} x2={node.x} y1={Math.min(...ys)} y2={Math.max(...ys)} className="tree-line"/>{node.children.map((child) => <line key={"edge-" + child.id} x1={node.x} x2={child.x} y1={child.y} y2={child.y} className="tree-line"/>)}</g>; })}
+        {nodes.map((node) => <circle key={"node-" + node.id} cx={node.x} cy={node.y} r={node.children.length ? 3 : 4} className={node.children.length ? "tree-node" : "tree-leaf-node"}/>)}
+        {leaves.map((leaf) => <text key={"label-" + leaf.id} x={leaf.x + 10} y={leaf.y + 4} className="tree-leaf-label"><title>{leaf.name}</title>{leaf.name.length > 30 ? leaf.name.slice(0, 28) + "…" : leaf.name}</text>)}
+      </svg>
+    </div>
+  );
+}
+
+function selectedTree(summary, group) {
+  const entries = [...asArray(summary?.orientation?.trees), ...asArray(summary?.reconstruction?.trees)];
+  const entry = entries.find((item) => String(item?.group || item?.name) === String(group));
+  return entry?.selected_newick || entry?.newick || null;
+}
+
+function EventGlyph({ type }) {
+  return <i className={"event-glyph event-glyph-" + type} aria-hidden="true"/>;
+}
+
+function SpacerInventory({ row }) {
+  const unique = finiteMetric(getValue(row, "nb of unique spacers", "unique_spacers"));
+  const aligned = finiteMetric(getValue(row, "nb of spacers in alignment", "nb of spacers in model matrix", "alignment_spacers"));
+  const visible = Math.min(18, Math.max(0, Math.round(unique || 0)));
+  if (unique == null && aligned == null) return null;
+  return (
+    <div className="spacer-inventory">
+      <div className="graphic-label"><span>Spacer inventory</span><small>Count view, not branch placement</small></div>
+      <div className="spacer-blocks" role="img" aria-label={(unique == null ? "Unknown number of" : formatNumber(unique)) + " unique spacers in " + formatNumber(aligned) + " aligned spacer positions"}>{Array.from({ length: visible }, (_, index) => <i className={"spacer-block spacer-color-" + (index % 8)} key={index}><span>{index + 1}</span></i>)}{unique > visible && <b>+{formatNumber(unique - visible)}</b>}</div>
+      <div className="inventory-counts"><span><strong>{formatNumber(unique)}</strong> unique spacers</span><span><strong>{formatNumber(aligned)}</strong> aligned positions</span><span><strong>{formatNumber(getValue(row, "nb of leafs (after combining non-uniques)", "leaf_count"))}</strong> tree leaves</span><span><strong>{formatNumber(getValue(row, "nb of unique spacer arrays", "unique_arrays"))}</strong> unique array patterns</span></div>
+    </div>
+  );
+}
+
+function ModelSelectionGauge({ row }) {
+  const reportedStatistic = finiteMetric(getValue(row, "test_statistic (-2*ln_lh_ratio)", "likelihood_ratio_statistic"));
+  const statistic = Math.max(0, reportedStatistic ?? 0);
+  const cutoff = finiteMetric(getValue(row, "chi2_quantile", "model_selection_cutoff"));
+  const preferred = String(getValue(row, "Deletion model preferred by LRT", "preferred_model", "model_name", "model") || "not reported");
+  const extent = Math.max(1, cutoff ? cutoff * 1.45 : 0, statistic * 1.18);
+  const valuePosition = Math.min(100, (statistic / extent) * 100);
+  const cutoffPosition = cutoff == null ? null : Math.min(100, (cutoff / extent) * 100);
+  const aria = "Deletion model likelihood-ratio statistic " + formatNumber(statistic, 3) + (cutoff == null ? "" : ", cutoff " + formatNumber(cutoff, 3)) + ". Preferred model " + preferred + ".";
+  return (
+    <div className="model-selection">
+      <div className="graphic-label"><span>Deletion-pattern model</span><small>IDM versus BDM</small></div>
+      <div className="model-call"><strong>{preferred}</strong><span>{preferred === "BDM" ? "Block deletion model supported" : preferred === "IDM" ? "Independent deletion model retained" : "Reported model"}</span></div>
+      {reportedStatistic != null ? <><div className="model-gauge" role="img" aria-label={aria}><span className="model-gauge-fill" style={{ width: valuePosition + "%" }}/>{cutoffPosition != null && <i className="model-cutoff" style={{ left: cutoffPosition + "%" }}><b>LRT cutoff</b></i>}<i className="model-value" style={{ left: valuePosition + "%" }}/></div><div className="model-axis"><span>IDM retained</span><span>Evidence for BDM</span></div></> : <p className="model-unavailable">Likelihood-ratio statistic not reported.</p>}
+      <div className="model-likelihoods"><span>IDM lnL <b>{formatNumber(getValue(row, "ln_lh_idm"), 3)}</b></span><span>BDM lnL <b>{formatNumber(getValue(row, "ln_lh_bdm"), 3)}</b></span></div>
+    </div>
+  );
+}
+
+function ReconstructionEventGraphic({ row }) {
+  const acquisitions = Math.max(0, finiteMetric(getValue(row, "nb of reconstructed insertions", "gains", "insertions", "gain_events")) || 0);
+  const deletions = Math.max(0, finiteMetric(getValue(row, "nb of reconstructed deletions", "deletions", "losses", "deletion_events")) || 0);
+  const total = acquisitions + deletions;
+  const acquisitionWidth = total ? (acquisitions / total) * 100 : 50;
+  const deletionWidth = total ? 100 - acquisitionWidth : 50;
+  const specials = [["duplication", "Duplications", getValue(row, "nb of reconstructed duplications", "duplications")], ["rearrangement", "Rearrangements", getValue(row, "nb of reconstructed rearrangements", "rearrangements")], ["reacquisition", "Reacquisitions", getValue(row, "nb of reconstructed reacquisitions", "reacquisitions")], ["independent", "Independent gains", getValue(row, "nb of reconstructed independent gains", "independent_gains")]].filter(([, , value]) => finiteMetric(value) != null);
+  return (
+    <div className="event-graphic">
+      <div className="graphic-label"><span>Reconstructed branch events</span><small>Selected ancestral history</small></div>
+      <div className="event-ribbon" role="img" aria-label={"Reconstructed event tally: " + formatNumber(acquisitions) + " acquisitions and " + formatNumber(deletions) + " deletions"}><span className="event-ribbon-gains" style={{ width: acquisitionWidth + "%" }}><EventGlyph type="acquisition"/><b>{formatNumber(acquisitions)}</b><small>acquisitions</small></span><span className="event-ribbon-losses" style={{ width: deletionWidth + "%" }}><EventGlyph type="deletion"/><b>{formatNumber(deletions)}</b><small>deletions</small></span></div>
+      {specials.length > 0 && <div className="special-event-grid">{specials.map(([type, label, value]) => <span key={type}><EventGlyph type={type}/><b>{formatNumber(value)}</b><small>{label}</small></span>)}</div>}
+      <p>The native SpacerPlacer grammar is preserved: rounded green marks denote acquisitions, red outlined blocks denote deletions, and distinct shapes flag special acquisition events.</p>
+    </div>
   );
 }
 
 function ReconstructionResults({ summary }) {
   const reconstruction = summary?.reconstruction || summary?.spacerplacer;
   const orientation = summary?.orientation;
-  const rows = asArray(orientation?.selected_reconstructions).length
-    ? asArray(orientation.selected_reconstructions)
-    : asArray(reconstruction?.results).length
-      ? asArray(reconstruction.results)
-      : reconstruction?.selected_model
-        ? [reconstruction.selected_model]
-        : [];
+  const rows = asArray(orientation?.selected_reconstructions).length ? asArray(orientation.selected_reconstructions) : asArray(reconstruction?.results).length ? asArray(reconstruction.results) : reconstruction?.selected_model ? [reconstruction.selected_model] : [];
   if (!rows.length) return null;
   const treePolicy = orientation?.tree_policy || reconstruction?.tree_policy || summary?.pipeline?.stages?.spacerplacer?.tree_source || "not_reported";
   const deletionCount = (row) => getValue(row, "nb of reconstructed deletions", "deletions", "losses", "deletion_events");
-  const noDeletionGroups = rows.filter((row) => Number(deletionCount(row)) === 0).map((row, index) => row.name || row.group || `Group ${index + 1}`);
+  const noDeletionGroups = rows.filter((row) => Number(deletionCount(row)) === 0).map((row, index) => row.name || row.group || "Group " + (index + 1));
   return (
-    <section className="result-section" aria-labelledby="reconstruction-heading">
-      <div className="result-heading"><div><p className="eyebrow">Selected SpacerPlacer reconstruction</p><h3 id="reconstruction-heading">Ancestral spacer history</h3></div><p>Reported for the selected reconstruction, not every fitted candidate model.</p></div>
-      <div className="table-wrap reconstruction-table"><table><thead><tr><th>Group</th><th>Preferred deletion model</th><th>BDM lnL</th><th>Insertions</th><th>Deletions</th><th>BDM deletion rate</th><th>Runtime</th></tr></thead><tbody>{rows.map((row, index) => <tr key={row.name || row.group || index}><td><strong>{row.name || row.group || `Group ${index + 1}`}</strong></td><td>{getValue(row, "Deletion model preferred by LRT", "preferred_model", "model_name", "model") || "—"}</td><td>{formatNumber(getValue(row, "ln_lh_bdm", "log_likelihood", "ln_likelihood", "lnL"), 3)}</td><td>{formatNumber(getValue(row, "nb of reconstructed insertions", "gains", "insertions", "gain_events"))}</td><td>{formatNumber(deletionCount(row))}</td><td>{formatNumber(getValue(row, "deletion_rate_bdm", "deletion_rate", "loss_rate"), 4)}</td><td>{formatDuration(getValue(row, "run_time", "runtime_seconds", "duration_seconds"))}</td></tr>)}</tbody></table></div>
-      <div className="tree-policy"><span className="tree-glyph" aria-hidden="true">⑂</span><div><strong>Tree policy used: {String(treePolicy).replaceAll("_", " ")}</strong><p>Branch lengths, model choice, and ancestral states are reconstruction-dependent. In orientation mode this table is the reconstruction selected after the input/reverse comparison.</p></div></div>
-      {noDeletionGroups.length > 0 && <div className="warning-note"><Icon name="warning"/><p><strong>No deletion events were reconstructed for {noDeletionGroups.join(", ")}.</strong> Deletion-rate estimates, model comparisons, and orientation evidence may not be meaningful for those groups; inspect the array alignment and detailed outputs.</p></div>}
+    <section className="result-section reconstruction-section" aria-labelledby="reconstruction-heading">
+      <div className="result-heading"><div><p className="eyebrow">SpacerPlacer selected reconstruction</p><h3 id="reconstruction-heading">How the spacer arrays changed</h3></div><p>The chosen ancestral history is shown as events, spacer diversity, model evidence, and the selected rooted tree when available.</p></div>
+      <div className="tree-policy"><span className="tree-glyph" aria-hidden="true">⑂</span><div><strong>Tree policy used: {String(treePolicy).replaceAll("_", " ")}</strong><p>In orientation mode, every graphic below belongs to the reconstruction selected after the input-versus-reverse comparison.</p></div></div>
+      <div className="reconstruction-story-list">{rows.map((row, index) => {
+        const group = String(row.name || row.group || "Group " + (index + 1));
+        const tree = selectedTree(summary, group);
+        return <article className="reconstruction-story" key={group}><div className="reconstruction-story-heading"><div><small>Reconstructed group {index + 1}</small><h4>{group}</h4></div><span>{formatNumber(getValue(row, "nb of leafs (after combining non-uniques)", "leaf_count"))} leaves</span></div>{tree && <TreeGraphic newick={tree} group={group}/>}<div className="reconstruction-visual-grid"><ReconstructionEventGraphic row={row}/><ModelSelectionGauge row={row}/></div><SpacerInventory row={row}/></article>;
+      })}</div>
+      <details className="reconstruction-values"><summary>Exact SpacerPlacer estimates and runtime</summary><div className="table-wrap reconstruction-table"><table><thead><tr><th>Group</th><th>Preferred deletion model</th><th>BDM lnL</th><th>Insertions</th><th>Deletions</th><th>BDM deletion rate</th><th>Runtime</th></tr></thead><tbody>{rows.map((row, index) => <tr key={row.name || row.group || index}><td><strong>{row.name || row.group || "Group " + (index + 1)}</strong></td><td>{getValue(row, "Deletion model preferred by LRT", "preferred_model", "model_name", "model") || "—"}</td><td>{formatNumber(getValue(row, "ln_lh_bdm", "log_likelihood", "ln_likelihood", "lnL"), 3)}</td><td>{formatNumber(getValue(row, "nb of reconstructed insertions", "gains", "insertions", "gain_events"))}</td><td>{formatNumber(deletionCount(row))}</td><td>{formatNumber(getValue(row, "deletion_rate_bdm", "deletion_rate", "loss_rate"), 4)}</td><td>{formatDuration(getValue(row, "run_time", "runtime_seconds", "duration_seconds"))}</td></tr>)}</tbody></table></div></details>
+      {noDeletionGroups.length > 0 && <div className="warning-note"><Icon name="warning"/><p><strong>No deletion events were reconstructed for {noDeletionGroups.join(", ")}.</strong> Deletion-rate estimates, model comparisons, and orientation evidence may not be meaningful for those groups; inspect the detailed outputs.</p></div>}
     </section>
   );
 }

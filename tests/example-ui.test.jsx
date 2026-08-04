@@ -107,7 +107,7 @@ describe("one-click reproducible analysis example", () => {
     expect(screen.getByRole("heading", { name: /What reached the model/i })).toBeInTheDocument();
     expect(screen.getAllByRole("img", { name: /Delta log likelihood/i }).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole("heading", { name: /CRISPRidentify categories/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /Ancestral spacer history/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /How the spacer arrays changed/i })).toBeInTheDocument();
     expect(document.querySelector(".example-overview")).not.toBeInTheDocument();
     expect(document.querySelector(".example-export")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Masked example FASTA/i })).not.toBeInTheDocument();
