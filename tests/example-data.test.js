@@ -25,9 +25,9 @@ describe("masked stored-input/precomputed-output contract", () => {
     expect(validateExampleSnapshot(snapshot)).toBe(snapshot);
     await expect(validateExampleInput(snapshot, fasta)).resolves.toMatchObject({ snapshot });
     const inspection = inspectFasta(fasta);
-    expect(inspection).toMatchObject({ valid: true, recordCount: 11, baseCount: 9_598 });
+    expect(inspection).toMatchObject({ valid: true, recordCount: 5, baseCount: 8_380 });
     expect(createHash("sha256").update(fasta).digest("hex")).toBe(snapshot.example.input.file_sha256);
-    expect(snapshot.example.input.normalized_sha256).toBe("45a36a7b7d326b02a5c7361ccb66ded6f5ef568423fb77967a8857d65d820c95");
+    expect(snapshot.example.input.normalized_sha256).toBe("7657eff497d8ef6b4e5e97dda849f0f60a4488001b52e8201381bba91c6556e5");
     expect(EXAMPLE_RESULT_PATH).toBe("example-result.json");
     expect(existsSync(resolve(publicRoot, EXAMPLE_RESULT_PATH))).toBe(true);
     expect(existsSync(resolve(publicRoot, "obsolete-example-result.json"))).toBe(false);
@@ -40,7 +40,7 @@ describe("masked stored-input/precomputed-output contract", () => {
     const mainComparison = orientation.comparisons.find((row) => row.group === findings.orientation.group);
     expect(findings.detection.arrays).toBe(detection.array_count);
     expect(findings.detection.bona_fide).toBe(detection.category_counts["Bona-fide"]);
-    expect(findings.detection.possible).toBe(detection.category_counts.Possible);
+    expect(findings.detection.possible).toBe(detection.category_counts.Possible ?? 0);
     expect(findings.preflight.modeled_arrays).toBe(adapter.emitted_array_count);
     expect(findings.preflight.eligible_groups).toBe(adapter.emitted_group_count);
     expect(findings.preflight.excluded_arrays).toBe(adapter.skipped_array_count);
@@ -48,19 +48,23 @@ describe("masked stored-input/precomputed-output contract", () => {
     expect(findings.reconstruction.deletions).toBe(mainReconstruction["nb of reconstructed deletions"]);
     expect(findings.reconstruction.duplications).toBe(mainReconstruction["nb of reconstructed duplications"]);
     expect(findings.orientation.delta_ln_likelihood).toBe(mainComparison.forward_minus_reverse_ln_likelihood_bdm);
-    expect(Math.abs(findings.orientation.delta_ln_likelihood)).toBeLessThan(findings.orientation.confidence_threshold);
-    expect(findings.orientation.decision).toBe("Unresolved");
+    expect(Math.abs(findings.orientation.delta_ln_likelihood)).toBeGreaterThan(findings.orientation.confidence_threshold);
+    expect(findings.orientation.decision).toBe("Input order supported");
+    const mainGroup = adapter.groups.find((row) => row.name === findings.orientation.group);
+    expect(mainGroup.arrays).toHaveLength(5);
+    expect(mainGroup.arrays.map((row) => row.source_id)).toEqual(snapshot.example.records.map((row) => row.record_id));
+    expect(mainGroup.repeat_key).toMatch(/^[ACGT]+$/);
   });
 
   it("publishes only ordered masked record identifiers", () => {
     const inspection = inspectFasta(fasta);
-    const expectedIds = ["example_record_01", "example_record_02", "example_record_03", "example_record_04", "example_record_05", "example_record_06", "example_record_07", "example_record_08", "example_record_09", "example_record_10", "example_record_11"];
+    const expectedIds = ["example_record_01", "example_record_02", "example_record_03", "example_record_04", "example_record_05"];
     expect(inspection.records.map((record) => record.identifier)).toEqual(expectedIds);
     expect(snapshot.example.records.map((record) => record.record_id)).toEqual(expectedIds);
     expect(snapshot.job.summary.detection.arrays.map((record) => record.source_id)).toEqual(expectedIds);
     expect(snapshot.example.records.every((record) => Object.keys(record).every((key) => ["record_id", "sequence_length", "source_array_orientation", "expected_spacer_count"].includes(key)))).toBe(true);
     expect(snapshot.example.records.reduce((sum, record) => sum + record.sequence_length, 0)).toBe(inspection.baseCount);
-    expect(JSON.stringify(snapshot)).not.toMatch(/(?:CP|FR)\d{6}|ncbi\.nlm\.nih\.gov/i);
+    expect(JSON.stringify(snapshot)).not.toMatch(/(?:CP|FR|LN|LR|AP)\d{6}|ncbi\.nlm\.nih\.gov/i);
   });
 
   it("fails closed for byte changes, normalized changes, credentials, and inconsistent claims", async () => {
@@ -77,5 +81,8 @@ describe("masked stored-input/precomputed-output contract", () => {
     const changedClaim = clone(snapshot);
     changedClaim.example.findings.reconstruction.insertions += 1;
     expect(() => validateExampleSnapshot(changedClaim)).toThrow(/incomplete or incompatible/i);
+    const weakenedDecision = clone(snapshot);
+    weakenedDecision.job.summary.orientation.comparisons[0].decisive = false;
+    expect(() => validateExampleSnapshot(weakenedDecision)).toThrow(/incomplete or incompatible/i);
   });
 });

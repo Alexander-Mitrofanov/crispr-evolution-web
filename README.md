@@ -4,9 +4,9 @@ Static React frontend for the public CRISPRidentify v2, SpacerPlacer, and CRISPR
 
 ## Built-in example
 
-“Run example” fetches `public/example-input.fasta` and `public/example-result.json`. The FASTA uses the neutral headers `example_record_01` through `example_record_11`; the result omits organism, strain, accession, coordinate, and source-record identity.
+“Run example” fetches `public/example-input.fasta` and `public/example-result.json`. The FASTA contains five spacer-rich records using the neutral headers `example_record_01` through `example_record_05`; the result omits organism, strain, accession, coordinate, and source-record identity.
 
-The browser verifies raw and normalized SHA-256 bindings and initially only copies the masked FASTA into the text field. When the user presses “Compute,” the exact input and recorded options reveal the matching cached four-stage result locally. Loading and computing the unchanged example submit no API request, create no job, and consume no analysis-worker compute; edited input or options use the normal server path.
+The browser verifies raw and normalized SHA-256 bindings and initially only copies the masked FASTA into the text field. When the user presses “Compute,” the exact input and recorded options reveal the matching cached four-stage result locally. Loading and computing the unchanged example submit no API request, create no job, and consume no analysis-worker compute; edited input or options use the normal server path. The selected example forms one exact repeat group, reconstructs 42 acquisitions and 4 deletions, and crosses the evOr evidence boundary decisively (Delta lnL +15.50).
 
 ## Development
 

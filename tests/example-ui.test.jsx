@@ -46,7 +46,7 @@ describe("one-click reproducible analysis example", () => {
     expect(submitSpy).not.toHaveBeenCalled();
     expect(onSubmitted).not.toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(inspectFasta(input.value)).toMatchObject({ valid: true, recordCount: 11, baseCount: 9_598 });
+    expect(inspectFasta(input.value)).toMatchObject({ valid: true, recordCount: 5, baseCount: 8_380 });
     expect(screen.getByText("masked-example-input.fasta")).toBeInTheDocument();
     expect(document.getElementById("edit-distance")).toHaveTextContent("1");
     expect(screen.getByRole("radio", { name: /Orientation-aware evolution/i })).toBeChecked();
@@ -103,11 +103,16 @@ describe("one-click reproducible analysis example", () => {
 
     expect(screen.getByText("Analysis result")).toBeInTheDocument();
     expect(screen.getByText("Completed")).toBeInTheDocument();
-    expect(screen.getAllByText(/example_record_/).length).toBeGreaterThanOrEqual(11);
+    expect(screen.getAllByText(/example_record_/).length).toBeGreaterThanOrEqual(5);
     expect(screen.getByRole("heading", { name: /What reached the model/i })).toBeInTheDocument();
     expect(screen.getAllByRole("img", { name: /Delta log likelihood/i }).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole("heading", { name: /CRISPRidentify categories/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /How the spacer arrays changed/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /How detections became evolutionary evidence/i })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Canonical repeat CGGTTCATCCCCACGCATGTGGGGAACAC/i })).toBeInTheDocument();
+    expect(screen.getAllByText("Input order supported").length).toBeGreaterThan(0);
+    expect(screen.getByText("46 inferred changes")).toBeInTheDocument();
+    expect(screen.getByText("42 acquisitions · 4 deletions")).toBeInTheDocument();
     expect(document.querySelector(".example-overview")).not.toBeInTheDocument();
     expect(document.querySelector(".example-export")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Masked example FASTA/i })).not.toBeInTheDocument();

@@ -2,7 +2,7 @@ import { inspectFasta } from "./fasta.js";
 
 export const EXAMPLE_FASTA_PATH = "example-input.fasta";
 export const EXAMPLE_RESULT_PATH = "example-result.json";
-export const EXAMPLE_SCHEMA_VERSION = "1.1.0";
+export const EXAMPLE_SCHEMA_VERSION = "1.2.0";
 
 const SHA256_HEX = /^[0-9a-f]{64}$/;
 const MASKED_RECORD_ID = /^example_record_\d{2}$/;
@@ -21,7 +21,7 @@ const FORBIDDEN_KEYS = new Set([
   "token_digest",
 ]);
 const DNA_ONLY = /^[ACGTRYSWKMBDHVN]+$/i;
-const FORBIDDEN_IDENTITY = /(?:CP|FR)\d{6}/i;
+const FORBIDDEN_IDENTITY = /(?:CP|FR|LN|LR|AP)\d{6}/i;
 
 function fail(message = "The example result is incomplete or incompatible with this interface.") {
   throw new Error(message);
@@ -99,10 +99,15 @@ function validateTeachingClaims(example, job) {
   const adapter = summary.adapter;
   const comparisons = summary.orientation.comparisons;
   const reconstructions = summary.orientation.selected_reconstructions;
+  const detectedSpacerCounts = detection.arrays.map((item) => Number(item.spacer_count));
+  const detectedSources = new Set(detection.arrays.map((item) => String(item.source_id)));
+  const observedSpacerRange = [Math.min(...detectedSpacerCounts), Math.max(...detectedSpacerCounts)];
   if (
     findings.detection.arrays !== detection.array_count
-    || findings.detection.bona_fide !== detection.category_counts?.["Bona-fide"]
-    || findings.detection.possible !== detection.category_counts?.Possible
+    || findings.detection.bona_fide !== (detection.category_counts?.["Bona-fide"] ?? 0)
+    || findings.detection.possible !== (detection.category_counts?.Possible ?? 0)
+    || findings.detection.spacer_count_range?.[0] !== observedSpacerRange[0]
+    || findings.detection.spacer_count_range?.[1] !== observedSpacerRange[1]
     || findings.preflight.modeled_arrays !== adapter.emitted_array_count
     || findings.preflight.eligible_groups !== adapter.emitted_group_count
     || findings.preflight.excluded_arrays !== adapter.skipped_array_count
@@ -110,20 +115,42 @@ function validateTeachingClaims(example, job) {
     || comparisons.length < 1
     || !Array.isArray(reconstructions)
     || reconstructions.length < 1
+    || !Array.isArray(adapter.groups)
   ) fail();
   comparisons.forEach(validateComparison);
   const mainComparison = comparisons.find((item) => item.group === findings.orientation.group);
   const mainReconstruction = reconstructions.find((item) => item.name === findings.reconstruction.group);
+  const mainGroup = adapter.groups.find((item) => item.name === findings.orientation.group);
+  const delta = Number(mainComparison?.forward_minus_reverse_ln_likelihood_bdm);
+  const threshold = Number(mainComparison?.confidence_threshold);
+  const expectedDecision = delta > threshold
+    ? "Input order supported"
+    : delta < -threshold
+      ? "Reverse input order supported"
+      : "Unresolved";
   if (
     !mainComparison
     || !mainReconstruction
+    || !mainGroup
+    || findings.reconstruction.group !== findings.orientation.group
     || findings.orientation.delta_ln_likelihood !== mainComparison.forward_minus_reverse_ln_likelihood_bdm
     || findings.orientation.confidence_threshold !== mainComparison.confidence_threshold
-    || findings.orientation.decision !== "Unresolved"
-    || Math.abs(Number(findings.orientation.delta_ln_likelihood)) >= Number(findings.orientation.confidence_threshold)
+    || findings.orientation.decision !== expectedDecision
+    || expectedDecision === "Unresolved"
+    || mainComparison.decisive !== true
+    || Math.abs(delta) <= threshold
+    || !Array.isArray(mainGroup.arrays)
+    || mainGroup.arrays.length !== mainGroup.array_count
+    || mainGroup.arrays.length !== findings.reconstruction.array_count
+    || mainGroup.arrays.some((item) => !detectedSources.has(String(item.source_id)))
+    || mainGroup.arrays_truncated !== false
+    || typeof mainGroup.repeat_key !== "string"
+    || !mainGroup.repeat_key
+    || findings.reconstruction.unique_spacers !== mainReconstruction["nb of unique spacers"]
     || findings.reconstruction.insertions !== mainReconstruction["nb of reconstructed insertions"]
     || findings.reconstruction.deletions !== mainReconstruction["nb of reconstructed deletions"]
     || findings.reconstruction.duplications !== mainReconstruction["nb of reconstructed duplications"]
+    || findings.reconstruction.preferred_deletion_model !== mainReconstruction["Deletion model preferred by LRT"]
   ) fail();
 }
 

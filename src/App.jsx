@@ -99,6 +99,66 @@ function getValue(source, ...keys) {
   return null;
 }
 
+const MAX_ADAPTER_MANIFEST_BYTES = 1_000_000;
+
+function safeManifestText(value, maxLength = 240) {
+  if (value == null) return null;
+  const text = String(value).trim();
+  return text ? text.slice(0, maxLength) : null;
+}
+
+function safeManifestCount(value) {
+  const number = Number(value);
+  return Number.isInteger(number) && number >= 0 && number <= 100_000 ? number : null;
+}
+
+function sanitizeAdapterMembership(document) {
+  if (!document || typeof document !== "object" || Array.isArray(document)) return [];
+  return asArray(document.groups).slice(0, 100).map((group) => {
+    if (!group || typeof group !== "object" || Array.isArray(group)) return null;
+    const name = safeManifestText(group.name);
+    if (!name) return null;
+    const rawArrays = asArray(group.arrays);
+    const arrays = rawArrays.slice(0, 200).map((array) => {
+      if (!array || typeof array !== "object" || Array.isArray(array)) return null;
+      return {
+        source_id: safeManifestText(array.source_id) || "unknown",
+        array_id: safeManifestText(array.array_id) || "unknown",
+        category: safeManifestText(array.category, 80) || "unknown",
+        spacer_count: safeManifestCount(array.spacer_count),
+        strand: safeManifestText(array.strand, 32) || "unknown",
+        input_sequence_orientation: safeManifestText(array.input_sequence_orientation, 32) || "unknown",
+        ccdb_strand: safeManifestText(array.ccdb_strand, 32) || "unknown",
+      };
+    }).filter(Boolean);
+    return {
+      name,
+      array_count: safeManifestCount(group.array_count),
+      repeat_key: safeManifestText(group.repeat_key, 512),
+      arrays,
+      arrays_truncated: rawArrays.length > arrays.length,
+    };
+  }).filter(Boolean);
+}
+
+function adapterHasMembership(summary) {
+  const groups = asArray(summary?.adapter?.groups);
+  return groups.length > 0 && groups.every((group) => Number(group?.array_count) === 0 || asArray(group?.arrays).length > 0);
+}
+
+function mergeAdapterMembership(summary, membershipGroups) {
+  if (!membershipGroups?.length || adapterHasMembership(summary)) return summary;
+  const adapter = summary?.adapter;
+  if (!adapter || typeof adapter !== "object") return summary;
+  const membershipByName = new Map(membershipGroups.map((group) => [String(group.name), group]));
+  const summaryGroups = asArray(adapter.groups);
+  const groups = summaryGroups.length ? summaryGroups.map((group) => {
+    const membership = membershipByName.get(String(group?.name));
+    return membership ? { ...group, repeat_key: group?.repeat_key || membership.repeat_key, arrays: membership.arrays, arrays_truncated: membership.arrays_truncated } : group;
+  }) : membershipGroups;
+  return { ...summary, adapter: { ...adapter, groups } };
+}
+
 function statusCopy(status) {
   return {
     queued: "Queued",
@@ -587,6 +647,63 @@ function groupIdentity(item, index) {
   return String(item?.group || item?.name || item?.group_id || item?.id || "group_" + (index + 1));
 }
 
+function comparisonDecisionFor(item, orientation = {}) {
+  const thresholdValue = Number(getValue(item, "confidence_threshold") ?? getValue(orientation, "confidence_threshold") ?? 5);
+  const threshold = Number.isFinite(thresholdValue) && thresholdValue >= 0 ? thresholdValue : 5;
+  const delta = Number(getValue(item, "forward_minus_reverse_ln_likelihood_bdm", "delta_ln_likelihood", "delta_lnL", "delta_log_likelihood"));
+  const inferred = Number.isFinite(delta) && delta > threshold ? "input" : Number.isFinite(delta) && delta < -threshold ? "reverse" : "unresolved";
+  if (item?.decisive === false) return { label: "Unresolved", threshold };
+  return { label: orientationLabel(item?.prediction || item?.decision || item?.orientation || inferred), threshold };
+}
+
+function RepeatSequence({ value }) {
+  const bases = String(value || "").slice(0, 120);
+  if (!bases) return <span className="repeat-unavailable">Canonical repeat not reported</span>;
+  return <span className="repeat-sequence" role="img" aria-label={"Canonical repeat " + bases}>{[...bases].map((base, index) => <i className={"repeat-base repeat-base-" + base.toLowerCase()} key={index}>{base}</i>)}</span>;
+}
+
+function MiniSpacerArray({ count }) {
+  const total = safeManifestCount(count) ?? 0;
+  const visible = Math.min(22, total);
+  return <span className="mini-spacer-array" role="img" aria-label={formatNumber(total) + " detected spacers"}>{Array.from({ length: visible }, (_, index) => <i className={"spacer-color-" + (index % 8)} key={index}/>)}{total > visible && <b>+{total - visible}</b>}</span>;
+}
+
+function EvolutionaryGroupMap({ summary, membershipStatus = "inline" }) {
+  const groups = asArray(summary?.adapter?.groups);
+  if (!groups.length) return null;
+  const orientation = summary?.orientation || summary?.orientation_evidence || {};
+  const comparisons = asArray(orientation.comparisons || orientation.groups || summary?.orientation_groups);
+  const reconstruction = summary?.reconstruction || summary?.spacerplacer || {};
+  const reconstructions = asArray(orientation.selected_reconstructions).length ? asArray(orientation.selected_reconstructions) : asArray(reconstruction.results);
+  const comparisonByGroup = new Map(comparisons.map((item, index) => [groupIdentity(item, index), item]));
+  const reconstructionByGroup = new Map(reconstructions.map((item, index) => [groupIdentity(item, index), item]));
+  return (
+    <section className="result-section group-map-section" aria-labelledby="group-map-heading">
+      <div className="result-heading"><div><p className="eyebrow">Connected evidence</p><h3 id="group-map-heading">How detections became evolutionary evidence</h3></div><p>Follow each exact CRISPRidentify call through its shared canonical repeat into the evOr comparison and selected SpacerPlacer history.</p></div>
+      <div className="group-bridge-list">{groups.map((group, index) => {
+        const groupName = groupIdentity(group, index);
+        const members = asArray(group?.arrays);
+        const comparison = comparisonByGroup.get(groupName);
+        const selected = reconstructionByGroup.get(groupName);
+        const decision = comparison ? comparisonDecisionFor(comparison, orientation) : null;
+        const delta = finiteMetric(getValue(comparison, "forward_minus_reverse_ln_likelihood_bdm", "delta_ln_likelihood", "delta_lnL", "delta_log_likelihood"));
+        const acquisitions = finiteMetric(getValue(selected, "nb of reconstructed insertions", "gains", "insertions", "gain_events"));
+        const deletions = finiteMetric(getValue(selected, "nb of reconstructed deletions", "deletions", "losses", "deletion_events"));
+        const uniqueSpacers = finiteMetric(getValue(selected, "nb of unique spacers", "unique_spacers"));
+        return <article className={"group-bridge group-tone-" + (index % 4)} key={groupName}>
+          <div className="group-bridge-heading"><div><small>Evolutionary group {index + 1}</small><strong>{formatNumber(group?.array_count ?? members.length)} connected arrays</strong></div><code title={groupName}>{groupName}</code></div>
+          <div className="repeat-band"><span>Grouping key · canonical repeat</span><RepeatSequence value={group?.repeat_key}/></div>
+          <div className="group-bridge-flow">
+            <div className="group-members"><div className="flow-label"><span>1</span><strong>CRISPRidentify detections</strong></div>{members.length ? <div className="group-member-list">{members.map((member, memberIndex) => <div className="group-member" key={String(member?.source_id) + ":" + String(member?.array_id) + ":" + memberIndex}><div><strong>{member?.source_id || "Unknown record"}</strong><small>{member?.array_id || "Unknown array"}</small></div><span className={"category-pill category-" + categoryClass(member?.category)}>{member?.category || "Unclassified"}</span><span className="member-strand">strand {member?.strand || "?"}</span><MiniSpacerArray count={member?.spacer_count}/></div>)}</div> : <div className="membership-pending">{membershipStatus === "loading" ? "Loading exact group members…" : "Exact member mapping was not available in this completed result."}</div>}</div>
+            <div className="group-connector" aria-hidden="true"><span>2</span><i/><strong>same repeat<br/>shared spacers</strong><b>→</b></div>
+            <div className="group-outcomes"><div className="flow-label"><span>3</span><strong>Evolutionary results</strong></div><div className="outcome-card outcome-evor"><small>CRISPR-evOr orientation</small>{decision ? <><strong>{decision.label}</strong><span>Δ lnL {signedNumber(delta, 2)} · boundary ±{formatNumber(decision.threshold, 2)}</span></> : <strong>Not evaluated</strong>}</div><div className="outcome-card outcome-spacerplacer"><small>SpacerPlacer selected history</small>{selected ? <><strong>{formatNumber(acquisitions)} acquisitions · {formatNumber(deletions)} deletions</strong><span>{formatNumber(uniqueSpacers)} unique spacers reconstructed</span></> : <strong>Not reconstructed</strong>}</div></div>
+          </div>
+        </article>;
+      })}</div>
+    </section>
+  );
+}
+
 function OrientationEvidencePlot({ comparisons, decisionFor }) {
   const values = comparisons.map((item) => ({
     item,
@@ -606,7 +723,7 @@ function OrientationEvidencePlot({ comparisons, decisionFor }) {
         const rightBoundary = position(threshold);
         const marker = position(delta || 0);
         const aria = delta == null ? "No finite delta log likelihood was reported for " + group : "Delta log likelihood " + delta.toFixed(2) + " for " + group + ". Values from minus " + threshold + " through plus " + threshold + " are unresolved.";
-        return <div className="orientation-plot-row" key={group}>
+        return <div className={"orientation-plot-row group-tone-" + (index % 4)} key={group}>
           <div className="orientation-plot-label"><strong>Group {index + 1}</strong><code title={group}>{group}</code></div>
           <div className="orientation-axis" role="img" aria-label={aria}>
             <span className="orientation-zone orientation-zone-reverse" style={{ width: leftBoundary + "%" }}/>
@@ -634,7 +751,7 @@ function HypothesisComparison({ group, index, decision, threshold }) {
   const surplus = distance == null ? null : Math.max(0, distance - threshold);
   const groupName = groupIdentity(group, index);
   return (
-    <article className="hypothesis-comparison">
+    <article className={"hypothesis-comparison group-tone-" + (index % 4)}>
       <div className="hypothesis-heading"><div><small>Array group {index + 1}</small><strong>{groupName}</strong></div><span className={"orientation-chip orientation-" + categoryClass(decision)}>{decision}</span></div>
       <div className="hypothesis-pair" aria-label={"Likelihood comparison for " + groupName}>
         <div className={"hypothesis-card hypothesis-input" + (inputLeads ? " is-leading" : "")}><span>Input spacer order</span><strong>{formatNumber(forward, 3)}</strong><small>BDM log likelihood</small></div>
@@ -651,14 +768,7 @@ function OrientationResults({ summary }) {
   if (!orientation) return null;
   const directDelta = getValue(orientation, "delta_ln_likelihood", "delta_lnL", "delta_log_likelihood");
   const comparisons = asArray(orientation.comparisons).length ? asArray(orientation.comparisons) : asArray(orientation.groups || summary.orientation_groups).length ? asArray(orientation.groups || summary.orientation_groups) : directDelta != null || orientation.decision ? [{ group: "All eligible arrays", ...orientation }] : [];
-  const comparisonDecision = (item) => {
-    const thresholdValue = Number(getValue(item, "confidence_threshold") ?? getValue(orientation, "confidence_threshold") ?? 5);
-    const threshold = Number.isFinite(thresholdValue) && thresholdValue >= 0 ? thresholdValue : 5;
-    const delta = Number(getValue(item, "forward_minus_reverse_ln_likelihood_bdm", "delta_ln_likelihood", "delta_lnL", "delta_log_likelihood"));
-    const inferred = Number.isFinite(delta) && delta > threshold ? "input" : Number.isFinite(delta) && delta < -threshold ? "reverse" : "unresolved";
-    if (item.decisive === false) return { label: "Unresolved", threshold };
-    return { label: orientationLabel(item.prediction || item.decision || item.orientation || inferred), threshold };
-  };
+  const comparisonDecision = (item) => comparisonDecisionFor(item, orientation);
   const decisiveCount = comparisons.filter((item) => comparisonDecision(item).label !== "Unresolved").length;
   const treePolicy = orientation.tree_policy || "not_reported";
   const treePolicyText = treePolicy === "estimated_separately" ? "Input-order and reversed-order trees were estimated separately for each group. The selected topology follows the supported hypothesis." : treePolicy === "provided_shared" ? "Both order hypotheses were evaluated on the same provided rooted tree." : "Consult the provenance manifest for the tree-estimation policy used.";
@@ -772,6 +882,16 @@ function EventGlyph({ type }) {
   return <i className={"event-glyph event-glyph-" + type} aria-hidden="true"/>;
 }
 
+function SpacerPlacerVerdict({ row }) {
+  const acquisitions = Math.max(0, finiteMetric(getValue(row, "nb of reconstructed insertions", "gains", "insertions", "gain_events")) || 0);
+  const deletions = Math.max(0, finiteMetric(getValue(row, "nb of reconstructed deletions", "deletions", "losses", "deletion_events")) || 0);
+  const leaves = finiteMetric(getValue(row, "nb of leafs (after combining non-uniques)", "leaf_count"));
+  const patterns = finiteMetric(getValue(row, "nb of unique spacer arrays", "unique_arrays"));
+  const unique = finiteMetric(getValue(row, "nb of unique spacers", "unique_spacers"));
+  const total = acquisitions + deletions;
+  return <div className="spacerplacer-verdict"><div><small>Evolutionary reconstruction at a glance</small><strong>{formatNumber(total)} inferred changes</strong><p>SpacerPlacer reconstructed <b>{formatNumber(acquisitions)} acquisitions</b> and <b>{formatNumber(deletions)} deletions</b> across {formatNumber(leaves)} related arrays. These are model-based ancestral events, not directly observed mutations.</p></div><div className="verdict-metrics"><span><b>{formatNumber(unique)}</b><small>unique spacers</small></span><span><b>{formatNumber(patterns)}</b><small>distinct array patterns</small></span><span><b>{formatNumber(leaves)}</b><small>modeled leaves</small></span></div></div>;
+}
+
 function SpacerInventory({ row }) {
   const unique = finiteMetric(getValue(row, "nb of unique spacers", "unique_spacers"));
   const aligned = finiteMetric(getValue(row, "nb of spacers in alignment", "nb of spacers in model matrix", "alignment_spacers"));
@@ -837,7 +957,7 @@ function ReconstructionResults({ summary }) {
       <div className="reconstruction-story-list">{rows.map((row, index) => {
         const group = String(row.name || row.group || "Group " + (index + 1));
         const tree = selectedTree(summary, group);
-        return <article className="reconstruction-story" key={group}><div className="reconstruction-story-heading"><div><small>Reconstructed group {index + 1}</small><h4>{group}</h4></div><span>{formatNumber(getValue(row, "nb of leafs (after combining non-uniques)", "leaf_count"))} leaves</span></div>{tree && <TreeGraphic newick={tree} group={group}/>}<div className="reconstruction-visual-grid"><ReconstructionEventGraphic row={row}/><ModelSelectionGauge row={row}/></div><SpacerInventory row={row}/></article>;
+        return <article className={"reconstruction-story group-tone-" + (index % 4)} key={group}><div className="reconstruction-story-heading"><div><small>Reconstructed group {index + 1}</small><h4>{group}</h4></div><span>{formatNumber(getValue(row, "nb of leafs (after combining non-uniques)", "leaf_count"))} leaves</span></div><SpacerPlacerVerdict row={row}/>{tree && <TreeGraphic newick={tree} group={group}/>}<div className="reconstruction-visual-grid"><ReconstructionEventGraphic row={row}/><ModelSelectionGauge row={row}/></div><SpacerInventory row={row}/></article>;
       })}</div>
       <details className="reconstruction-values"><summary>Exact SpacerPlacer estimates and runtime</summary><div className="table-wrap reconstruction-table"><table><thead><tr><th>Group</th><th>Preferred deletion model</th><th>BDM lnL</th><th>Insertions</th><th>Deletions</th><th>BDM deletion rate</th><th>Runtime</th></tr></thead><tbody>{rows.map((row, index) => <tr key={row.name || row.group || index}><td><strong>{row.name || row.group || "Group " + (index + 1)}</strong></td><td>{getValue(row, "Deletion model preferred by LRT", "preferred_model", "model_name", "model") || "—"}</td><td>{formatNumber(getValue(row, "ln_lh_bdm", "log_likelihood", "ln_likelihood", "lnL"), 3)}</td><td>{formatNumber(getValue(row, "nb of reconstructed insertions", "gains", "insertions", "gain_events"))}</td><td>{formatNumber(deletionCount(row))}</td><td>{formatNumber(getValue(row, "deletion_rate_bdm", "deletion_rate", "loss_rate"), 4)}</td><td>{formatDuration(getValue(row, "run_time", "runtime_seconds", "duration_seconds"))}</td></tr>)}</tbody></table></div></details>
       {noDeletionGroups.length > 0 && <div className="warning-note"><Icon name="warning"/><p><strong>No deletion events were reconstructed for {noDeletionGroups.join(", ")}.</strong> Deletion-rate estimates, model comparisons, and orientation evidence may not be meaningful for those groups; inspect the detailed outputs.</p></div>}
@@ -915,8 +1035,50 @@ function Downloads({ job, credential, maxArchiveBytes = 0 }) {
 }
 
 export function Results({ job, credential, maxArchiveBytes = 0, exampleSnapshot = null }) {
+  const sourceSummary = job?.summary || job?.result || {};
+  const [artifactGroups, setArtifactGroups] = useState(null);
+  const [membershipStatus, setMembershipStatus] = useState(adapterHasMembership(sourceSummary) ? "inline" : "idle");
+  const membershipArtifact = asArray(job?.artifacts || sourceSummary?.artifacts).find((artifact) => String(artifact?.name || artifact?.filename || "") === "adapter/manifest.json");
+  const membershipArtifactId = membershipArtifact ? String(membershipArtifact.artifact_id || membershipArtifact.id || "") : "";
+  const jobId = credential?.jobId || "";
+  const accessToken = credential?.accessToken || "";
+  const inlineMembership = adapterHasMembership(sourceSummary);
+
+  useEffect(() => {
+    if (inlineMembership) {
+      setArtifactGroups(null);
+      setMembershipStatus("inline");
+      return undefined;
+    }
+    if (!membershipArtifactId || !jobId || !accessToken) {
+      setArtifactGroups(null);
+      setMembershipStatus("unavailable");
+      return undefined;
+    }
+    const controller = new AbortController();
+    setArtifactGroups(null);
+    setMembershipStatus("loading");
+    void (async () => {
+      try {
+        const blob = await api.downloadArtifact(jobId, membershipArtifactId, accessToken, { signal: controller.signal });
+        if (Number(blob?.size) > MAX_ADAPTER_MANIFEST_BYTES) throw new Error("Adapter manifest is too large.");
+        const text = await blob.text();
+        if (new TextEncoder().encode(text).byteLength > MAX_ADAPTER_MANIFEST_BYTES) throw new Error("Adapter manifest is too large.");
+        const groups = sanitizeAdapterMembership(JSON.parse(text));
+        if (!groups.some((group) => group.arrays.length > 0)) throw new Error("Adapter manifest has no valid group membership.");
+        if (!controller.signal.aborted) {
+          setArtifactGroups(groups);
+          setMembershipStatus("loaded");
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) setMembershipStatus("unavailable");
+      }
+    })();
+    return () => controller.abort();
+  }, [accessToken, inlineMembership, jobId, membershipArtifactId]);
+
+  const summary = useMemo(() => mergeAdapterMembership(sourceSummary, artifactGroups), [sourceSummary, artifactGroups]);
   if (!["completed", "completed_no_eligible_groups"].includes(job?.status)) return null;
-  const summary = job.summary || job.result || {};
   const detection = summary.detection || summary;
   const arrays = asArray(detection.arrays || detection.detected_arrays);
   const noEligible = job.status === "completed_no_eligible_groups";
@@ -926,6 +1088,7 @@ export function Results({ job, credential, maxArchiveBytes = 0, exampleSnapshot 
       {noEligible && <div className="no-eligible" role="status"><Icon name="info"/><div><strong>No eligible evolutionary groups</strong><p>The workflow completed successfully and the detection results below remain valid. No group passed the selected category, similarity, record-count, and strand preflight rules, so no evolutionary or orientation claim was made.</p></div></div>}
       <CategorySummary summary={detection} arrays={arrays}/>
       <Preflight summary={summary}/>
+      <EvolutionaryGroupMap summary={summary} membershipStatus={membershipStatus}/>
       <OrientationResults summary={summary}/>
       <ReconstructionResults summary={summary}/>
       <Provenance job={job} summary={summary}/>

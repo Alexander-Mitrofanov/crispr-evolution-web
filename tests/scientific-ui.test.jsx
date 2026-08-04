@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { Results } from "../src/App.jsx";
+import { api } from "../src/api.js";
 
 const credential = {
   jobId: "job-123",
@@ -39,6 +40,16 @@ const completedJob = {
       emitted_group_count: 1,
       unknown_strand_excluded_count: 1,
       skipped_by_reason: { orientation_not_determined: 1 },
+      groups: [{
+        name: "group_nd",
+        array_count: 2,
+        repeat_key: "ACGTACGTACGTACGTACGTACGTACGT",
+        arrays: [
+          { source_id: "isolate_A", array_id: "array-1", category: "Bona-fide", spacer_count: 7, strand: "+", input_sequence_orientation: "source", ccdb_strand: "+" },
+          { source_id: "isolate_B", array_id: "array-2", category: "Possible", spacer_count: 6, strand: "+", input_sequence_orientation: "source", ccdb_strand: "+" },
+        ],
+        arrays_truncated: false,
+      }],
     },
     orientation: {
       tree_policy: "estimated_separately",
@@ -90,6 +101,32 @@ describe("scientific result labels", () => {
     expect(screen.getByText("2 decisive · 1 unresolved")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /Delta log likelihood 3\.40.*minus 5 through plus 5 are unresolved/i })).toBeInTheDocument();
     expect(screen.getByText("Distance still needed")).toBeInTheDocument();
+  });
+
+  it("visually connects exact detector members, repeat grouping, and evolutionary outputs", () => {
+    render(<Results job={completedJob} credential={credential}/>);
+    expect(screen.getByRole("heading", { name: "How detections became evolutionary evidence" })).toBeInTheDocument();
+    expect(screen.getAllByText("isolate_A").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("isolate_B").length).toBeGreaterThan(0);
+    expect(screen.getByRole("img", { name: /Canonical repeat ACGTACGT/i })).toBeInTheDocument();
+    expect(screen.getByText("4 acquisitions · 0 deletions")).toBeInTheDocument();
+    expect(screen.getByText("4 inferred changes")).toBeInTheDocument();
+  });
+
+  it("loads exact membership from the sanitized manifest for older completed jobs", async () => {
+    const inlineGroup = completedJob.summary.adapter.groups[0];
+    const downloadSpy = vi.spyOn(api, "downloadArtifact").mockResolvedValue(new Blob([JSON.stringify({ groups: [inlineGroup] })], { type: "application/json" }));
+    const job = {
+      ...completedJob,
+      artifacts: [{ artifact_id: "manifest-1", name: "adapter/manifest.json", size_bytes: 900, media_type: "application/json" }],
+      summary: {
+        ...completedJob.summary,
+        adapter: { ...completedJob.summary.adapter, groups: [{ name: inlineGroup.name, array_count: inlineGroup.array_count, repeat_key: inlineGroup.repeat_key }] },
+      },
+    };
+    render(<Results job={job} credential={credential}/>);
+    await waitFor(() => expect(document.querySelectorAll(".group-member")).toHaveLength(2));
+    expect(downloadSpy).toHaveBeenCalledWith("job-123", "manifest-1", "private-token", expect.objectContaining({ signal: expect.any(AbortSignal) }));
   });
 
   it("renders the selected rooted tree and SpacerPlacer event graphics", () => {

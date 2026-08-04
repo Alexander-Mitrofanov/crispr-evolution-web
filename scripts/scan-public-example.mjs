@@ -10,7 +10,7 @@ import {
 
 const roots = ["public", "dist"].filter((root) => existsSync(root));
 const sequenceExtension = /\.(?:fa|fasta|fna|ffn|fas)$/i;
-const forbiddenIdentityMetadata = /(?:(?:CP|FR)\d{6}|(?:organism|strain|accession|ncbi_url|region_start_1based|region_end_1based)\s*[=:"])/i;
+const forbiddenIdentityMetadata = /(?:(?:CP|FR|LN|LR|AP)\d{6}|(?:organism|strain|accession|ncbi_url|region_start_1based|region_end_1based)\s*[=:"])/i;
 
 function fail(message) {
   throw new Error(message);
