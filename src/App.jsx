@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { ApiError, api } from "./api.js";
 import { inspectFasta, readableBases } from "./fasta.js";
@@ -38,6 +38,20 @@ const ACTIVE_STATUSES = new Set([
   "compare_orientations",
   "package_results",
 ]);
+
+function preferredScrollBehavior() {
+  return typeof window !== "undefined"
+    && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    ? "auto"
+    : "smooth";
+}
+
+function revealSection(id, headingSelector = "h2") {
+  const region = document.getElementById(id);
+  if (!region) return;
+  region.scrollIntoView({ behavior: preferredScrollBehavior(), block: "start" });
+  region.querySelector(headingSelector)?.focus({ preventScroll: true });
+}
 
 function Icon({ name, size = 20 }) {
   const paths = {
@@ -197,10 +211,12 @@ function Brand() {
 
 function ServiceStatus({ service }) {
   const label = service.state === "online" ? "Analysis service ready" : service.state === "checking" ? "Checking service" : "Analysis service unavailable";
+  const shortLabel = service.state === "online" ? "Ready" : service.state === "checking" ? "Checking" : "Offline";
   return (
-    <div className={`service-status service-${service.state}`} role="status">
+    <div className={`service-status service-${service.state}`} role="status" aria-label={label}>
       <span className="status-pulse" aria-hidden="true" />
-      <span>{label}</span>
+      <span className="status-label-full" aria-hidden="true">{label}</span>
+      <span className="status-label-short" aria-hidden="true">{shortLabel}</span>
     </div>
   );
 }
@@ -223,7 +239,15 @@ function Hero({ service }) {
           <p className="hero-lead">
             Analyze CRISPR spacer-array structure across related genomic records, reconstruct ancestral histories, and test which array order the evolutionary model supports.
           </p>
-          <a className="hero-action" href="#analysis-form">Start an analysis <Icon name="arrow" /></a>
+          <div className="hero-actions">
+            <a className="hero-action" href="#analysis-form">Start an analysis <Icon name="arrow" /></a>
+            <a className="hero-example-action" href="#example-entry">Explore the flagship example <span aria-hidden="true">↘</span></a>
+          </div>
+          <ol className="hero-steps" aria-label="Analysis evidence chain">
+            <li><b>01</b><span>Detect arrays</span></li>
+            <li><b>02</b><span>Reconstruct history</span></li>
+            <li><b>03</b><span>Compare order</span></li>
+          </ol>
         </div>
         <div className="array-figure" aria-label="Illustration of related CRISPR spacer arrays">
           <div className="figure-label"><span>RELATED ISOLATES</span><b>spacer history</b></div>
@@ -358,19 +382,19 @@ export function InputPanel({ sequence, setSequence, filename, setFilename, inspe
   };
   return (
     <div className="input-panel">
-      <div className="input-heading">
+      <div className="input-heading" id="example-entry">
         <div><label htmlFor="fasta-input">Related contigs or small genomes</label><p>Paste FASTA or upload a plain-text file. The first token in every header must be unique.</p></div>
-        <button className="text-button" type="button" onClick={loadExample} disabled={loadingExample || exampleDisabled} title={exampleDisabled ? "Finish or leave the current job before opening the example." : undefined}>{loadingExample ? "Loading example…" : "Run example"}</button>
+        <button className="text-button example-button" type="button" onClick={loadExample} disabled={loadingExample || exampleDisabled} title={exampleDisabled ? "Finish or leave the current job before opening the example." : undefined}>{loadingExample ? "Loading example…" : "Load flagship example"}</button>
       </div>
       <div className="upload-strip">
         <button className="upload-button" type="button" onClick={() => fileRef.current?.click()}><Icon name="upload" size={18}/> Upload FASTA</button>
-        <input ref={fileRef} type="file" accept=".fa,.fasta,.fna,.ffn,.fas,.txt,text/plain" onChange={onFile} aria-label="Upload FASTA file" />
+        <input ref={fileRef} type="file" tabIndex="-1" accept=".fa,.fasta,.fna,.ffn,.fas,.txt,text/plain" onChange={onFile} aria-label="Upload FASTA file" />
         <span className="filename">{sequence ? filename : "No file selected"}</span>
         <span className="input-stats"><b>{inspection.recordCount}</b> records <i/> <b>{readableBases(inspection.baseCount)}</b></span>
       </div>
       <textarea id="fasta-input" spellCheck="false" value={sequence} onChange={(event) => { setSequence(event.target.value); setFilename("pasted-input.fasta"); setFileError(""); }} placeholder={">isolate_A\nACGT…\n>isolate_B\nACGT…"} aria-describedby="fasta-help fasta-errors" />
       <div className="input-foot" id="fasta-help"><span>Accepted symbols: A C G T and IUPAC ambiguity codes</span><span>Input stays in this browser until submission</span></div>
-      <div id="fasta-errors" className="field-errors" role="alert">{fileError && <p>{fileError}</p>}{inspection.errors.slice(0, 3).map((error) => <p key={error}>{error}</p>)}</div>
+      <div id="fasta-errors" className="field-errors" role="alert">{fileError && <p>{fileError}</p>}{sequence && inspection.errors.slice(0, 3).map((error) => <p key={error}>{error}</p>)}</div>
     </div>
   );
 }
@@ -384,6 +408,7 @@ export function AnalysisForm({ service, limits, onSubmitted, onExampleLoaded = (
   const [error, setError] = useState("");
   const [loadingExample, setLoadingExample] = useState(false);
   const [preparedExample, setPreparedExample] = useState(null);
+  const [preparedExampleSequence, setPreparedExampleSequence] = useState("");
   const inspection = useMemo(() => inspectFasta(sequence, { maxHeaderCharacters: limits.maxHeaderCharacters || 200 }), [sequence, limits.maxHeaderCharacters]);
   const selectedMode = ANALYSIS_MODES.find((item) => item.id === mode);
   const submission = useMemo(() => buildSubmission({ sequence, filename, mode, options }), [sequence, filename, mode, options]);
@@ -391,6 +416,7 @@ export function AnalysisForm({ service, limits, onSubmitted, onExampleLoaded = (
   const recordedExampleOptions = preparedExample?.job?.options;
   const precomputedPolicyMatches = Boolean(
     preparedExample
+    && sequence === preparedExampleSequence
     && mode === preparedExample.job?.mode
     && submission.category_policy === recordedExampleOptions?.category_policy
     && submission.spacer_distance === recordedExampleOptions?.spacer_distance
@@ -422,6 +448,7 @@ export function AnalysisForm({ service, limits, onSubmitted, onExampleLoaded = (
       setSequence(exampleSequence);
       setFilename(snapshot.example.input.filename);
       setPreparedExample(snapshot);
+      setPreparedExampleSequence(exampleSequence);
       onExampleLoaded(null);
     } catch (loadError) {
       setError(loadError.message || "The example demonstration could not be loaded.");
@@ -445,6 +472,7 @@ export function AnalysisForm({ service, limits, onSubmitted, onExampleLoaded = (
           return;
         } catch {
           setPreparedExample(null);
+          setPreparedExampleSequence("");
         }
       }
       const response = await api.submit(submission);
@@ -491,7 +519,7 @@ export function AnalysisForm({ service, limits, onSubmitted, onExampleLoaded = (
         </div>
         <div className="submit-bar">
           <div><strong>{selectedMode.title}</strong><span>{selectedMode.tools.join(" → ")}</span></div>
-          <button className="primary-button" type="submit" disabled={!ready || submitting}>{submitting ? (precomputedPolicyMatches ? "Loading result…" : "Submitting…") : hasActiveJob ? "Current job still open" : "Compute"}<Icon name="arrow"/></button>
+          <button className="primary-button" type="submit" disabled={!ready || submitting}>{submitting ? (precomputedPolicyMatches ? "Loading result…" : "Submitting…") : hasActiveJob ? "Current job still open" : precomputedPolicyMatches ? "View precomputed result" : "Compute"}<Icon name="arrow"/></button>
         </div>
       </form>
     </section>
@@ -557,8 +585,8 @@ export function JobProgress({ job, credential, onCancel, onForget, cancelling })
   return (
     <section className={`job-panel job-${job?.status || "queued"}`} aria-labelledby="job-heading">
       <div className="job-heading">
-        <div><p className="eyebrow">Current analysis</p><h2 id="job-heading">{statusCopy(job?.status || "queued")}</h2><p className="job-id">Job <code>{credential.jobId}</code> · {expiresAt ? `expires ${formatDate(expiresAt)}` : "retention starts when the run finishes"}</p></div>
-        <span className={`job-badge ${successful ? "success" : terminal ? "terminal" : "active"}`}><i/>{successful ? "Ready" : terminal ? statusCopy(job?.status) : "In progress"}</span>
+        <div><p className="eyebrow">Current analysis</p><h2 id="job-heading" tabIndex="-1">{statusCopy(job?.status || "queued")}</h2><p className="job-id">Job <code>{credential.jobId}</code> · {expiresAt ? `expires ${formatDate(expiresAt)}` : "retention starts when the run finishes"}</p></div>
+        <span className={`job-badge ${successful ? "success" : terminal ? "terminal" : "active"}`} role="status"><i/>{successful ? "Ready" : terminal ? statusCopy(job?.status) : "In progress"}</span>
       </div>
       <RecoveryCredential credential={credential}/>
       {!terminal && <ol className="stage-list" aria-label="Analysis progress">
@@ -590,7 +618,7 @@ function CategorySummary({ summary, arrays }) {
     <section className="result-section category-section" aria-labelledby="category-heading">
       <div className="result-heading"><div><p className="eyebrow">Primary detection result</p><h3 id="category-heading">CRISPRidentify categories</h3></div><p>Categories express the detector’s classification policy; they are not evolutionary conclusions.</p></div>
       {ordered.length ? <div className="category-grid">{ordered.map((label) => <div className={`category-card category-${categoryClass(label)}`} key={label}><span>{label}</span><strong>{formatNumber(categories[label])}</strong><small>arrays</small></div>)}</div> : <div className="empty-result">No CRISPR array calls were reported.</div>}
-      {arrays.length > 0 && <div className="table-wrap"><table><thead><tr><th>Record</th><th>Coordinates</th><th>Category</th><th>Strand</th><th>Spacers</th><th>Raw CRISPRidentify Model score</th></tr></thead><tbody>{arrays.map((row, index) => {
+      {arrays.length > 0 && <div className="table-wrap" role="region" tabIndex="0" aria-label="Scrollable CRISPRidentify array results"><table><thead><tr><th>Record</th><th>Coordinates</th><th>Category</th><th>Strand</th><th>Spacers</th><th>Raw CRISPRidentify Model score</th></tr></thead><tbody>{arrays.map((row, index) => {
         const start = getValue(row, "start", "Start");
         const end = getValue(row, "end", "End");
         const sourceId = getValue(row, "source_id", "record_id", "sequence_id", "Name") || "unknown-source";
@@ -663,7 +691,7 @@ function comparisonDecisionFor(item, orientation = {}) {
 function RepeatSequence({ value }) {
   const bases = String(value || "").slice(0, 120);
   if (!bases) return <span className="repeat-unavailable">Canonical repeat not reported</span>;
-  return <span className="repeat-sequence" role="img" aria-label={"Canonical repeat " + bases}>{[...bases].map((base, index) => <i className={"repeat-base repeat-base-" + base.toLowerCase()} key={index}>{base}</i>)}</span>;
+  return <span className="repeat-sequence" role="img" tabIndex="0" aria-label={"Canonical repeat " + bases}>{[...bases].map((base, index) => <i className={"repeat-base repeat-base-" + base.toLowerCase()} key={index}>{base}</i>)}</span>;
 }
 
 function MiniSpacerArray({ count }) {
@@ -694,9 +722,10 @@ function EvolutionaryGroupMap({ summary, membershipStatus = "inline" }) {
         const acquisitions = finiteMetric(getValue(selected, "nb of reconstructed insertions", "gains", "insertions", "gain_events"));
         const deletions = finiteMetric(getValue(selected, "nb of reconstructed deletions", "deletions", "losses", "deletion_events"));
         const uniqueSpacers = finiteMetric(getValue(selected, "nb of unique spacers", "unique_spacers"));
+        const repeatLength = String(group?.repeat_key || "").length;
         return <article className={"group-bridge group-tone-" + (index % 4)} key={groupName}>
           <div className="group-bridge-heading"><div><small>Evolutionary group {index + 1}</small><strong>{formatNumber(group?.array_count ?? members.length)} connected arrays</strong></div><code title={groupName}>{groupName}</code></div>
-          <div className="repeat-band"><span>Grouping key · canonical repeat</span><RepeatSequence value={group?.repeat_key}/></div>
+          <div className="repeat-band"><span><b>Grouping key · canonical repeat</b>{repeatLength > 0 && <small>{repeatLength} nt <i aria-hidden="true">· scroll →</i></small>}</span><RepeatSequence value={group?.repeat_key}/></div>
           <div className="group-bridge-flow">
             <div className="group-members"><div className="flow-label"><span>1</span><strong>CRISPRidentify detections</strong></div>{members.length ? <div className="group-member-list">{members.map((member, memberIndex) => <div className="group-member" key={String(member?.source_id) + ":" + String(member?.array_id) + ":" + memberIndex}><div><strong>{member?.source_id || "Unknown record"}</strong><small>{member?.array_id || "Unknown array"}</small></div><span className={"category-pill category-" + categoryClass(member?.category)}>{member?.category || "Unclassified"}</span><span className="member-strand">strand {member?.strand || "?"}</span><MiniSpacerArray count={member?.spacer_count}/></div>)}</div> : <div className="membership-pending">{membershipStatus === "loading" ? "Loading exact group members…" : "Exact member mapping was not available in this completed result."}</div>}</div>
             <div className="group-connector" aria-hidden="true"><span>2</span><i/><strong>same repeat<br/>shared spacers</strong><b>→</b></div>
@@ -868,6 +897,7 @@ function TreeGraphic({ newick, group, reportedByDefault = false }) {
     <div className="tree-graphic">
       <div className="graphic-label"><span>{reportedByDefault ? "Input-order model tree reported by default" : "Rooted model tree for supported order"}</span><small>Array-derived branch lengths scaled when available</small></div>
       <svg viewBox={"0 0 720 " + height} role="img" aria-label={(reportedByDefault ? "Reported input-order" : "Supported-order") + " SpacerPlacer model tree for " + group + " with " + leaves.length + " leaves"}>
+        <desc>{`Rooted model tree for ${group}. Leaf labels in display order: ${leaves.map((leaf) => leaf.name).join(", ")}. Exact Newick: ${newick}`}</desc>
         {edgeGroups.map((node) => { const ys = node.children.map((child) => child.y); return <g key={"edges-" + node.id}><line x1={node.x} x2={node.x} y1={Math.min(...ys)} y2={Math.max(...ys)} className="tree-line"/>{node.children.map((child) => <line key={"edge-" + child.id} x1={node.x} x2={child.x} y1={child.y} y2={child.y} className="tree-line"/>)}</g>; })}
         {nodes.map((node) => <circle key={"node-" + node.id} cx={node.x} cy={node.y} r={node.children.length ? 3 : 4} className={node.children.length ? "tree-node" : "tree-leaf-node"}/>)}
         {leaves.map((leaf) => <text key={"label-" + leaf.id} x={leaf.x + 10} y={leaf.y + 4} className="tree-leaf-label"><title>{leaf.name}</title>{leaf.name.length > 30 ? leaf.name.slice(0, 28) + "…" : leaf.name}</text>)}
@@ -935,6 +965,11 @@ function historyLossCount(node) {
   return asArray(node?.loss_blocks).reduce((total, block) => total + asArray(block).length, 0);
 }
 
+function historyValueList(value) {
+  const values = asArray(value).flat(4).filter((item) => item != null && String(item).trim());
+  return values.length ? values.map(String).join(", ") : "—";
+}
+
 function entryRootGains(entry) {
   const parsed = parseNewickTree(entry?.newick);
   if (!parsed) return null;
@@ -958,7 +993,9 @@ function AncestralHistoryExplorer({ summary, group, fallbackTree, reportedByDefa
   const initialHypothesis = requiredHistoryAvailable ? requiredHypothesis : reconstructions[0]?.hypothesis || requiredHypothesis;
   const [hypothesis, setHypothesis] = useState(initialHypothesis);
   const [scaleMode, setScaleMode] = useState("topology");
+  const [fitCanvas, setFitCanvas] = useState(() => Boolean(typeof window !== "undefined" && window.matchMedia?.("(max-width: 980px)")?.matches));
   const [selectedNodeName, setSelectedNodeName] = useState("");
+  const descriptionId = useId();
   if (!reconstructions.length) return fallbackTree ? <TreeGraphic newick={fallbackTree} group={group} reportedByDefault={reportedByDefault}/> : null;
   const entry = reconstructions.find((item) => item.hypothesis === hypothesis) || reconstructions[0];
   const completeOrder = asArray(entry.spacer_order).map(Number).filter((value) => Number.isInteger(value) && value > 0);
@@ -994,9 +1031,15 @@ function AncestralHistoryExplorer({ summary, group, fallbackTree, reportedByDefa
   const reverseRoot = entryRootGains(reverseEntry);
   const nodeLabel = publicNodeName(selectedNode?.name);
   const nodeKind = leafNames.has(String(selectedNode?.name)) ? "Observed leaf" : String(selectedNode?.name) === String(layout.tree.name) ? "Inferred root" : "Inferred ancestor";
+  const selectedSpacerIds = asArray(selectedNode?.spacers).map(Number).filter((value) => Number.isInteger(value) && value > 0);
+  const branchSummary = layout.nodes.filter((node) => node.parent).map((node) => {
+    const data = dataByName.get(String(node.name));
+    return `${publicNodeName(node.parent.name)} to ${publicNodeName(node.name)}: ${asArray(data?.gains).length} gains, ${historyLossCount(data)} losses, branch length ${formatNumber(node.length, 6)}`;
+  }).join("; ");
   const chooseNode = (name) => setSelectedNodeName(String(name || ""));
   return (
     <div className="history-explorer">
+      <p className="sr-only" id={descriptionId}>Ancestral reconstruction for {group} under {hypothesisLabel(entry.hypothesis)}. Leaves in display order: {layout.leaves.map((leaf) => publicNodeName(leaf.name)).join(", ")}. Branches: {branchSummary}. Use the node browser and exact node data table following the visual to inspect ordered spacer identities and events.</p>
       <div className="history-heading"><div><p className="eyebrow">Interactive ancestral history</p><h5>Where gains and losses are placed</h5><p>Switch hypotheses to see why their likelihoods differ. Numeric column IDs identify clustered spacers; the repeating palette helps trace a column across rows.</p></div><div className="history-legend"><span><i className="legend-gain"/> acquisition</span><span><i className="legend-loss"/> deletion</span><span><i className="legend-absence"/> absent</span></div></div>
       {!requiredHistoryAvailable && <div className="history-availability" role="note"><Icon name="warning" size={18}/><p><strong>{supportedHypothesis ? hypothesisLabel(requiredHypothesis) + " is supported, but its structured reconstruction is unavailable." : "The input-order default reconstruction is unavailable for this unresolved group."}</strong> The available hypothesis is shown for inspection only; it is not substituted for the missing reported history. Review the workflow warning and detailed artifacts.</p></div>}
       <div className="history-controls" aria-label={"Reconstruction hypotheses for " + group}>
@@ -1009,8 +1052,14 @@ function AncestralHistoryExplorer({ summary, group, fallbackTree, reportedByDefa
       </div>
       {inputEntry && reverseEntry && <div className="history-contrast"><Icon name="info" size={18}/><p><strong>Why the histories differ:</strong> input order needs {formatNumber(inputLosses)} inferred deletions and places {formatNumber(inputRoot)} acquisition{inputRoot === 1 ? "" : "s"} at the root; reversed order needs {formatNumber(reverseLosses)} deletions and places {formatNumber(reverseRoot)} at the root. CRISPR-evOr compares the full model likelihoods, not counts alone.</p></div>}
       <div className="history-scale"><span>Tree layout</span><button type="button" className={scaleMode === "topology" ? "active" : ""} aria-pressed={scaleMode === "topology"} onClick={() => setScaleMode("topology")}>Readable topology</button><button type="button" className={scaleMode === "branch" ? "active" : ""} aria-pressed={scaleMode === "branch"} onClick={() => setScaleMode("branch")}>Shared branch scale</button><small>Shared scale uses {formatNumber(sharedDistance, 6)} as the common root-to-tip extent.{omittedSpacerColumns > 0 ? " Showing the first " + MAX_HISTORY_SPACER_COLUMNS + " of " + completeOrder.length + " spacer columns." : ""}</small></div>
-      <div className="history-canvas" role="region" tabIndex="0" aria-label={"Scrollable ancestral reconstruction canvas for " + group}>
-        <svg width={width} height={height} viewBox={["0", "0", width, height].join(" ")} role="img" aria-label={"Ancestral reconstruction for " + group + " under " + hypothesisLabel(entry.hypothesis) + " with " + layout.leaves.length + " observed leaves"}>
+      <div className="history-view-controls" role="group" aria-label="Ancestral history canvas view">
+        <span>Canvas view</span>
+        <button type="button" className={fitCanvas ? "active" : ""} aria-pressed={fitCanvas} onClick={() => setFitCanvas(true)}>Fit overview</button>
+        <button type="button" className={!fitCanvas ? "active" : ""} aria-pressed={!fitCanvas} onClick={() => setFitCanvas(false)}>Readable detail</button>
+        <small>{fitCanvas ? "Overview fits the full tree and matrix; switch to detail to read every label." : "Readable detail preserves label size; pan horizontally when the matrix exceeds the available width."}</small>
+      </div>
+      <div className={"history-canvas" + (fitCanvas ? " is-fit" : "")} role="region" tabIndex="0" aria-label={"Scrollable ancestral reconstruction canvas for " + group}>
+        <svg width={width} height={height} viewBox={["0", "0", width, height].join(" ")} role="img" aria-describedby={descriptionId} aria-label={"Ancestral reconstruction for " + group + " under " + hypothesisLabel(entry.hypothesis) + " with " + layout.leaves.length + " observed leaves"}>
           <text x={arrayStart} y="24" className="history-axis-label">aligned spacer identity →</text>
           {order.map((spacer, index) => <text key={"column-" + spacer} x={arrayStart + index * cellSize + (cellSize - 2) / 2} y="41" textAnchor="middle" className="history-column-label">{spacer}</text>)}
           {layout.nodes.filter((node) => node.children.length).map((node) => { const ys = node.children.map((child) => child.y); return <g key={"history-edges-" + node.id}><line x1={node.x} x2={node.x} y1={Math.min(...ys)} y2={Math.max(...ys)} className="history-tree-line"/>{node.children.map((child) => <line key={child.id} x1={node.x} x2={child.x} y1={child.y} y2={child.y} className="history-tree-line"/>)}</g>; })}
@@ -1032,7 +1081,28 @@ function AncestralHistoryExplorer({ summary, group, fallbackTree, reportedByDefa
           })}
         </svg>
       </div>
-      <div className="ancestor-browser"><div className="ancestor-tabs" aria-label="Observed and reconstructed nodes">{nodeData.map((node) => <button type="button" className={String(selectedNode?.name) === String(node.name) ? "active" : ""} aria-pressed={String(selectedNode?.name) === String(node.name)} onClick={() => chooseNode(node.name)} key={String(node.name)}>{publicNodeName(node.name)}<small>{leafNames.has(String(node.name)) ? "observed · " : "inferred · "}{asArray(node.spacers).length} spacers</small></button>)}</div>{selectedNode && <div className="ancestor-state"><div><span>{nodeKind}</span><strong>{nodeLabel}</strong><small>{asArray(selectedNode.spacers).length} spacers · +{asArray(selectedNode.gains).length} gains · −{historyLossCount(selectedNode)} losses on the incoming branch{omittedSpacerColumns > 0 ? " · " + shownSelectedSpacers + " present spacers shown in the first " + order.length + " columns" : ""}</small></div><div className="history-spacer-strip" role="img" aria-label={nodeKind + " " + nodeLabel + " contains " + asArray(selectedNode.spacers).length + " reconstructed spacers; " + shownSelectedSpacers + " are visible in " + order.length + " of " + completeOrder.length + " displayed or available columns"}>{order.map((spacer) => <i className={selectedSpacers.has(spacer) ? "present " + spacerColorClass(spacer) : "absent"} key={spacer}><span>{spacer}</span></i>)}</div></div>}</div>
+      <div className="ancestor-browser"><div className="ancestor-tabs" role="group" aria-label="Observed and reconstructed nodes">{nodeData.map((node) => <button type="button" className={String(selectedNode?.name) === String(node.name) ? "active" : ""} aria-pressed={String(selectedNode?.name) === String(node.name)} onClick={() => chooseNode(node.name)} key={String(node.name)}>{publicNodeName(node.name)}<small>{leafNames.has(String(node.name)) ? "observed · " : "inferred · "}{asArray(node.spacers).length} spacers</small></button>)}</div>{selectedNode && <div className="ancestor-state"><div><span>{nodeKind}</span><strong>{nodeLabel}</strong><small>{asArray(selectedNode.spacers).length} spacers · +{asArray(selectedNode.gains).length} gains · −{historyLossCount(selectedNode)} losses on the incoming branch{omittedSpacerColumns > 0 ? " · " + shownSelectedSpacers + " present spacers shown in the first " + order.length + " columns" : ""}</small></div><div className="history-spacer-strip" role="img" aria-label={nodeKind + " " + nodeLabel + " contains " + selectedSpacerIds.length + " reconstructed spacers, spacer IDs " + (selectedSpacerIds.length ? selectedSpacerIds.join(", ") : "none") + "; " + shownSelectedSpacers + " are visible in " + order.length + " of " + completeOrder.length + " displayed or available columns"}>{order.map((spacer) => <i className={selectedSpacers.has(spacer) ? "present " + spacerColorClass(spacer) : "absent"} key={spacer}><span>{spacer}</span></i>)}</div></div>}</div>
+      <details className="history-data-table">
+        <summary>Exact node and branch data</summary>
+        <div className="table-wrap" role="region" tabIndex="0" aria-label={"Scrollable exact ancestral reconstruction data for " + group}>
+          <table>
+            <thead><tr><th>Node</th><th>Parent</th><th>Type</th><th>Branch length</th><th>Ordered spacer IDs</th><th>Gains</th><th>Loss blocks</th><th>Special-event candidates</th></tr></thead>
+            <tbody>{layout.nodes.map((node) => {
+              const data = dataByName.get(String(node.name)) || {};
+              const specialEvents = [
+                ["contradictions", data.contradictions],
+                ["duplications", data.duplications],
+                ["rearrangements", data.rearrangements],
+                ["reacquisitions", data.reacquisitions],
+                ["independent gains", data.independent_gains],
+                ["other duplications", data.other_duplication_events],
+              ].filter(([, values]) => historyValueList(values) !== "—").map(([label, values]) => label + ": " + historyValueList(values)).join("; ") || "—";
+              const type = leafNames.has(String(node.name)) ? "Observed leaf" : node === layout.tree ? "Inferred root" : "Inferred ancestor";
+              return <tr key={"exact-" + node.id}><td><strong>{publicNodeName(node.name)}</strong></td><td>{node.parent ? publicNodeName(node.parent.name) : "—"}</td><td>{type}</td><td>{node.parent ? formatNumber(node.length, 6) : "root"}</td><td>{historyValueList(data.spacers)}</td><td>{historyValueList(data.gains)}</td><td>{historyValueList(data.loss_blocks)}</td><td>{specialEvents}</td></tr>;
+            })}</tbody>
+          </table>
+        </div>
+      </details>
       <p className="history-caveat"><strong>Model interpretation:</strong> internal arrays, branch events, topology, and branch lengths are array-derived model estimates—not an independent organismal phylogeny. Every unique spacer requires a first inferred acquisition somewhere in the history; these totals are not newly observed mutations, and orientation support does not establish transcription direction or a leader sequence.</p>
     </div>
   );
@@ -1286,7 +1356,17 @@ export function Results({ job, credential, maxArchiveBytes = 0, exampleSnapshot 
   const noEligible = job.status === "completed_no_eligible_groups";
   return (
     <section className="results" aria-labelledby="results-heading">
-      <div className="results-title"><div><p className="eyebrow">Analysis result</p><h2 id="results-heading">{noEligible ? "Detection succeeded; evolution was not applicable." : "Evidence, with its limits visible."}</h2></div><span className="complete-stamp"><Icon name="check"/> Completed</span></div>
+      <div className="results-title"><div><p className="eyebrow">Analysis result</p><h2 id="results-heading" tabIndex="-1">{noEligible ? "Detection succeeded; evolution was not applicable." : "Evidence, with its limits visible."}</h2></div><span className="complete-stamp"><Icon name="check"/> Completed</span></div>
+      <nav className="result-jump-nav" aria-label="Result sections">
+        <span>Result map</span>
+        <a href="#synopsis-heading">Synopsis</a>
+        {!noEligible && <a href="#orientation-heading">CRISPR-evOr</a>}
+        {!noEligible && <a href="#reconstruction-heading">SpacerPlacer</a>}
+        <a href="#category-heading">Detection</a>
+        {!noEligible && <a href="#group-map-heading">Evidence chain</a>}
+        <a href="#preflight-heading">Preflight</a>
+        <a href="#provenance-heading">Provenance</a>
+      </nav>
       {noEligible && <div className="no-eligible" role="status"><Icon name="info"/><div><strong>No eligible evolutionary groups</strong><p>The workflow completed successfully and the detection results below remain valid. No group passed the selected category, similarity, record-count, and strand preflight rules, so no evolutionary or orientation claim was made.</p></div></div>}
       <ResultSynopsis summary={summary} exampleSnapshot={exampleSnapshot} noEligible={noEligible}/>
       <CategorySummary summary={detection} arrays={arrays}/>
@@ -1415,12 +1495,12 @@ export default function App() {
     setCredential(nextCredential);
     setJob(initialJob);
     setPollError("");
-    window.setTimeout(() => document.getElementById("job-status")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    window.setTimeout(() => revealSection("job-status", "#job-heading"), 50);
   }, []);
 
   const onExampleLoaded = useCallback((snapshot) => {
     setExampleSnapshot(snapshot);
-    if (snapshot) window.setTimeout(() => document.getElementById("example-result")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    if (snapshot) window.setTimeout(() => revealSection("example-result", "#results-heading"), 50);
   }, []);
 
   const cancel = async () => {
@@ -1449,8 +1529,8 @@ export default function App() {
       <main>
         {!credential && <ResumeJob onResume={(nextCredential) => { setExampleSnapshot(null); setCredential(nextCredential); setJob(null); setPollError(""); }}/>}
         <AnalysisForm service={service} limits={limits} onSubmitted={onSubmitted} onExampleLoaded={onExampleLoaded} hasActiveJob={Boolean(credential)}/>
-        {exampleSnapshot && <div id="example-result" className="example-anchor" aria-live="polite"><Results job={exampleSnapshot.job} exampleSnapshot={exampleSnapshot}/></div>}
-        {credential && <div id="job-status" className="job-anchor" aria-live="polite" aria-atomic="false"><JobProgress job={job || { status: "queued" }} credential={credential} onCancel={cancel} onForget={forget} cancelling={cancelling}/><Results job={job} credential={credential} maxArchiveBytes={limits.maxArchiveBytes}/></div>}
+        {exampleSnapshot && <><p className="sr-only" role="status">Precomputed example result ready.</p><div id="example-result" className="example-anchor"><Results job={exampleSnapshot.job} exampleSnapshot={exampleSnapshot}/></div></>}
+        {credential && <div id="job-status" className="job-anchor"><JobProgress job={job || { status: "queued" }} credential={credential} onCancel={cancel} onForget={forget} cancelling={cancelling}/><Results job={job} credential={credential} maxArchiveBytes={limits.maxArchiveBytes}/></div>}
         {pollError && <p className="poll-error" role="alert">{pollError}</p>}
         <ScopeSection/>
         <References/>

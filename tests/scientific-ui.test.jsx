@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { Results } from "../src/App.jsx";
@@ -81,7 +81,76 @@ const completedJob = {
   },
 };
 
+function historyNode(name, spacers, gains = [], lossBlocks = []) {
+  return {
+    name,
+    spacers,
+    gains,
+    loss_blocks: lossBlocks,
+    contradictions: [],
+    duplications: [],
+    rearrangements: [],
+    reacquisitions: [],
+    independent_gains: [],
+    other_duplication_events: [],
+  };
+}
+
+function completedJobWithStructuredHistories() {
+  return {
+    ...completedJob,
+    summary: {
+      ...completedJob.summary,
+      orientation: {
+        ...completedJob.summary.orientation,
+        comparisons: [{ group: "group_nd", prediction: "Forward", decisive: true, confidence_threshold: 5, forward_ln_likelihood_bdm: -12.1, reverse_ln_likelihood_bdm: -20.5, forward_minus_reverse_ln_likelihood_bdm: 8.4 }],
+        reconstructions: [
+          {
+            group: "group_nd",
+            hypothesis: "input",
+            newick: "(isolate_A:1,isolate_B:1)root:0;",
+            spacer_order: [1, 2, 3, 4],
+            nodes: [historyNode("root", [1], [1]), historyNode("isolate_A", [1, 2, 3, 4], [2, 3, 4]), historyNode("isolate_B", [1, 2, 3], [], [[4]])],
+            acquisition_count: 4,
+            deletion_count: 1,
+          },
+          {
+            group: "group_nd",
+            hypothesis: "reverse",
+            newick: "(isolate_A:0.2,isolate_B:0.2)root:0;",
+            spacer_order: [4, 3, 2, 1],
+            nodes: [historyNode("root", [1, 2, 3, 4], [1, 2, 3, 4]), historyNode("isolate_A", [1, 2, 3, 4]), historyNode("isolate_B", [1, 2, 3], [], [[4]])],
+            acquisition_count: 4,
+            deletion_count: 1,
+          },
+        ],
+      },
+    },
+  };
+}
+
 describe("scientific result labels", () => {
+  it("maps the result workbench navigation to stable scientific section targets", () => {
+    render(<Results job={completedJob} credential={credential}/>);
+
+    const navigation = screen.getByRole("navigation", { name: "Result sections" });
+    const targets = [
+      ["Synopsis", "#synopsis-heading"],
+      ["Detection", "#category-heading"],
+      ["Preflight", "#preflight-heading"],
+      ["Evidence chain", "#group-map-heading"],
+      ["CRISPR-evOr", "#orientation-heading"],
+      ["SpacerPlacer", "#reconstruction-heading"],
+      ["Provenance", "#provenance-heading"],
+    ];
+
+    for (const [name, target] of targets) {
+      const link = within(navigation).getByRole("link", { name });
+      expect(link).toHaveAttribute("href", target);
+      expect(document.querySelector(target)).toBeInTheDocument();
+    }
+  });
+
   it("shows detector categories as primary and never converts raw score to a percentage", () => {
     render(<Results job={completedJob} credential={credential}/>);
     expect(screen.getByRole("heading", { name: "CRISPRidentify categories" })).toBeInTheDocument();
@@ -108,7 +177,8 @@ describe("scientific result labels", () => {
     expect(screen.getByRole("heading", { name: "How detections became evolutionary evidence" })).toBeInTheDocument();
     expect(screen.getAllByText("isolate_A").length).toBeGreaterThan(0);
     expect(screen.getAllByText("isolate_B").length).toBeGreaterThan(0);
-    expect(screen.getByRole("img", { name: /Canonical repeat ACGTACGT/i })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Canonical repeat ACGTACGT/i })).toHaveAttribute("tabindex", "0");
+    expect(screen.getByText(/28 nt/, { selector: "small" })).toBeInTheDocument();
     expect(screen.getAllByText("4 acquisitions · 0 deletions").length).toBeGreaterThan(0);
   });
 
@@ -136,48 +206,7 @@ describe("scientific result labels", () => {
   });
 
   it("compares structured input and reverse ancestral histories without a PDF viewer", () => {
-    const node = (name, spacers, gains = [], lossBlocks = []) => ({
-      name,
-      spacers,
-      gains,
-      loss_blocks: lossBlocks,
-      contradictions: [],
-      duplications: [],
-      rearrangements: [],
-      reacquisitions: [],
-      independent_gains: [],
-      other_duplication_events: [],
-    });
-    const job = {
-      ...completedJob,
-      summary: {
-        ...completedJob.summary,
-        orientation: {
-          ...completedJob.summary.orientation,
-          comparisons: [{ group: "group_nd", prediction: "Forward", decisive: true, confidence_threshold: 5, forward_ln_likelihood_bdm: -12.1, reverse_ln_likelihood_bdm: -20.5, forward_minus_reverse_ln_likelihood_bdm: 8.4 }],
-          reconstructions: [
-            {
-              group: "group_nd",
-              hypothesis: "input",
-              newick: "(isolate_A:1,isolate_B:1)root:0;",
-              spacer_order: [1, 2, 3, 4],
-              nodes: [node("root", [1], [1]), node("isolate_A", [1, 2, 3, 4], [2, 3, 4]), node("isolate_B", [1, 2, 3], [], [[4]])],
-              acquisition_count: 4,
-              deletion_count: 1,
-            },
-            {
-              group: "group_nd",
-              hypothesis: "reverse",
-              newick: "(isolate_A:0.2,isolate_B:0.2)root:0;",
-              spacer_order: [4, 3, 2, 1],
-              nodes: [node("root", [1, 2, 3, 4], [1, 2, 3, 4]), node("isolate_A", [1, 2, 3, 4]), node("isolate_B", [1, 2, 3], [], [[4]])],
-              acquisition_count: 4,
-              deletion_count: 1,
-            },
-          ],
-        },
-      },
-    };
+    const job = completedJobWithStructuredHistories();
     render(<Results job={job} credential={credential}/>);
     expect(screen.getByRole("img", { name: /Ancestral reconstruction for group_nd under Input spacer order with 2 observed leaves/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Input spacer order.*supported/i })).toHaveAttribute("aria-pressed", "true");
@@ -185,6 +214,70 @@ describe("scientific result labels", () => {
     expect(screen.getByRole("img", { name: /Inferred root root contains 1 reconstructed spacers/i })).toBeInTheDocument();
     expect(screen.getByText(/orientation support does not establish transcription direction/i)).toBeInTheDocument();
     expect(screen.getByText(/not an independent organismal phylogeny/i)).toBeInTheDocument();
+  });
+
+  it("switches the ancestral canvas between readable detail and fit overview", () => {
+    render(<Results job={completedJobWithStructuredHistories()} credential={credential}/>);
+
+    const controls = screen.getByRole("group", { name: "Ancestral history canvas view" });
+    const fit = within(controls).getByRole("button", { name: "Fit overview" });
+    const detail = within(controls).getByRole("button", { name: "Readable detail" });
+    const canvas = screen.getByRole("region", { name: /Scrollable ancestral reconstruction canvas for group_nd/i });
+
+    expect(detail).toHaveAttribute("aria-pressed", "true");
+    expect(fit).toHaveAttribute("aria-pressed", "false");
+    expect(canvas).not.toHaveClass("is-fit");
+    expect(within(controls).getByText(/Readable detail preserves label size/i)).toBeInTheDocument();
+
+    fireEvent.click(fit);
+    expect(fit).toHaveAttribute("aria-pressed", "true");
+    expect(detail).toHaveAttribute("aria-pressed", "false");
+    expect(canvas).toHaveClass("is-fit");
+    expect(within(controls).getByText(/Overview fits the full tree and matrix/i)).toBeInTheDocument();
+
+    fireEvent.click(detail);
+    expect(detail).toHaveAttribute("aria-pressed", "true");
+    expect(canvas).not.toHaveClass("is-fit");
+  });
+
+  it("starts the ancestral canvas in overview mode on compact viewports", () => {
+    const originalMatchMedia = window.matchMedia;
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: vi.fn().mockReturnValue({ matches: true }),
+    });
+    try {
+      render(<Results job={completedJobWithStructuredHistories()} credential={credential}/>);
+      expect(screen.getByRole("button", { name: "Fit overview" })).toHaveAttribute("aria-pressed", "true");
+      expect(document.querySelector(".history-canvas")).toHaveClass("is-fit");
+    } finally {
+      Object.defineProperty(window, "matchMedia", { configurable: true, value: originalMatchMedia });
+    }
+  });
+
+  it("discloses exact node states, incoming events, and branch lengths", () => {
+    render(<Results job={completedJobWithStructuredHistories()} credential={credential}/>);
+
+    const visualization = screen.getByRole("img", { name: /Ancestral reconstruction for group_nd under Input spacer order/i });
+    const descriptionId = visualization.getAttribute("aria-describedby");
+    expect(descriptionId).toBeTruthy();
+    const description = document.getElementById(descriptionId);
+    expect(description).toHaveTextContent(/Leaves in display order: isolate_A, isolate_B/i);
+    expect(description).toHaveTextContent(/root to isolate_A: 3 gains, 0 losses, branch length 1; root to isolate_B: 0 gains, 1 losses, branch length 1/i);
+
+    const nodeBrowser = screen.getByRole("group", { name: "Observed and reconstructed nodes" });
+    const isolateB = within(nodeBrowser).getByRole("button", { name: /isolate_B.*observed.*3 spacers/i });
+    fireEvent.click(isolateB);
+    expect(isolateB).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("img", { name: /Observed leaf isolate_B contains 3 reconstructed spacers, spacer IDs 1, 2, 3; 3 are visible in 4 of 4 displayed or available columns/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Exact node and branch data"));
+    const exactData = screen.getByRole("region", { name: /Scrollable exact ancestral reconstruction data for group_nd/i });
+    const rows = within(exactData).getAllByRole("row").slice(1);
+    const cells = (row) => within(row).getAllByRole("cell").map((cell) => cell.textContent.trim());
+    expect(cells(rows[0])).toEqual(["root", "—", "Inferred root", "root", "1", "1", "—", "—"]);
+    expect(cells(rows[1])).toEqual(["isolate_A", "root", "Observed leaf", "1", "1, 2, 3, 4", "2, 3, 4", "—", "—"]);
+    expect(cells(rows[2])).toEqual(["isolate_B", "root", "Observed leaf", "1", "1, 2, 3", "—", "4", "—"]);
   });
 
   it("does not silently substitute an available history when the supported one is missing", () => {

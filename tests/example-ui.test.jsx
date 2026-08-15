@@ -20,7 +20,7 @@ afterEach(() => {
 });
 
 describe("one-click reproducible analysis example", () => {
-  it("copies the masked input first, then reveals the cached result only after Compute", async () => {
+  it("copies the masked input first, then reveals the cached result only after explicit viewing", async () => {
     const fetchMock = vi.fn(async (url, options) => {
       expect(options).toMatchObject({ cache: "no-store", credentials: "omit" });
       if (String(url).endsWith(EXAMPLE_FASTA_PATH)) return { ok: true, text: async () => exampleFasta };
@@ -36,7 +36,7 @@ describe("one-click reproducible analysis example", () => {
 
     fireEvent.change(screen.getByLabelText(/related contigs or small genomes/i), { target: { value: ">temporary_A\nACGT\n>temporary_B\nACGT\n>temporary_C\nACGT\n" } });
     fireEvent.click(screen.getByRole("button", { name: "Increase spacer edit distance" }));
-    fireEvent.click(screen.getByRole("button", { name: "Run example" }));
+    fireEvent.click(screen.getByRole("button", { name: "Load flagship example" }));
 
     const input = screen.getByLabelText(/related contigs or small genomes/i);
     await waitFor(() => expect(input.value).toBe(exampleFasta));
@@ -51,7 +51,7 @@ describe("one-click reproducible analysis example", () => {
     expect(document.getElementById("edit-distance")).toHaveTextContent("1");
     expect(screen.getByRole("radio", { name: /Orientation-aware evolution/i })).toBeChecked();
 
-    fireEvent.click(screen.getByRole("button", { name: "Compute" }));
+    fireEvent.click(screen.getByRole("button", { name: "View precomputed result" }));
 
     await waitFor(() => expect(onExampleLoaded).toHaveBeenLastCalledWith(snapshot));
     expect(submitSpy).not.toHaveBeenCalled();
@@ -70,7 +70,7 @@ describe("one-click reproducible analysis example", () => {
     const onExampleLoaded = vi.fn();
     render(<AnalysisForm service={service} limits={limits} onSubmitted={onSubmitted} onExampleLoaded={onExampleLoaded}/>);
 
-    fireEvent.click(screen.getByRole("button", { name: "Run example" }));
+    fireEvent.click(screen.getByRole("button", { name: "Load flagship example" }));
     const input = screen.getByLabelText(/related contigs or small genomes/i);
     await waitFor(() => expect(input.value).toBe(exampleFasta));
     fireEvent.change(input, { target: { value: exampleFasta.trimEnd() + "A\n" } });
@@ -90,7 +90,7 @@ describe("one-click reproducible analysis example", () => {
     const onExampleLoaded = vi.fn();
 
     render(<AnalysisForm service={service} limits={limits} onSubmitted={vi.fn()} onExampleLoaded={onExampleLoaded}/>);
-    fireEvent.click(screen.getByRole("button", { name: "Run example" }));
+    fireEvent.click(screen.getByRole("button", { name: "Load flagship example" }));
 
     expect(await screen.findByText(/does not match its precomputed result/i)).toBeInTheDocument();
     expect(onExampleLoaded).not.toHaveBeenCalled();
