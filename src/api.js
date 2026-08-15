@@ -1,4 +1,5 @@
 const DEFAULT_API_BASE = String(import.meta.env.VITE_API_BASE_URL || "").trim();
+const PRIVATE_REQUEST_POLICY = Object.freeze({ cache: "no-store", credentials: "omit", referrerPolicy: "no-referrer" });
 
 export class ApiError extends Error {
   constructor(message, status = 0, code = "request_failed") {
@@ -74,6 +75,7 @@ export function createApiClient(baseUrl = DEFAULT_API_BASE, fetchImpl = globalTh
 
     async health({ signal } = {}) {
       return parseJsonResponse(await fetchImpl(endpoint("/api/v1/health"), {
+        ...PRIVATE_REQUEST_POLICY,
         headers: { Accept: "application/json" },
         signal,
       }));
@@ -81,6 +83,7 @@ export function createApiClient(baseUrl = DEFAULT_API_BASE, fetchImpl = globalTh
 
     async config({ signal } = {}) {
       return parseJsonResponse(await fetchImpl(endpoint("/api/v1/config"), {
+        ...PRIVATE_REQUEST_POLICY,
         headers: { Accept: "application/json" },
         signal,
       }));
@@ -88,6 +91,7 @@ export function createApiClient(baseUrl = DEFAULT_API_BASE, fetchImpl = globalTh
 
     async submit(payload, { signal } = {}) {
       return parseJsonResponse(await fetchImpl(endpoint("/api/v1/jobs"), {
+        ...PRIVATE_REQUEST_POLICY,
         method: "POST",
         headers: { Accept: "application/json", "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -97,6 +101,7 @@ export function createApiClient(baseUrl = DEFAULT_API_BASE, fetchImpl = globalTh
 
     async getJob(jobId, accessToken, { signal } = {}) {
       return parseJsonResponse(await fetchImpl(endpoint(`/api/v1/jobs/${encodeURIComponent(jobId)}`), {
+        ...PRIVATE_REQUEST_POLICY,
         headers: jobHeaders(accessToken),
         signal,
       }));
@@ -104,6 +109,7 @@ export function createApiClient(baseUrl = DEFAULT_API_BASE, fetchImpl = globalTh
 
     async cancelJob(jobId, accessToken, { signal } = {}) {
       return parseJsonResponse(await fetchImpl(endpoint(`/api/v1/jobs/${encodeURIComponent(jobId)}`), {
+        ...PRIVATE_REQUEST_POLICY,
         method: "DELETE",
         headers: jobHeaders(accessToken),
         signal,
@@ -112,6 +118,7 @@ export function createApiClient(baseUrl = DEFAULT_API_BASE, fetchImpl = globalTh
 
     async downloadBundle(jobId, accessToken, { signal } = {}) {
       const response = await fetchImpl(endpoint(`/api/v1/jobs/${encodeURIComponent(jobId)}/result`), {
+        ...PRIVATE_REQUEST_POLICY,
         headers: jobHeaders(accessToken, { Accept: "application/zip, application/octet-stream" }),
         signal,
       });
@@ -123,6 +130,7 @@ export function createApiClient(baseUrl = DEFAULT_API_BASE, fetchImpl = globalTh
       const response = await fetchImpl(
         endpoint(`/api/v1/jobs/${encodeURIComponent(jobId)}/artifacts/${encodeURIComponent(artifactId)}`),
         {
+          ...PRIVATE_REQUEST_POLICY,
           headers: jobHeaders(accessToken, { Accept: "application/octet-stream" }),
           signal,
         },

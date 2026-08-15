@@ -633,6 +633,7 @@ function Preflight({ summary }) {
 }
 
 function finiteMetric(value) {
+  if (value == null || value === "") return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 }
@@ -650,10 +651,13 @@ function groupIdentity(item, index) {
 function comparisonDecisionFor(item, orientation = {}) {
   const thresholdValue = Number(getValue(item, "confidence_threshold") ?? getValue(orientation, "confidence_threshold") ?? 5);
   const threshold = Number.isFinite(thresholdValue) && thresholdValue >= 0 ? thresholdValue : 5;
-  const delta = Number(getValue(item, "forward_minus_reverse_ln_likelihood_bdm", "delta_ln_likelihood", "delta_lnL", "delta_log_likelihood"));
-  const inferred = Number.isFinite(delta) && delta > threshold ? "input" : Number.isFinite(delta) && delta < -threshold ? "reverse" : "unresolved";
+  const reportedDelta = finiteMetric(getValue(item, "forward_minus_reverse_ln_likelihood_bdm", "delta_ln_likelihood", "delta_lnL", "delta_log_likelihood"));
+  const forward = finiteMetric(getValue(item, "forward_ln_likelihood_bdm"));
+  const reverse = finiteMetric(getValue(item, "reverse_ln_likelihood_bdm"));
+  const delta = reportedDelta ?? (forward != null && reverse != null ? forward - reverse : null);
   if (item?.decisive === false) return { label: "Unresolved", threshold };
-  return { label: orientationLabel(item?.prediction || item?.decision || item?.orientation || inferred), threshold };
+  if (delta == null || Math.abs(delta) <= threshold) return { label: "Unresolved", threshold };
+  return { label: delta > threshold ? "Input order supported" : "Reverse input order supported", threshold };
 }
 
 function RepeatSequence({ value }) {
@@ -665,7 +669,7 @@ function RepeatSequence({ value }) {
 function MiniSpacerArray({ count }) {
   const total = safeManifestCount(count) ?? 0;
   const visible = Math.min(22, total);
-  return <span className="mini-spacer-array" role="img" aria-label={formatNumber(total) + " detected spacers"}>{Array.from({ length: visible }, (_, index) => <i className={"spacer-color-" + (index % 8)} key={index}/>)}{total > visible && <b>+{total - visible}</b>}</span>;
+  return <span className="mini-spacer-array" role="img" aria-label={formatNumber(total) + " detected spacers; count only, spacer identities are not shown"}>{Array.from({ length: visible }, (_, index) => <i className="mini-spacer-count" key={index}/>)}{total > visible && <b>+{total - visible}</b>}</span>;
 }
 
 function EvolutionaryGroupMap({ summary, membershipStatus = "inline" }) {
@@ -679,7 +683,7 @@ function EvolutionaryGroupMap({ summary, membershipStatus = "inline" }) {
   const reconstructionByGroup = new Map(reconstructions.map((item, index) => [groupIdentity(item, index), item]));
   return (
     <section className="result-section group-map-section" aria-labelledby="group-map-heading">
-      <div className="result-heading"><div><p className="eyebrow">Connected evidence</p><h3 id="group-map-heading">How detections became evolutionary evidence</h3></div><p>Follow each exact CRISPRidentify call through its shared canonical repeat into the evOr comparison and selected SpacerPlacer history.</p></div>
+      <div className="result-heading"><div><p className="eyebrow">Connected evidence</p><h3 id="group-map-heading">How detections became evolutionary evidence</h3></div><p>Follow each exact CRISPRidentify call through its shared canonical repeat into the evOr comparison and reported SpacerPlacer history.</p></div>
       <div className="group-bridge-list">{groups.map((group, index) => {
         const groupName = groupIdentity(group, index);
         const members = asArray(group?.arrays);
@@ -696,7 +700,7 @@ function EvolutionaryGroupMap({ summary, membershipStatus = "inline" }) {
           <div className="group-bridge-flow">
             <div className="group-members"><div className="flow-label"><span>1</span><strong>CRISPRidentify detections</strong></div>{members.length ? <div className="group-member-list">{members.map((member, memberIndex) => <div className="group-member" key={String(member?.source_id) + ":" + String(member?.array_id) + ":" + memberIndex}><div><strong>{member?.source_id || "Unknown record"}</strong><small>{member?.array_id || "Unknown array"}</small></div><span className={"category-pill category-" + categoryClass(member?.category)}>{member?.category || "Unclassified"}</span><span className="member-strand">strand {member?.strand || "?"}</span><MiniSpacerArray count={member?.spacer_count}/></div>)}</div> : <div className="membership-pending">{membershipStatus === "loading" ? "Loading exact group members…" : "Exact member mapping was not available in this completed result."}</div>}</div>
             <div className="group-connector" aria-hidden="true"><span>2</span><i/><strong>same repeat<br/>shared spacers</strong><b>→</b></div>
-            <div className="group-outcomes"><div className="flow-label"><span>3</span><strong>Evolutionary results</strong></div><div className="outcome-card outcome-evor"><small>CRISPR-evOr orientation</small>{decision ? <><strong>{decision.label}</strong><span>Δ lnL {signedNumber(delta, 2)} · boundary ±{formatNumber(decision.threshold, 2)}</span></> : <strong>Not evaluated</strong>}</div><div className="outcome-card outcome-spacerplacer"><small>SpacerPlacer selected history</small>{selected ? <><strong>{formatNumber(acquisitions)} acquisitions · {formatNumber(deletions)} deletions</strong><span>{formatNumber(uniqueSpacers)} unique spacers reconstructed</span></> : <strong>Not reconstructed</strong>}</div></div>
+            <div className="group-outcomes"><div className="flow-label"><span>3</span><strong>Evolutionary results</strong></div><div className="outcome-card outcome-evor"><small>CRISPR-evOr orientation</small>{decision ? <><strong>{decision.label}</strong><span>Δ lnL {signedNumber(delta, 2)} · boundary ±{formatNumber(decision.threshold, 2)}</span></> : <strong>Not evaluated</strong>}</div><div className="outcome-card outcome-spacerplacer"><small>SpacerPlacer reported history</small>{selected ? <><strong>{formatNumber(acquisitions)} acquisitions · {formatNumber(deletions)} deletions</strong><span>{formatNumber(uniqueSpacers)} unique spacers reconstructed</span></> : <strong>Not reconstructed</strong>}</div></div>
           </div>
         </article>;
       })}</div>
@@ -771,7 +775,7 @@ function OrientationResults({ summary }) {
   const comparisonDecision = (item) => comparisonDecisionFor(item, orientation);
   const decisiveCount = comparisons.filter((item) => comparisonDecision(item).label !== "Unresolved").length;
   const treePolicy = orientation.tree_policy || "not_reported";
-  const treePolicyText = treePolicy === "estimated_separately" ? "Input-order and reversed-order trees were estimated separately for each group. The selected topology follows the supported hypothesis." : treePolicy === "provided_shared" ? "Both order hypotheses were evaluated on the same provided rooted tree." : "Consult the provenance manifest for the tree-estimation policy used.";
+  const treePolicyText = treePolicy === "estimated_separately" ? "Input-order and reversed-order model trees were estimated separately from the spacer arrays. A decisive group reports the supported history; an unresolved group reports input order only as a default. These are not independent organismal phylogenies." : treePolicy === "provided_shared" ? "Both order hypotheses were evaluated on the same provided rooted tree; consult provenance to establish whether that tree is independently supported." : "Consult the provenance manifest for the tree-estimation policy used.";
   return (
     <section className="result-section orientation-section" aria-labelledby="orientation-heading">
       <div className="result-heading"><div><p className="eyebrow">CRISPR-evOr hypothesis test</p><h3 id="orientation-heading">Which spacer order is better supported?</h3></div><span className="orientation-chip">{decisiveCount} decisive · {comparisons.length - decisiveCount} unresolved</span></div>
@@ -832,7 +836,7 @@ function parseNewickTree(value) {
   } catch { return null; }
 }
 
-function TreeGraphic({ newick, group }) {
+function TreeGraphic({ newick, group, reportedByDefault = false }) {
   const tree = useMemo(() => parseNewickTree(newick), [newick]);
   if (!tree) return null;
   const leaves = [];
@@ -862,8 +866,8 @@ function TreeGraphic({ newick, group }) {
   const edgeGroups = nodes.filter((node) => node.children.length);
   return (
     <div className="tree-graphic">
-      <div className="graphic-label"><span>Selected rooted tree</span><small>Branch lengths scaled when available</small></div>
-      <svg viewBox={"0 0 720 " + height} role="img" aria-label={"Selected SpacerPlacer tree for " + group + " with " + leaves.length + " leaves"}>
+      <div className="graphic-label"><span>{reportedByDefault ? "Input-order model tree reported by default" : "Rooted model tree for supported order"}</span><small>Array-derived branch lengths scaled when available</small></div>
+      <svg viewBox={"0 0 720 " + height} role="img" aria-label={(reportedByDefault ? "Reported input-order" : "Supported-order") + " SpacerPlacer model tree for " + group + " with " + leaves.length + " leaves"}>
         {edgeGroups.map((node) => { const ys = node.children.map((child) => child.y); return <g key={"edges-" + node.id}><line x1={node.x} x2={node.x} y1={Math.min(...ys)} y2={Math.max(...ys)} className="tree-line"/>{node.children.map((child) => <line key={"edge-" + child.id} x1={node.x} x2={child.x} y1={child.y} y2={child.y} className="tree-line"/>)}</g>; })}
         {nodes.map((node) => <circle key={"node-" + node.id} cx={node.x} cy={node.y} r={node.children.length ? 3 : 4} className={node.children.length ? "tree-node" : "tree-leaf-node"}/>)}
         {leaves.map((leaf) => <text key={"label-" + leaf.id} x={leaf.x + 10} y={leaf.y + 4} className="tree-leaf-label"><title>{leaf.name}</title>{leaf.name.length > 30 ? leaf.name.slice(0, 28) + "…" : leaf.name}</text>)}
@@ -878,6 +882,162 @@ function selectedTree(summary, group) {
   return entry?.selected_newick || entry?.newick || null;
 }
 
+const HISTORY_COLOR_COUNT = 12;
+const MAX_HISTORY_SPACER_COLUMNS = 160;
+const MAX_HISTORY_LEAVES = 40;
+const MAX_HISTORY_NODES = 120;
+
+function spacerColorClass(spacer) {
+  const number = Math.abs(Number(spacer));
+  return "history-color-" + (Number.isFinite(number) ? number % HISTORY_COLOR_COUNT : 0);
+}
+
+function publicNodeName(value) {
+  const text = String(value || "unnamed node");
+  return text.includes("__") ? text.split("__")[0] : text;
+}
+
+function layoutNewick(value, height, scaleMode = "topology", sharedDistance = null) {
+  const tree = parseNewickTree(value);
+  if (!tree) return null;
+  const nodes = [];
+  const leaves = [];
+  const visit = (node, depth = 0, distance = 0, parent = null) => {
+    node.depth = depth;
+    node.distance = distance;
+    node.parent = parent;
+    nodes.push(node);
+    if (node.children.length) node.children.forEach((child) => visit(child, depth + 1, distance + child.length, node));
+    else leaves.push(node);
+  };
+  visit(tree);
+  const top = 50;
+  const bottom = height - 42;
+  leaves.forEach((leaf, index) => { leaf.y = leaves.length === 1 ? height / 2 : top + (index / Math.max(1, leaves.length - 1)) * (bottom - top); });
+  const placeInternal = (node) => {
+    if (!node.children.length) return node.y;
+    const ys = node.children.map(placeInternal);
+    node.y = ys.reduce((sum, value) => sum + value, 0) / ys.length;
+    return node.y;
+  };
+  placeInternal(tree);
+  const maxDepth = Math.max(1, ...nodes.map((node) => node.depth));
+  const ownDistance = Math.max(0, ...nodes.map((node) => node.distance));
+  const distanceExtent = Number(sharedDistance) > 0 ? Number(sharedDistance) : ownDistance;
+  nodes.forEach((node) => {
+    const measure = scaleMode === "branch" && distanceExtent > 0 ? node.distance / distanceExtent : node.depth / maxDepth;
+    node.x = 28 + measure * 280;
+  });
+  return { tree, nodes, leaves, maxDistance: ownDistance };
+}
+
+function historyLossCount(node) {
+  return asArray(node?.loss_blocks).reduce((total, block) => total + asArray(block).length, 0);
+}
+
+function entryRootGains(entry) {
+  const parsed = parseNewickTree(entry?.newick);
+  if (!parsed) return null;
+  const root = asArray(entry?.nodes).find((node) => String(node?.name) === String(parsed.name));
+  return root ? asArray(root.gains).length : null;
+}
+
+function entryTreeHeight(entry) {
+  const layout = layoutNewick(entry?.newick, 100);
+  return layout?.maxDistance ?? null;
+}
+
+function AncestralHistoryExplorer({ summary, group, fallbackTree, reportedByDefault }) {
+  const orientation = summary?.orientation || {};
+  const reconstructions = asArray(orientation.reconstructions).filter((entry) => String(entry?.group || entry?.name) === String(group) && ["input", "reverse"].includes(entry?.hypothesis));
+  const comparison = asArray(orientation.comparisons).find((item, index) => groupIdentity(item, index) === String(group));
+  const decision = comparison ? comparisonDecisionFor(comparison, orientation).label : "Unresolved";
+  const supportedHypothesis = decision === "Input order supported" ? "input" : decision === "Reverse input order supported" ? "reverse" : null;
+  const requiredHypothesis = supportedHypothesis || "input";
+  const requiredHistoryAvailable = reconstructions.some((item) => item.hypothesis === requiredHypothesis);
+  const initialHypothesis = requiredHistoryAvailable ? requiredHypothesis : reconstructions[0]?.hypothesis || requiredHypothesis;
+  const [hypothesis, setHypothesis] = useState(initialHypothesis);
+  const [scaleMode, setScaleMode] = useState("topology");
+  const [selectedNodeName, setSelectedNodeName] = useState("");
+  if (!reconstructions.length) return fallbackTree ? <TreeGraphic newick={fallbackTree} group={group} reportedByDefault={reportedByDefault}/> : null;
+  const entry = reconstructions.find((item) => item.hypothesis === hypothesis) || reconstructions[0];
+  const completeOrder = asArray(entry.spacer_order).map(Number).filter((value) => Number.isInteger(value) && value > 0);
+  const order = completeOrder.slice(0, MAX_HISTORY_SPACER_COLUMNS);
+  const omittedSpacerColumns = completeOrder.length - order.length;
+  const treeHeights = reconstructions.map(entryTreeHeight).filter((value) => value != null);
+  const sharedDistance = Math.max(0, ...treeHeights);
+  const provisional = layoutNewick(entry.newick, 100);
+  if (!provisional) return fallbackTree ? <TreeGraphic newick={fallbackTree} group={group} reportedByDefault={reportedByDefault}/> : null;
+  if (provisional.leaves.length > MAX_HISTORY_LEAVES || provisional.nodes.length > MAX_HISTORY_NODES) {
+    return <div className="history-explorer history-size-limit"><Icon name="info"/><div><strong>Structured history available in the result bundle</strong><p>This group contains {formatNumber(provisional.leaves.length)} leaves and {formatNumber(provisional.nodes.length)} tree nodes. The inline browser is capped at {MAX_HISTORY_LEAVES} leaves and {MAX_HISTORY_NODES} nodes to keep this page responsive; use the detailed JSON/Newick artifacts for the complete reconstruction.</p></div></div>;
+  }
+  const height = Math.max(310, provisional.leaves.length * 74 + 78);
+  const layout = layoutNewick(entry.newick, height, scaleMode, sharedDistance);
+  const nodeData = asArray(entry.nodes);
+  const dataByName = new Map(nodeData.map((node) => [String(node?.name), node]));
+  const leafNames = new Set(layout.leaves.map((leaf) => String(leaf.name)));
+  const internalData = nodeData.filter((node) => !leafNames.has(String(node?.name)));
+  const rootData = dataByName.get(String(layout.tree.name)) || internalData[0] || nodeData[0];
+  const selectedNode = nodeData.find((node) => String(node?.name) === selectedNodeName) || rootData;
+  const selectedSpacers = new Set(asArray(selectedNode?.spacers).map(Number));
+  const shownSelectedSpacers = order.filter((spacer) => selectedSpacers.has(spacer)).length;
+  const cellSize = order.length > 50 ? 10 : 13;
+  const arrayStart = 485;
+  const width = Math.max(930, arrayStart + order.length * cellSize + 30);
+  const likelihood = (kind) => finiteMetric(getValue(comparison, kind === "input" ? "forward_ln_likelihood_bdm" : "reverse_ln_likelihood_bdm"));
+  const hypothesisLabel = (kind) => kind === "input" ? "Input spacer order" : "Reversed spacer order";
+  const inputEntry = reconstructions.find((item) => item.hypothesis === "input");
+  const reverseEntry = reconstructions.find((item) => item.hypothesis === "reverse");
+  const inputLosses = finiteMetric(inputEntry?.deletion_count);
+  const reverseLosses = finiteMetric(reverseEntry?.deletion_count);
+  const inputRoot = entryRootGains(inputEntry);
+  const reverseRoot = entryRootGains(reverseEntry);
+  const nodeLabel = publicNodeName(selectedNode?.name);
+  const nodeKind = leafNames.has(String(selectedNode?.name)) ? "Observed leaf" : String(selectedNode?.name) === String(layout.tree.name) ? "Inferred root" : "Inferred ancestor";
+  const chooseNode = (name) => setSelectedNodeName(String(name || ""));
+  return (
+    <div className="history-explorer">
+      <div className="history-heading"><div><p className="eyebrow">Interactive ancestral history</p><h5>Where gains and losses are placed</h5><p>Switch hypotheses to see why their likelihoods differ. Numeric column IDs identify clustered spacers; the repeating palette helps trace a column across rows.</p></div><div className="history-legend"><span><i className="legend-gain"/> acquisition</span><span><i className="legend-loss"/> deletion</span><span><i className="legend-absence"/> absent</span></div></div>
+      {!requiredHistoryAvailable && <div className="history-availability" role="note"><Icon name="warning" size={18}/><p><strong>{supportedHypothesis ? hypothesisLabel(requiredHypothesis) + " is supported, but its structured reconstruction is unavailable." : "The input-order default reconstruction is unavailable for this unresolved group."}</strong> The available hypothesis is shown for inspection only; it is not substituted for the missing reported history. Review the workflow warning and detailed artifacts.</p></div>}
+      <div className="history-controls" aria-label={"Reconstruction hypotheses for " + group}>
+        {reconstructions.map((candidate) => {
+          const active = candidate.hypothesis === entry.hypothesis;
+          const selected = candidate.hypothesis === supportedHypothesis;
+          const defaulted = !supportedHypothesis && candidate.hypothesis === "input";
+          return <button type="button" className={"history-hypothesis" + (active ? " active" : "")} aria-pressed={active} onClick={() => { setHypothesis(candidate.hypothesis); setSelectedNodeName(""); }} key={candidate.hypothesis}><span>{hypothesisLabel(candidate.hypothesis)}{selected && <b>supported</b>}{defaulted && <b>reported default</b>}</span><strong>{formatNumber(candidate.acquisition_count)} gains · {formatNumber(candidate.deletion_count)} losses</strong><small>BDM lnL {formatNumber(likelihood(candidate.hypothesis), 3)} · max root-to-tip {formatNumber(entryTreeHeight(candidate), 6)}</small></button>;
+        })}
+      </div>
+      {inputEntry && reverseEntry && <div className="history-contrast"><Icon name="info" size={18}/><p><strong>Why the histories differ:</strong> input order needs {formatNumber(inputLosses)} inferred deletions and places {formatNumber(inputRoot)} acquisition{inputRoot === 1 ? "" : "s"} at the root; reversed order needs {formatNumber(reverseLosses)} deletions and places {formatNumber(reverseRoot)} at the root. CRISPR-evOr compares the full model likelihoods, not counts alone.</p></div>}
+      <div className="history-scale"><span>Tree layout</span><button type="button" className={scaleMode === "topology" ? "active" : ""} aria-pressed={scaleMode === "topology"} onClick={() => setScaleMode("topology")}>Readable topology</button><button type="button" className={scaleMode === "branch" ? "active" : ""} aria-pressed={scaleMode === "branch"} onClick={() => setScaleMode("branch")}>Shared branch scale</button><small>Shared scale uses {formatNumber(sharedDistance, 6)} as the common root-to-tip extent.{omittedSpacerColumns > 0 ? " Showing the first " + MAX_HISTORY_SPACER_COLUMNS + " of " + completeOrder.length + " spacer columns." : ""}</small></div>
+      <div className="history-canvas" role="region" tabIndex="0" aria-label={"Scrollable ancestral reconstruction canvas for " + group}>
+        <svg width={width} height={height} viewBox={["0", "0", width, height].join(" ")} role="img" aria-label={"Ancestral reconstruction for " + group + " under " + hypothesisLabel(entry.hypothesis) + " with " + layout.leaves.length + " observed leaves"}>
+          <text x={arrayStart} y="24" className="history-axis-label">aligned spacer identity →</text>
+          {order.map((spacer, index) => <text key={"column-" + spacer} x={arrayStart + index * cellSize + (cellSize - 2) / 2} y="41" textAnchor="middle" className="history-column-label">{spacer}</text>)}
+          {layout.nodes.filter((node) => node.children.length).map((node) => { const ys = node.children.map((child) => child.y); return <g key={"history-edges-" + node.id}><line x1={node.x} x2={node.x} y1={Math.min(...ys)} y2={Math.max(...ys)} className="history-tree-line"/>{node.children.map((child) => <line key={child.id} x1={node.x} x2={child.x} y1={child.y} y2={child.y} className="history-tree-line"/>)}</g>; })}
+          {layout.leaves.map((leaf) => <rect key={"row-" + leaf.id} x="320" y={leaf.y - 18} width={width - 338} height="36" rx="4" className="history-leaf-row"/>)}
+          {layout.nodes.filter((node) => node.parent).map((node) => {
+            const data = dataByName.get(String(node.name));
+            const gains = asArray(data?.gains).length;
+            const losses = historyLossCount(data);
+            if (!gains && !losses) return null;
+            const badgeX = Math.max(node.parent.x + 8, (node.parent.x + node.x) / 2 - 14);
+            return <g className="history-event-badge" key={"events-" + node.id} transform={"translate(" + badgeX + " " + (node.y - 18) + ")"}><rect width="44" height="16" rx="8"/><text x="22" y="11" textAnchor="middle"><tspan className="history-gain-text">+{gains}</tspan><tspan className="history-loss-text"> −{losses}</tspan></text></g>;
+          })}
+          {rootData && (asArray(rootData.gains).length > 0 || historyLossCount(rootData) > 0) && <g className="history-event-badge root-event" transform={"translate(" + Math.max(4, layout.tree.x - 8) + " " + (layout.tree.y - 25) + ")"}><rect width="44" height="16" rx="8"/><text x="22" y="11" textAnchor="middle"><tspan className="history-gain-text">+{asArray(rootData.gains).length}</tspan><tspan className="history-loss-text"> −{historyLossCount(rootData)}</tspan></text></g>}
+          {layout.nodes.map((node) => <g key={"history-node-" + node.id}><circle cx={node.x} cy={node.y} r={node.children.length ? 5 : 4} className={String(selectedNode?.name) === String(node.name) ? "history-node selected" : node.children.length ? "history-node" : "history-node leaf"}><title>{publicNodeName(node.name)} · {asArray(dataByName.get(String(node.name))?.spacers).length} spacers</title></circle></g>)}
+          {layout.leaves.map((leaf) => {
+            const data = dataByName.get(String(leaf.name));
+            const present = new Set(asArray(data?.spacers).map(Number));
+            return <g key={"leaf-state-" + leaf.id}><text x="330" y={leaf.y + 4} className="history-leaf-label"><title>{leaf.name}</title>{publicNodeName(leaf.name).slice(0, 24)}</text>{order.map((spacer, index) => <rect key={spacer} x={arrayStart + index * cellSize} y={leaf.y - 9} width={cellSize - 2} height="18" rx="2" className={present.has(spacer) ? "history-spacer present " + spacerColorClass(spacer) : "history-spacer absent"}><title>Spacer {spacer}: {present.has(spacer) ? "present" : "absent"}</title></rect>)}</g>;
+          })}
+        </svg>
+      </div>
+      <div className="ancestor-browser"><div className="ancestor-tabs" aria-label="Observed and reconstructed nodes">{nodeData.map((node) => <button type="button" className={String(selectedNode?.name) === String(node.name) ? "active" : ""} aria-pressed={String(selectedNode?.name) === String(node.name)} onClick={() => chooseNode(node.name)} key={String(node.name)}>{publicNodeName(node.name)}<small>{leafNames.has(String(node.name)) ? "observed · " : "inferred · "}{asArray(node.spacers).length} spacers</small></button>)}</div>{selectedNode && <div className="ancestor-state"><div><span>{nodeKind}</span><strong>{nodeLabel}</strong><small>{asArray(selectedNode.spacers).length} spacers · +{asArray(selectedNode.gains).length} gains · −{historyLossCount(selectedNode)} losses on the incoming branch{omittedSpacerColumns > 0 ? " · " + shownSelectedSpacers + " present spacers shown in the first " + order.length + " columns" : ""}</small></div><div className="history-spacer-strip" role="img" aria-label={nodeKind + " " + nodeLabel + " contains " + asArray(selectedNode.spacers).length + " reconstructed spacers; " + shownSelectedSpacers + " are visible in " + order.length + " of " + completeOrder.length + " displayed or available columns"}>{order.map((spacer) => <i className={selectedSpacers.has(spacer) ? "present " + spacerColorClass(spacer) : "absent"} key={spacer}><span>{spacer}</span></i>)}</div></div>}</div>
+      <p className="history-caveat"><strong>Model interpretation:</strong> internal arrays, branch events, topology, and branch lengths are array-derived model estimates—not an independent organismal phylogeny. Every unique spacer requires a first inferred acquisition somewhere in the history; these totals are not newly observed mutations, and orientation support does not establish transcription direction or a leader sequence.</p>
+    </div>
+  );
+}
+
 function EventGlyph({ type }) {
   return <i className={"event-glyph event-glyph-" + type} aria-hidden="true"/>;
 }
@@ -888,8 +1048,7 @@ function SpacerPlacerVerdict({ row }) {
   const leaves = finiteMetric(getValue(row, "nb of leafs (after combining non-uniques)", "leaf_count"));
   const patterns = finiteMetric(getValue(row, "nb of unique spacer arrays", "unique_arrays"));
   const unique = finiteMetric(getValue(row, "nb of unique spacers", "unique_spacers"));
-  const total = acquisitions + deletions;
-  return <div className="spacerplacer-verdict"><div><small>Evolutionary reconstruction at a glance</small><strong>{formatNumber(total)} inferred changes</strong><p>SpacerPlacer reconstructed <b>{formatNumber(acquisitions)} acquisitions</b> and <b>{formatNumber(deletions)} deletions</b> across {formatNumber(leaves)} related arrays. These are model-based ancestral events, not directly observed mutations.</p></div><div className="verdict-metrics"><span><b>{formatNumber(unique)}</b><small>unique spacers</small></span><span><b>{formatNumber(patterns)}</b><small>distinct array patterns</small></span><span><b>{formatNumber(leaves)}</b><small>modeled leaves</small></span></div></div>;
+  return <div className="spacerplacer-verdict"><div><small>Evolutionary reconstruction at a glance</small><strong>{formatNumber(acquisitions)} acquisitions · {formatNumber(deletions)} deletions</strong><p>SpacerPlacer placed ancestral events across {formatNumber(leaves)} related arrays. An acquisition includes a spacer’s inferred first entry into the history; these are model estimates, not newly observed mutations.</p></div><div className="verdict-metrics"><span><b>{formatNumber(unique)}</b><small>unique spacers</small></span><span><b>{formatNumber(patterns)}</b><small>distinct array patterns</small></span><span><b>{formatNumber(leaves)}</b><small>modeled leaves</small></span></div></div>;
 }
 
 function SpacerInventory({ row }) {
@@ -900,7 +1059,7 @@ function SpacerInventory({ row }) {
   return (
     <div className="spacer-inventory">
       <div className="graphic-label"><span>Spacer inventory</span><small>Count view, not branch placement</small></div>
-      <div className="spacer-blocks" role="img" aria-label={(unique == null ? "Unknown number of" : formatNumber(unique)) + " unique spacers in " + formatNumber(aligned) + " aligned spacer positions"}>{Array.from({ length: visible }, (_, index) => <i className={"spacer-block spacer-color-" + (index % 8)} key={index}><span>{index + 1}</span></i>)}{unique > visible && <b>+{formatNumber(unique - visible)}</b>}</div>
+      <div className="spacer-blocks" role="img" aria-label={(unique == null ? "Unknown number of" : formatNumber(unique)) + " unique spacers in " + formatNumber(aligned) + " aligned spacer positions; count view only"}>{Array.from({ length: visible }, (_, index) => <i className="spacer-block spacer-block-neutral" key={index}><span>{index + 1}</span></i>)}{unique > visible && <b>+{formatNumber(unique - visible)}</b>}</div>
       <div className="inventory-counts"><span><strong>{formatNumber(unique)}</strong> unique spacers</span><span><strong>{formatNumber(aligned)}</strong> aligned positions</span><span><strong>{formatNumber(getValue(row, "nb of leafs (after combining non-uniques)", "leaf_count"))}</strong> tree leaves</span><span><strong>{formatNumber(getValue(row, "nb of unique spacer arrays", "unique_arrays"))}</strong> unique array patterns</span></div>
     </div>
   );
@@ -918,9 +1077,10 @@ function ModelSelectionGauge({ row }) {
   return (
     <div className="model-selection">
       <div className="graphic-label"><span>Deletion-pattern model</span><small>IDM versus BDM</small></div>
-      <div className="model-call"><strong>{preferred}</strong><span>{preferred === "BDM" ? "Block deletion model supported" : preferred === "IDM" ? "Independent deletion model retained" : "Reported model"}</span></div>
+      <div className="model-call"><strong>{preferred}</strong><span>{preferred === "BDM" ? "Block deletion model favored by this LRT" : preferred === "IDM" ? "BDM not favored by this LRT" : "Reported model"}</span></div>
       {reportedStatistic != null ? <><div className="model-gauge" role="img" aria-label={aria}><span className="model-gauge-fill" style={{ width: valuePosition + "%" }}/>{cutoffPosition != null && <i className="model-cutoff" style={{ left: cutoffPosition + "%" }}><b>LRT cutoff</b></i>}<i className="model-value" style={{ left: valuePosition + "%" }}/></div><div className="model-axis"><span>IDM retained</span><span>Evidence for BDM</span></div></> : <p className="model-unavailable">Likelihood-ratio statistic not reported.</p>}
       <div className="model-likelihoods"><span>IDM lnL <b>{formatNumber(getValue(row, "ln_lh_idm"), 3)}</b></span><span>BDM lnL <b>{formatNumber(getValue(row, "ln_lh_bdm"), 3)}</b></span></div>
+      <p className="model-interpretation">Retaining IDM is not proof that deletions are biologically independent. Rates are conditional on this model tree and its branch scale, not per-generation measurements.</p>
     </div>
   );
 }
@@ -931,13 +1091,13 @@ function ReconstructionEventGraphic({ row }) {
   const total = acquisitions + deletions;
   const acquisitionWidth = total ? (acquisitions / total) * 100 : 50;
   const deletionWidth = total ? 100 - acquisitionWidth : 50;
-  const specials = [["duplication", "Duplications", getValue(row, "nb of reconstructed duplications", "duplications")], ["rearrangement", "Rearrangements", getValue(row, "nb of reconstructed rearrangements", "rearrangements")], ["reacquisition", "Reacquisitions", getValue(row, "nb of reconstructed reacquisitions", "reacquisitions")], ["independent", "Independent gains", getValue(row, "nb of reconstructed independent gains", "independent_gains")]].filter(([, , value]) => finiteMetric(value) != null);
+  const specials = [["duplication", "Duplication candidates", getValue(row, "nb of reconstructed duplications", "duplications")], ["rearrangement", "Rearrangement candidates", getValue(row, "nb of reconstructed rearrangements", "rearrangements")], ["reacquisition", "Reacquisition candidates", getValue(row, "nb of reconstructed reacquisitions", "reacquisitions")], ["independent", "Independent-gain candidates", getValue(row, "nb of reconstructed independent gains", "independent_gains")]].filter(([, , value]) => Number(finiteMetric(value)) > 0);
   return (
     <div className="event-graphic">
-      <div className="graphic-label"><span>Reconstructed branch events</span><small>Selected ancestral history</small></div>
+      <div className="graphic-label"><span>Reconstructed event totals</span><small>Reported ancestral history</small></div>
       <div className="event-ribbon" role="img" aria-label={"Reconstructed event tally: " + formatNumber(acquisitions) + " acquisitions and " + formatNumber(deletions) + " deletions"}><span className="event-ribbon-gains" style={{ width: acquisitionWidth + "%" }}><EventGlyph type="acquisition"/><b>{formatNumber(acquisitions)}</b><small>acquisitions</small></span><span className="event-ribbon-losses" style={{ width: deletionWidth + "%" }}><EventGlyph type="deletion"/><b>{formatNumber(deletions)}</b><small>deletions</small></span></div>
-      {specials.length > 0 && <div className="special-event-grid">{specials.map(([type, label, value]) => <span key={type}><EventGlyph type={type}/><b>{formatNumber(value)}</b><small>{label}</small></span>)}</div>}
-      <p>The native SpacerPlacer grammar is preserved: rounded green marks denote acquisitions, red outlined blocks denote deletions, and distinct shapes flag special acquisition events.</p>
+      {specials.length > 0 ? <div className="special-event-grid">{specials.map(([type, label, value]) => <span key={type}><EventGlyph type={type}/><b>{formatNumber(value)}</b><small>{label}</small></span>)}</div> : <p className="no-special-events">No duplication, rearrangement, reacquisition, or independent-gain candidates were reported.</p>}
+      <p>The visual key is adapted from SpacerPlacer: green denotes acquisitions, red denotes deletions, and distinct shapes flag special-event candidates when present.</p>
     </div>
   );
 }
@@ -952,14 +1112,17 @@ function ReconstructionResults({ summary }) {
   const noDeletionGroups = rows.filter((row) => Number(deletionCount(row)) === 0).map((row, index) => row.name || row.group || "Group " + (index + 1));
   return (
     <section className="result-section reconstruction-section" aria-labelledby="reconstruction-heading">
-      <div className="result-heading"><div><p className="eyebrow">SpacerPlacer selected reconstruction</p><h3 id="reconstruction-heading">How the spacer arrays changed</h3></div><p>The chosen ancestral history is shown as events, spacer diversity, model evidence, and the selected rooted tree when available.</p></div>
-      <div className="tree-policy"><span className="tree-glyph" aria-hidden="true">⑂</span><div><strong>Tree policy used: {String(treePolicy).replaceAll("_", " ")}</strong><p>In orientation mode, every graphic below belongs to the reconstruction selected after the input-versus-reverse comparison.</p></div></div>
+      <div className="result-heading"><div><p className="eyebrow">SpacerPlacer ancestral reconstruction</p><h3 id="reconstruction-heading">How the spacer arrays changed</h3></div><p>Inspect the reported history as a rooted tree, aligned spacer states, branch events, spacer diversity, and deletion-model evidence.</p></div>
+      <div className="tree-policy"><span className="tree-glyph" aria-hidden="true">⑂</span><div><strong>Tree policy used: {String(treePolicy).replaceAll("_", " ")}</strong><p>Decisive groups report the evidence-supported hypothesis. Unresolved groups retain input order as a reporting default and are not presented as selected by evidence.</p></div></div>
+      {orientation?.reconstructions_truncated && <div className="history-truncation" role="note"><Icon name="warning" size={18}/><p><strong>Some structured ancestral histories were omitted from this summary.</strong> A group may fall back to its bounded tree/count view below; use the result artifacts for complete detail.</p></div>}
       <div className="reconstruction-story-list">{rows.map((row, index) => {
         const group = String(row.name || row.group || "Group " + (index + 1));
         const tree = selectedTree(summary, group);
-        return <article className={"reconstruction-story group-tone-" + (index % 4)} key={group}><div className="reconstruction-story-heading"><div><small>Reconstructed group {index + 1}</small><h4>{group}</h4></div><span>{formatNumber(getValue(row, "nb of leafs (after combining non-uniques)", "leaf_count"))} leaves</span></div><SpacerPlacerVerdict row={row}/>{tree && <TreeGraphic newick={tree} group={group}/>}<div className="reconstruction-visual-grid"><ReconstructionEventGraphic row={row}/><ModelSelectionGauge row={row}/></div><SpacerInventory row={row}/></article>;
+        const comparison = asArray(orientation?.comparisons).find((item, comparisonIndex) => groupIdentity(item, comparisonIndex) === group);
+        const reportedByDefault = !comparison || comparisonDecisionFor(comparison, orientation).label === "Unresolved";
+        return <article className={"reconstruction-story group-tone-" + (index % 4)} key={group}><div className="reconstruction-story-heading"><div><small>Reconstructed group {index + 1}</small><h4>{group}</h4></div><span>{formatNumber(getValue(row, "nb of leafs (after combining non-uniques)", "leaf_count"))} leaves</span></div><SpacerPlacerVerdict row={row}/><AncestralHistoryExplorer key={group} summary={summary} group={group} fallbackTree={tree} reportedByDefault={reportedByDefault}/><div className="reconstruction-visual-grid"><ReconstructionEventGraphic row={row}/><ModelSelectionGauge row={row}/></div><SpacerInventory row={row}/></article>;
       })}</div>
-      <details className="reconstruction-values"><summary>Exact SpacerPlacer estimates and runtime</summary><div className="table-wrap reconstruction-table"><table><thead><tr><th>Group</th><th>Preferred deletion model</th><th>BDM lnL</th><th>Insertions</th><th>Deletions</th><th>BDM deletion rate</th><th>Runtime</th></tr></thead><tbody>{rows.map((row, index) => <tr key={row.name || row.group || index}><td><strong>{row.name || row.group || "Group " + (index + 1)}</strong></td><td>{getValue(row, "Deletion model preferred by LRT", "preferred_model", "model_name", "model") || "—"}</td><td>{formatNumber(getValue(row, "ln_lh_bdm", "log_likelihood", "ln_likelihood", "lnL"), 3)}</td><td>{formatNumber(getValue(row, "nb of reconstructed insertions", "gains", "insertions", "gain_events"))}</td><td>{formatNumber(deletionCount(row))}</td><td>{formatNumber(getValue(row, "deletion_rate_bdm", "deletion_rate", "loss_rate"), 4)}</td><td>{formatDuration(getValue(row, "run_time", "runtime_seconds", "duration_seconds"))}</td></tr>)}</tbody></table></div></details>
+      <details className="reconstruction-values"><summary>Exact SpacerPlacer estimates and runtime</summary><div className="table-wrap reconstruction-table"><table><thead><tr><th>Group</th><th>Preferred deletion model</th><th>BDM lnL</th><th>Insertions</th><th>Deletions</th><th>BDM deletion rate (model branch scale)</th><th>Runtime</th></tr></thead><tbody>{rows.map((row, index) => <tr key={row.name || row.group || index}><td><strong>{row.name || row.group || "Group " + (index + 1)}</strong></td><td>{getValue(row, "Deletion model preferred by LRT", "preferred_model", "model_name", "model") || "—"}</td><td>{formatNumber(getValue(row, "ln_lh_bdm", "log_likelihood", "ln_likelihood", "lnL"), 3)}</td><td>{formatNumber(getValue(row, "nb of reconstructed insertions", "gains", "insertions", "gain_events"))}</td><td>{formatNumber(deletionCount(row))}</td><td>{formatNumber(getValue(row, "deletion_rate_bdm", "deletion_rate", "loss_rate"), 4)}</td><td>{formatDuration(getValue(row, "run_time", "runtime_seconds", "duration_seconds"))}</td></tr>)}</tbody></table></div></details>
       {noDeletionGroups.length > 0 && <div className="warning-note"><Icon name="warning"/><p><strong>No deletion events were reconstructed for {noDeletionGroups.join(", ")}.</strong> Deletion-rate estimates, model comparisons, and orientation evidence may not be meaningful for those groups; inspect the detailed outputs.</p></div>}
     </section>
   );
@@ -1034,6 +1197,45 @@ function Downloads({ job, credential, maxArchiveBytes = 0 }) {
   );
 }
 
+function ResultSynopsis({ summary, exampleSnapshot, noEligible }) {
+  const detection = summary?.detection || summary || {};
+  const adapter = summary?.adapter || {};
+  const orientation = summary?.orientation || summary?.orientation_evidence || {};
+  const comparisons = asArray(orientation.comparisons || orientation.groups);
+  const reconstructions = asArray(orientation.selected_reconstructions).length ? asArray(orientation.selected_reconstructions) : asArray(summary?.reconstruction?.results);
+  const comparison = comparisons[0];
+  const reconstruction = reconstructions[0];
+  const categories = detection.category_counts || detection.categories || {};
+  const categoryTotal = Object.values(categories).reduce((total, value) => total + (finiteMetric(value) ?? 0), 0);
+  const arrayCount = finiteMetric(detection.array_count) ?? (categoryTotal || asArray(detection.arrays).length);
+  const bonaFide = finiteMetric(categories["Bona-fide"]) ?? 0;
+  const modeled = finiteMetric(getValue(adapter, "emitted_array_count", "retained_arrays"));
+  const groups = finiteMetric(getValue(adapter, "emitted_group_count", "eligible_groups"));
+  const patterns = finiteMetric(getValue(reconstruction, "nb of unique spacer arrays", "unique_arrays"));
+  const delta = finiteMetric(getValue(comparison, "forward_minus_reverse_ln_likelihood_bdm", "delta_ln_likelihood", "delta_lnL"));
+  const decision = comparison ? comparisonDecisionFor(comparison, orientation).label : null;
+  const acquisitions = finiteMetric(getValue(reconstruction, "nb of reconstructed insertions", "gains", "insertions"));
+  const deletions = finiteMetric(getValue(reconstruction, "nb of reconstructed deletions", "deletions", "losses"));
+  const example = exampleSnapshot?.example;
+  const generatedTakeaway = noEligible
+    ? "CRISPR array detection completed, but no group met the requirements for an evolutionary comparison."
+    : decision
+      ? decision + (delta == null ? "." : " with Δ lnL " + signedNumber(delta, 2) + "; inspect the two reconstructed histories below to see what drives that support.")
+      : "Detection and reconstruction completed; inspect each evidence layer and its warnings below.";
+  const cards = [
+    { label: "Detection", value: formatNumber(bonaFide) + " / " + formatNumber(arrayCount), detail: "Bona-fide arrays" },
+    { label: "Model input", value: modeled == null || groups == null ? "Not reported" : formatNumber(modeled) + " → " + formatNumber(groups), detail: "arrays → eligible groups" },
+    { label: "Orientation evidence", value: delta == null ? "Not evaluated" : "Δ lnL " + signedNumber(delta, 2), detail: decision || "No decision" },
+    { label: "Reported history", value: acquisitions == null || deletions == null ? "Not reconstructed" : formatNumber(acquisitions) + " / " + formatNumber(deletions), detail: "acquisitions / deletions" + (patterns == null ? "" : " · " + formatNumber(patterns) + " array patterns") },
+  ];
+  return (
+    <section className={"result-synopsis" + (example ? " precomputed-synopsis" : "")} aria-labelledby="synopsis-heading">
+      <div className="synopsis-copy"><p className="eyebrow">{example ? "Precomputed example · biological question" : "Result synopsis"}</p><h3 id="synopsis-heading">{example?.analysis_question || "What does this run support?"}</h3><p>{example?.analysis_takeaway || generatedTakeaway}</p></div>
+      <div className="synopsis-cards">{cards.map((card) => <div key={card.label}><span>{card.label}</span><strong>{card.value}</strong><small>{card.detail}</small></div>)}</div>
+    </section>
+  );
+}
+
 export function Results({ job, credential, maxArchiveBytes = 0, exampleSnapshot = null }) {
   const sourceSummary = job?.summary || job?.result || {};
   const [artifactGroups, setArtifactGroups] = useState(null);
@@ -1086,6 +1288,7 @@ export function Results({ job, credential, maxArchiveBytes = 0, exampleSnapshot 
     <section className="results" aria-labelledby="results-heading">
       <div className="results-title"><div><p className="eyebrow">Analysis result</p><h2 id="results-heading">{noEligible ? "Detection succeeded; evolution was not applicable." : "Evidence, with its limits visible."}</h2></div><span className="complete-stamp"><Icon name="check"/> Completed</span></div>
       {noEligible && <div className="no-eligible" role="status"><Icon name="info"/><div><strong>No eligible evolutionary groups</strong><p>The workflow completed successfully and the detection results below remain valid. No group passed the selected category, similarity, record-count, and strand preflight rules, so no evolutionary or orientation claim was made.</p></div></div>}
+      <ResultSynopsis summary={summary} exampleSnapshot={exampleSnapshot} noEligible={noEligible}/>
       <CategorySummary summary={detection} arrays={arrays}/>
       <Preflight summary={summary}/>
       <EvolutionaryGroupMap summary={summary} membershipStatus={membershipStatus}/>
@@ -1102,7 +1305,7 @@ function ScopeSection() {
     <section className="scope" id="scope" aria-labelledby="scope-heading">
       <div><p className="eyebrow">Interpretation boundary</p><h2 id="scope-heading">What CRISPR-evOr can—and cannot—tell you.</h2></div>
       <div className="scope-grid">
-        <article className="scope-can"><span><Icon name="check"/></span><h3>Evolutionary order evidence</h3><p>CRISPR-evOr compares the likelihood of observed spacer-array histories in input and reversed order, conditional on detected arrays, grouping, tree, and model.</p><ul><li>Relative support for array order</li><li>Selected ancestral reconstruction</li><li>Gain/loss model summaries</li></ul></article>
+        <article className="scope-can"><span><Icon name="check"/></span><h3>Evolutionary order evidence</h3><p>CRISPR-evOr compares the likelihood of observed spacer-array histories in input and reversed order, conditional on detected arrays, grouping, tree, and model.</p><ul><li>Relative support for array order</li><li>Reported ancestral reconstruction</li><li>Gain/loss model summaries</li></ul></article>
         <article className="scope-cannot"><span>≠</span><h3>Not functional annotation</h3><p>Array-order support is not direct experimental evidence of molecular function or expression.</p><ul><li>Does not infer transcription direction or leader sequence</li><li>Does not infer PAMs or target sites</li><li>Does not design or validate genome-editing guides</li></ul></article>
       </div>
       <p className="scope-footnote">Treat “input” and “reverse input” as ordering hypotheses—not automatically as leader-proximal or transcribed orientations.</p>

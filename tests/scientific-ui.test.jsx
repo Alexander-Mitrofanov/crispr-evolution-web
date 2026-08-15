@@ -109,8 +109,7 @@ describe("scientific result labels", () => {
     expect(screen.getAllByText("isolate_A").length).toBeGreaterThan(0);
     expect(screen.getAllByText("isolate_B").length).toBeGreaterThan(0);
     expect(screen.getByRole("img", { name: /Canonical repeat ACGTACGT/i })).toBeInTheDocument();
-    expect(screen.getByText("4 acquisitions · 0 deletions")).toBeInTheDocument();
-    expect(screen.getByText("4 inferred changes")).toBeInTheDocument();
+    expect(screen.getAllByText("4 acquisitions · 0 deletions").length).toBeGreaterThan(0);
   });
 
   it("loads exact membership from the sanitized manifest for older completed jobs", async () => {
@@ -131,9 +130,99 @@ describe("scientific result labels", () => {
 
   it("renders the selected rooted tree and SpacerPlacer event graphics", () => {
     render(<Results job={completedJob} credential={credential}/>);
-    expect(screen.getByRole("img", { name: /Selected SpacerPlacer tree for group_nd with 2 leaves/i })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Reported input-order SpacerPlacer model tree for group_nd with 2 leaves/i })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /Reconstructed event tally: 4 acquisitions and 0 deletions/i })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /Deletion model likelihood-ratio statistic/i })).toBeInTheDocument();
+  });
+
+  it("compares structured input and reverse ancestral histories without a PDF viewer", () => {
+    const node = (name, spacers, gains = [], lossBlocks = []) => ({
+      name,
+      spacers,
+      gains,
+      loss_blocks: lossBlocks,
+      contradictions: [],
+      duplications: [],
+      rearrangements: [],
+      reacquisitions: [],
+      independent_gains: [],
+      other_duplication_events: [],
+    });
+    const job = {
+      ...completedJob,
+      summary: {
+        ...completedJob.summary,
+        orientation: {
+          ...completedJob.summary.orientation,
+          comparisons: [{ group: "group_nd", prediction: "Forward", decisive: true, confidence_threshold: 5, forward_ln_likelihood_bdm: -12.1, reverse_ln_likelihood_bdm: -20.5, forward_minus_reverse_ln_likelihood_bdm: 8.4 }],
+          reconstructions: [
+            {
+              group: "group_nd",
+              hypothesis: "input",
+              newick: "(isolate_A:1,isolate_B:1)root:0;",
+              spacer_order: [1, 2, 3, 4],
+              nodes: [node("root", [1], [1]), node("isolate_A", [1, 2, 3, 4], [2, 3, 4]), node("isolate_B", [1, 2, 3], [], [[4]])],
+              acquisition_count: 4,
+              deletion_count: 1,
+            },
+            {
+              group: "group_nd",
+              hypothesis: "reverse",
+              newick: "(isolate_A:0.2,isolate_B:0.2)root:0;",
+              spacer_order: [4, 3, 2, 1],
+              nodes: [node("root", [1, 2, 3, 4], [1, 2, 3, 4]), node("isolate_A", [1, 2, 3, 4]), node("isolate_B", [1, 2, 3], [], [[4]])],
+              acquisition_count: 4,
+              deletion_count: 1,
+            },
+          ],
+        },
+      },
+    };
+    render(<Results job={job} credential={credential}/>);
+    expect(screen.getByRole("img", { name: /Ancestral reconstruction for group_nd under Input spacer order with 2 observed leaves/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Input spacer order.*supported/i })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /Shared branch scale/i })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Inferred root root contains 1 reconstructed spacers/i })).toBeInTheDocument();
+    expect(screen.getByText(/orientation support does not establish transcription direction/i)).toBeInTheDocument();
+    expect(screen.getByText(/not an independent organismal phylogeny/i)).toBeInTheDocument();
+  });
+
+  it("does not silently substitute an available history when the supported one is missing", () => {
+    const node = (name, spacers, gains = [], lossBlocks = []) => ({
+      name,
+      spacers,
+      gains,
+      loss_blocks: lossBlocks,
+      contradictions: [],
+      duplications: [],
+      rearrangements: [],
+      reacquisitions: [],
+      independent_gains: [],
+      other_duplication_events: [],
+    });
+    const job = {
+      ...completedJob,
+      summary: {
+        ...completedJob.summary,
+        orientation: {
+          ...completedJob.summary.orientation,
+          comparisons: [{ group: "group_nd", prediction: "Reverse", decisive: true, confidence_threshold: 5, forward_ln_likelihood_bdm: -20.5, reverse_ln_likelihood_bdm: -12.1, forward_minus_reverse_ln_likelihood_bdm: -8.4 }],
+          reconstructions: [{
+            group: "group_nd",
+            hypothesis: "input",
+            newick: "(isolate_A:1,isolate_B:1)root:0;",
+            spacer_order: [1, 2],
+            nodes: [node("root", [1], [1]), node("isolate_A", [1, 2], [2]), node("isolate_B", [1])],
+            acquisition_count: 2,
+            deletion_count: 0,
+          }],
+        },
+      },
+    };
+    render(<Results job={job} credential={credential}/>);
+    expect(screen.getByText(/Reversed spacer order is supported, but its structured reconstruction is unavailable/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Input spacer order.*2 gains/i })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByText("reported default")).not.toBeInTheDocument();
   });
 
   it("surfaces no-deletion caveats and the tree policy", () => {

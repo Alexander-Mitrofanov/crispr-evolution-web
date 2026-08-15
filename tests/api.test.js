@@ -71,4 +71,26 @@ describe("API client", () => {
     expect(request.headers.Authorization).toBe("Bearer private-token");
     expect(result).toBeInstanceOf(Blob);
   });
+
+  it("omits ambient cookies and cache state from every service request", async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ ok: true }));
+    const client = createApiClient("https://analysis.example.org", fetchMock);
+
+    await client.health();
+    await client.config();
+    await client.submit({ sequence: ">a\nACGT\n", mode: "detection" });
+    await client.getJob("a".repeat(32), "private-token");
+    await client.cancelJob("a".repeat(32), "private-token");
+    await client.downloadBundle("a".repeat(32), "private-token");
+    await client.downloadArtifact("a".repeat(32), "b".repeat(24), "private-token");
+
+    expect(fetchMock).toHaveBeenCalledTimes(7);
+    for (const [, request] of fetchMock.mock.calls) {
+      expect(request).toMatchObject({
+        cache: "no-store",
+        credentials: "omit",
+        referrerPolicy: "no-referrer",
+      });
+    }
+  });
 });

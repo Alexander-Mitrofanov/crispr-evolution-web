@@ -26,7 +26,7 @@ export const ANALYSIS_MODES = [
     short: "CRISPR-evOr",
     badge: "Recommended for related isolates",
     description:
-      "Compare input and reversed array order under the evolutionary model, including the selected SpacerPlacer reconstruction.",
+      "Compare input and reversed array order under the evolutionary model, including the supported—or unresolved default—SpacerPlacer reconstruction.",
     minimumRecords: 2,
     tools: ["CRISPRidentify v2", "CRISPR-evOr", "SpacerPlacer"],
   },
