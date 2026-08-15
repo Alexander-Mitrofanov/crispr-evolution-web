@@ -567,8 +567,8 @@ export function ResumeJob({ onResume }) {
   };
   return (
     <section className="resume-job" aria-labelledby="resume-heading">
-      <div><p className="eyebrow">Already submitted?</p><h2 id="resume-heading">Resume with a private recovery file.</h2><p>The file is parsed locally, then its bearer token is sent only in the API Authorization header.</p></div>
-      <label className="resume-button"><Icon name="upload" size={17}/>Choose recovery JSON<input type="file" accept=".json,application/json" onChange={load}/></label>
+      <div><p className="eyebrow">Already submitted?</p><h2 id="resume-heading">Resume with a private recovery file.</h2><p id="resume-description">The file is parsed locally, then its bearer token is sent only in the API Authorization header.</p></div>
+      <label className="resume-button"><Icon name="upload" size={17}/>Choose recovery JSON<input type="file" accept=".json,application/json" aria-describedby="resume-description" onChange={load}/></label>
       {error && <p className="resume-error" role="alert">{error}</p>}
     </section>
   );
@@ -1498,6 +1498,14 @@ export default function App() {
     window.setTimeout(() => revealSection("job-status", "#job-heading"), 50);
   }, []);
 
+  const onResumed = useCallback((nextCredential) => {
+    setExampleSnapshot(null);
+    setCredential(nextCredential);
+    setJob(null);
+    setPollError("");
+    window.setTimeout(() => revealSection("job-status", "#job-heading"), 50);
+  }, []);
+
   const onExampleLoaded = useCallback((snapshot) => {
     setExampleSnapshot(snapshot);
     if (snapshot) window.setTimeout(() => revealSection("example-result", "#results-heading"), 50);
@@ -1527,7 +1535,7 @@ export default function App() {
     <div className="site-shell">
       <Hero service={service}/>
       <main>
-        {!credential && <ResumeJob onResume={(nextCredential) => { setExampleSnapshot(null); setCredential(nextCredential); setJob(null); setPollError(""); }}/>}
+        {!credential && <ResumeJob onResume={onResumed}/>}
         <AnalysisForm service={service} limits={limits} onSubmitted={onSubmitted} onExampleLoaded={onExampleLoaded} hasActiveJob={Boolean(credential)}/>
         {exampleSnapshot && <><p className="sr-only" role="status">Precomputed example result ready.</p><div id="example-result" className="example-anchor"><Results job={exampleSnapshot.job} exampleSnapshot={exampleSnapshot}/></div></>}
         {credential && <div id="job-status" className="job-anchor"><JobProgress job={job || { status: "queued" }} credential={credential} onCancel={cancel} onForget={forget} cancelling={cancelling}/><Results job={job} credential={credential} maxArchiveBytes={limits.maxArchiveBytes}/></div>}
