@@ -66,6 +66,11 @@ function Icon({ name, size = 20 }) {
     info: <><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.1"/></>,
     warning: <><path d="M12 3 2.8 20h18.4z"/><path d="M12 9v5M12 17.5v.1"/></>,
     close: <><path d="m6 6 12 12M18 6 6 18"/></>,
+    downRight: <><path d="m7 7 10 10M17 7v10H7"/></>,
+    external: <><path d="M10 6H6v12h12v-4M13 5h6v6M19 5l-8 8"/></>,
+    plus: <path d="M12 5v14M5 12h14"/>,
+    minus: <path d="M5 12h14"/>,
+    tree: <><path d="M7 4v16M7 8h6M7 16h6"/><circle cx="16" cy="8" r="2"/><circle cx="16" cy="16" r="2"/></>,
   };
   return (
     <svg className="icon" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -234,14 +239,14 @@ function Hero({ service }) {
       </div>
       <div className="hero-grid">
         <div className="hero-copy">
-          <p className="kicker"><span>CRISPRidentify v2</span><i />SpacerPlacer<i />CRISPR-evOr</p>
           <h1>From detected arrays to <em>evolutionary evidence.</em></h1>
           <p className="hero-lead">
             Analyze CRISPR spacer-array structure across related genomic records, reconstruct ancestral histories, and test which array order the evolutionary model supports.
           </p>
+          <p className="hero-suite"><span>CRISPRidentify v2</span><i />SpacerPlacer<i />CRISPR-evOr</p>
           <div className="hero-actions">
             <a className="hero-action" href="#analysis-form">Start an analysis <Icon name="arrow" /></a>
-            <a className="hero-example-action" href="#example-entry">Explore the flagship example <span aria-hidden="true">↘</span></a>
+            <a className="hero-example-action" href="#example-entry">Explore the flagship example <Icon name="downRight" size={17}/></a>
           </div>
           <ol className="hero-steps" aria-label="Analysis evidence chain">
             <li><b>01</b><span>Detect arrays</span></li>
@@ -344,7 +349,7 @@ function AdvancedOptions({ mode, options, setOptions }) {
         </fieldset>
         {mode !== "detection" && <div className="option-column">
           <label htmlFor="edit-distance"><strong>Spacer edit distance</strong><small>Maximum sequence edits when matching homologous spacers</small></label>
-          <div className="number-control"><button type="button" aria-label="Decrease spacer edit distance" onClick={() => setOptions({ ...options, spacerEditDistance: Math.max(0, options.spacerEditDistance - 1) })}>−</button><output id="edit-distance" aria-live="polite">{options.spacerEditDistance}</output><button type="button" aria-label="Increase spacer edit distance" onClick={() => setOptions({ ...options, spacerEditDistance: Math.min(2, options.spacerEditDistance + 1) })}>+</button></div>
+          <div className="number-control"><button type="button" aria-label="Decrease spacer edit distance" onClick={() => setOptions({ ...options, spacerEditDistance: Math.max(0, options.spacerEditDistance - 1) })}><Icon name="minus" size={16}/></button><output id="edit-distance" aria-live="polite">{options.spacerEditDistance}</output><button type="button" aria-label="Increase spacer edit distance" onClick={() => setOptions({ ...options, spacerEditDistance: Math.min(2, options.spacerEditDistance + 1) })}><Icon name="plus" size={16}/></button></div>
         </div>}
         {mode !== "detection" && <div className="option-column">
           <span><strong>Deletion-parameter bias corrections</strong><small>Refine α/ρ deletion-parameter estimates; orientation ΔlnL is unchanged. On this public service, if a group/direction-specific ρ correction has no finite fit, that fit alone uses uncorrected ρ estimates and records a warning instead of failing the job. The affected deletion-rate estimates and IDM/BDM LRT remain uncorrected; strict all-corrections-or-error is a separate CLI policy.</small></span>
@@ -384,7 +389,7 @@ export function InputPanel({ sequence, setSequence, filename, setFilename, inspe
     <div className="input-panel">
       <div className="input-heading" id="example-entry">
         <div><label htmlFor="fasta-input">Related contigs or small genomes</label><p>Paste FASTA or upload a plain-text file. The first token in every header must be unique.</p></div>
-        <button className="text-button example-button" type="button" onClick={loadExample} disabled={loadingExample || exampleDisabled} title={exampleDisabled ? "Finish or leave the current job before opening the example." : undefined}>{loadingExample ? "Loading example…" : "Load flagship example"}</button>
+        <button className="text-button example-button" type="button" onClick={loadExample} disabled={loadingExample || exampleDisabled} title={exampleDisabled ? "Finish or leave the current job before opening the example." : undefined}><Icon name="file" size={16}/>{loadingExample ? "Loading example…" : "Load flagship example"}</button>
       </div>
       <div className="upload-strip">
         <button className="upload-button" type="button" onClick={() => fileRef.current?.click()}><Icon name="upload" size={18}/> Upload FASTA</button>
@@ -497,7 +502,7 @@ export function AnalysisForm({ service, limits, onSubmitted, onExampleLoaded = (
 
   return (
     <section className="workflow" id="workflow" aria-labelledby="workflow-title">
-      <div className="section-intro"><p className="eyebrow">Analysis builder</p><h2 id="workflow-title">Make the question explicit before running the model.</h2><p>Detection confidence and evolutionary evidence answer different questions. This workflow keeps them separate.</p></div>
+      <div className="section-intro"><h2 id="workflow-title">Make the question explicit before running the model.</h2><p>Detection confidence and evolutionary evidence answer different questions. This workflow keeps them separate.</p></div>
       <form id="analysis-form" onSubmit={submit} noValidate>
         <ModeSelector mode={mode} onChange={setMode}/>
         <div className="input-section">
@@ -567,7 +572,7 @@ export function ResumeJob({ onResume }) {
   };
   return (
     <section className="resume-job" aria-labelledby="resume-heading">
-      <div><p className="eyebrow">Already submitted?</p><h2 id="resume-heading">Resume with a private recovery file.</h2><p id="resume-description">The file is parsed locally, then its bearer token is sent only in the API Authorization header.</p></div>
+      <div><h2 id="resume-heading"><span>Already submitted?</span> Resume with a private recovery file.</h2><p id="resume-description">The file is parsed locally, then its bearer token is sent only in the API Authorization header.</p></div>
       <label className="resume-button"><Icon name="upload" size={17}/>Choose recovery JSON<input type="file" accept=".json,application/json" aria-describedby="resume-description" onChange={load}/></label>
       {error && <p className="resume-error" role="alert">{error}</p>}
     </section>
@@ -585,7 +590,7 @@ export function JobProgress({ job, credential, onCancel, onForget, cancelling })
   return (
     <section className={`job-panel job-${job?.status || "queued"}`} aria-labelledby="job-heading">
       <div className="job-heading">
-        <div><p className="eyebrow">Current analysis</p><h2 id="job-heading" tabIndex="-1">{statusCopy(job?.status || "queued")}</h2><p className="job-id">Job <code>{credential.jobId}</code> · {expiresAt ? `expires ${formatDate(expiresAt)}` : "retention starts when the run finishes"}</p></div>
+        <div><h2 id="job-heading" tabIndex="-1">{statusCopy(job?.status || "queued")}</h2><p className="job-id">Job <code>{credential.jobId}</code> · {expiresAt ? `expires ${formatDate(expiresAt)}` : "retention starts when the run finishes"}</p></div>
         <span className={`job-badge ${successful ? "success" : terminal ? "terminal" : "active"}`} role="status"><i/>{successful ? "Ready" : terminal ? statusCopy(job?.status) : "In progress"}</span>
       </div>
       <RecoveryCredential credential={credential}/>
@@ -810,7 +815,7 @@ function OrientationResults({ summary }) {
       <div className="result-heading"><div><p className="eyebrow">CRISPR-evOr hypothesis test</p><h3 id="orientation-heading">Which spacer order is better supported?</h3></div><span className="orientation-chip">{decisiveCount} decisive · {comparisons.length - decisiveCount} unresolved</span></div>
       <p className="visual-intro">Each marker is the forward-minus-reverse BDM log-likelihood difference. The colored center band is deliberately inconclusive; a marker must cross a boundary before an orientation is assigned.</p>
       {comparisons.length ? <><OrientationEvidencePlot comparisons={comparisons} decisionFor={comparisonDecision}/><div className="hypothesis-list">{comparisons.map((group, index) => { const result = comparisonDecision(group); return <HypothesisComparison key={groupIdentity(group, index)} group={group} index={index} decision={result.label} threshold={result.threshold}/>; })}</div></> : <div className="empty-result">No finite orientation comparison was produced.</div>}
-      <div className="tree-policy"><span className="tree-glyph" aria-hidden="true">⑂</span><div><strong>Tree policy: {String(treePolicy).replaceAll("_", " ")}</strong><p>{treePolicyText}</p></div></div>
+      <div className="tree-policy"><span className="tree-glyph" aria-hidden="true"><Icon name="tree"/></span><div><strong>Tree policy: {String(treePolicy).replaceAll("_", " ")}</strong><p>{treePolicyText}</p></div></div>
       <div className="threshold-note"><Icon name="info" size={18}/><p><strong>How to read this:</strong> positive Delta lnL favors the supplied spacer order and negative Delta lnL favors the reversed order. The threshold is an evidence rule, <strong>not a p-value or probability</strong>.</p></div>
     </section>
   );
@@ -1183,7 +1188,7 @@ function ReconstructionResults({ summary }) {
   return (
     <section className="result-section reconstruction-section" aria-labelledby="reconstruction-heading">
       <div className="result-heading"><div><p className="eyebrow">SpacerPlacer ancestral reconstruction</p><h3 id="reconstruction-heading">How the spacer arrays changed</h3></div><p>Inspect the reported history as a rooted tree, aligned spacer states, branch events, spacer diversity, and deletion-model evidence.</p></div>
-      <div className="tree-policy"><span className="tree-glyph" aria-hidden="true">⑂</span><div><strong>Tree policy used: {String(treePolicy).replaceAll("_", " ")}</strong><p>Decisive groups report the evidence-supported hypothesis. Unresolved groups retain input order as a reporting default and are not presented as selected by evidence.</p></div></div>
+      <div className="tree-policy"><span className="tree-glyph" aria-hidden="true"><Icon name="tree"/></span><div><strong>Tree policy used: {String(treePolicy).replaceAll("_", " ")}</strong><p>Decisive groups report the evidence-supported hypothesis. Unresolved groups retain input order as a reporting default and are not presented as selected by evidence.</p></div></div>
       {orientation?.reconstructions_truncated && <div className="history-truncation" role="note"><Icon name="warning" size={18}/><p><strong>Some structured ancestral histories were omitted from this summary.</strong> A group may fall back to its bounded tree/count view below; use the result artifacts for complete detail.</p></div>}
       <div className="reconstruction-story-list">{rows.map((row, index) => {
         const group = String(row.name || row.group || "Group " + (index + 1));
@@ -1356,7 +1361,7 @@ export function Results({ job, credential, maxArchiveBytes = 0, exampleSnapshot 
   const noEligible = job.status === "completed_no_eligible_groups";
   return (
     <section className="results" aria-labelledby="results-heading">
-      <div className="results-title"><div><p className="eyebrow">Analysis result</p><h2 id="results-heading" tabIndex="-1">{noEligible ? "Detection succeeded; evolution was not applicable." : "Evidence, with its limits visible."}</h2></div><span className="complete-stamp"><Icon name="check"/> Completed</span></div>
+      <div className="results-title"><div><h2 id="results-heading" tabIndex="-1"><span className="sr-only">Analysis result</span>{" "}{noEligible ? "Detection succeeded; evolution was not applicable." : "Evidence, with its limits visible."}</h2></div><span className="complete-stamp"><Icon name="check"/> Completed</span></div>
       <nav className="result-jump-nav" aria-label="Result sections">
         <span>Result map</span>
         <a href="#synopsis-heading">Synopsis</a>
@@ -1383,7 +1388,7 @@ export function Results({ job, credential, maxArchiveBytes = 0, exampleSnapshot 
 function ScopeSection() {
   return (
     <section className="scope" id="scope" aria-labelledby="scope-heading">
-      <div><p className="eyebrow">Interpretation boundary</p><h2 id="scope-heading">What CRISPR-evOr can—and cannot—tell you.</h2></div>
+      <div><h2 id="scope-heading">What CRISPR-evOr can—and cannot—tell you.</h2></div>
       <div className="scope-grid">
         <article className="scope-can"><span><Icon name="check"/></span><h3>Evolutionary order evidence</h3><p>CRISPR-evOr compares the likelihood of observed spacer-array histories in input and reversed order, conditional on detected arrays, grouping, tree, and model.</p><ul><li>Relative support for array order</li><li>Reported ancestral reconstruction</li><li>Gain/loss model summaries</li></ul></article>
         <article className="scope-cannot"><span>≠</span><h3>Not functional annotation</h3><p>Array-order support is not direct experimental evidence of molecular function or expression.</p><ul><li>Does not infer transcription direction or leader sequence</li><li>Does not infer PAMs or target sites</li><li>Does not design or validate genome-editing guides</li></ul></article>
@@ -1401,13 +1406,13 @@ function References() {
   ];
   return (
     <section className="references" aria-labelledby="references-heading">
-      <div className="references-heading"><div><p className="eyebrow">Methods & source</p><h2 id="references-heading">Primary references</h2></div><p>Use the archived bundle for run-specific versions and parameters; cite the corresponding methods when publishing results.</p></div>
+      <div className="references-heading"><div><h2 id="references-heading">Primary references</h2></div><p>Use the archived bundle for run-specific versions and parameters; cite the corresponding methods when publishing results.</p></div>
       <div className="reference-grid">{citations.map((item) => (
         <article key={item.tool}>
           <span>{item.venue}</span>
           <h3>{item.tool}</h3>
           <p>{item.title}</p>
-          <div><a href={item.doi} target="_blank" rel="noopener noreferrer">Publication <span aria-hidden="true">↗</span></a><a href={item.source} target="_blank" rel="noopener noreferrer">Source <span aria-hidden="true">↗</span></a></div>
+          <div><a href={item.doi} target="_blank" rel="noopener noreferrer">Publication <Icon name="external" size={15}/></a><a href={item.source} target="_blank" rel="noopener noreferrer">Source <Icon name="external" size={15}/></a></div>
         </article>
       ))}</div>
     </section>
