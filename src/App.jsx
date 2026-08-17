@@ -1172,7 +1172,7 @@ function ReconstructionEventGraphic({ row }) {
       <div className="graphic-label"><span>Reconstructed event totals</span><small>Reported ancestral history</small></div>
       <div className="event-ribbon" role="img" aria-label={"Reconstructed event tally: " + formatNumber(acquisitions) + " acquisitions and " + formatNumber(deletions) + " deletions"}><span className="event-ribbon-gains" style={{ width: acquisitionWidth + "%" }}><EventGlyph type="acquisition"/><b>{formatNumber(acquisitions)}</b><small>acquisitions</small></span><span className="event-ribbon-losses" style={{ width: deletionWidth + "%" }}><EventGlyph type="deletion"/><b>{formatNumber(deletions)}</b><small>deletions</small></span></div>
       {specials.length > 0 ? <div className="special-event-grid">{specials.map(([type, label, value]) => <span key={type}><EventGlyph type={type}/><b>{formatNumber(value)}</b><small>{label}</small></span>)}</div> : <p className="no-special-events">No duplication, rearrangement, reacquisition, or independent-gain candidates were reported.</p>}
-      <p>The visual key is adapted from SpacerPlacer: blue filled circles denote acquisitions, red outlines denote deletions, and distinct shapes flag special-event candidates when present.</p>
+      <p>The visual key is adapted from SpacerPlacer: green denotes acquisitions, red denotes deletions, and distinct shapes flag special-event candidates when present.</p>
     </div>
   );
 }
