@@ -47,6 +47,8 @@ export function sanitizeAdapterMembership(document) {
         category: safeText(array.category, 80) || "unknown",
         spacer_count: safeCount(array.spacer_count),
         strand: safeText(array.strand, 32) || "unknown",
+        input_sequence_orientation: safeText(array.input_sequence_orientation, 32) || "unknown",
+        ccdb_strand: safeText(array.ccdb_strand, 32) || "unknown",
       };
     }).filter(Boolean);
     return {

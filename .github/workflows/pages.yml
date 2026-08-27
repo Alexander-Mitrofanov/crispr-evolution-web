@@ -46,7 +46,7 @@ jobs:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
         run: test -n "$VITE_API_BASE_URL"
 
-      - name: Install dependencies
+      - name: Install exact dependencies
         run: npm ci --ignore-scripts
 
       - name: Test

@@ -59,8 +59,15 @@ npm run build
 ```
 
 `VITE_API_BASE_URL` must be an origin without a path, query, credentials, or
-fragment. `VITE_BASE_PATH` must start and end with `/`. The build fails closed
-when either production value is invalid.
+fragment; production builds fail closed when it is missing or invalid.
+`VITE_BASE_PATH` is normalized to one leading and trailing `/`, so both
+`crispr-evolution-web` and `/crispr-evolution-web/` produce the same base.
+
+The public repository contains the contents of this directory at its root.
+Consequently, `.github/workflows/pages.yml` here is intentionally shaped for a
+frontend-only checkout; it is not the private monorepo workflow. Export through
+`../deploy/export-pages-frontend.sh` so dotfiles are included and private
+backend/scientific directories cannot cross the publication boundary.
 
 The build also runs scripts/scan-public-example.mjs. The scanner validates the snapshot and both SHA-256 bindings in public and dist, permits the intended FASTA asset, rejects unexpected sequence assets, and rejects superseded example material.
 

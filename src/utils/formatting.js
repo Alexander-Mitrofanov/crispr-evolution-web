@@ -1,4 +1,5 @@
 export function formatNumber(value, digits = 0) {
+  if (value == null || value === "") return "—";
   const number = Number(value);
   if (!Number.isFinite(number)) return "—";
   return number.toLocaleString(undefined, { maximumFractionDigits: digits });
