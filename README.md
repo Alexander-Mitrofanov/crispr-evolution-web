@@ -1,6 +1,24 @@
 # CRISPR Evolution Workbench frontend
 
-Static React frontend for the CRISPRidentify v2, SpacerPlacer, and CRISPR-evOr workflow.
+Static Vue 3 frontend for the CRISPRidentify v2, SpacerPlacer, and CRISPR-evOr
+workflow. It is built with Vite and contains no server-side runtime or secrets.
+
+## Structure
+
+The implementation intentionally uses small files so independent changes and
+reviews stay local:
+
+- `src/App.vue` composes the page and owns no scientific rendering details.
+- `src/components/submission/` contains input, mode, readiness, and option controls.
+- `src/components/jobs/` contains capability recovery, progress, and resume flows.
+- `src/components/results/` contains one focused scientific result view per file.
+- `src/components/shell/` and `src/components/common/` contain layout and shared UI.
+- `src/composables/` owns service configuration and in-memory job session state.
+- `src/utils/` contains framework-neutral formatting, Newick, result, and download helpers.
+
+Bearer capabilities stay in memory unless the user explicitly exports a
+recovery file. They are never stored in URLs, cookies, local storage, or session
+storage.
 
 ## Bundled example
 
@@ -25,8 +43,27 @@ The frontend keeps a credential only in the current tab state unless the user ex
 
 ## Development
 
-Run npm ci, then npm test. Build with VITE_API_BASE_URL and VITE_BASE_PATH set for the deployment.
+```bash
+npm ci --ignore-scripts
+npm test
+npm run dev
+```
+
+Build the deployable Pages artifact with an exact HTTPS API origin and project
+base path:
+
+```bash
+VITE_API_BASE_URL=https://crispr-evor-web-server.tail58d78e.ts.net \
+VITE_BASE_PATH=/crispr-evolution-web/ \
+npm run build
+```
+
+`VITE_API_BASE_URL` must be an origin without a path, query, credentials, or
+fragment. `VITE_BASE_PATH` must start and end with `/`. The build fails closed
+when either production value is invalid.
 
 The build also runs scripts/scan-public-example.mjs. The scanner validates the snapshot and both SHA-256 bindings in public and dist, permits the intended FASTA asset, rejects unexpected sequence assets, and rejects superseded example material.
 
-API origin: https://crispr-evor-web-server.tail58d78e.ts.net
+Production frontend: <https://alexander-mitrofanov.github.io/crispr-evolution-web/>
+
+API origin: <https://crispr-evor-web-server.tail58d78e.ts.net>

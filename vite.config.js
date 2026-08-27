@@ -1,5 +1,5 @@
 import { defineConfig, loadEnv } from "vite";
-import react from "@vitejs/plugin-react";
+import vue from "@vitejs/plugin-vue";
 
 function normalizeBase(value) {
   const trimmed = String(value || "/").trim();
@@ -67,7 +67,7 @@ export default defineConfig(({ command, mode }) => {
   const csp = productionCsp(command, process.env.VITE_API_BASE_URL || env.VITE_API_BASE_URL);
   return {
     base: normalizeBase(process.env.VITE_BASE_PATH || env.VITE_BASE_PATH),
-    plugins: [react(), ...(csp ? [csp] : [])],
+    plugins: [vue(), ...(csp ? [csp] : [])],
     test: {
       environment: "jsdom",
       globals: true,
