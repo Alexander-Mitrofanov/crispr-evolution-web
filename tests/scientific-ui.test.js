@@ -56,6 +56,25 @@ describe("scientific result contract", () => {
     expect(screen.getByText(/Selected reconstructed node/i)).toBeInTheDocument();
   });
 
+  it("never substitutes an available comparison history for a missing supported history", () => {
+    const job = cloneJob();
+    const comparison = job.summary.orientation.comparisons[0];
+    comparison.forward_ln_likelihood_bdm = -39.24813645021139;
+    comparison.reverse_ln_likelihood_bdm = -23.745096131593357;
+    comparison.forward_minus_reverse_ln_likelihood_bdm = -15.503040318618034;
+    comparison.prediction = "Reverse";
+    comparison.recommended_reverse = true;
+    job.summary.orientation.reconstructions = job.summary.orientation.reconstructions.filter((entry) => entry.hypothesis === "input");
+
+    render(ResultsView, { props: { job, credential } });
+
+    expect(screen.getByText("Reversed spacer order is supported, but its structured reconstruction is unavailable.")).toBeInTheDocument();
+    expect(screen.getByText(/available hypothesis is shown for inspection only/i)).toHaveTextContent(/not substituted for the missing reported history/i);
+    expect(screen.getByText("Inspection only", { selector: ".history-summary strong" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Reversed spacer order/i })).toBeDisabled();
+    expect(screen.queryByText("Supported history", { selector: ".history-summary strong" })).not.toBeInTheDocument();
+  });
+
   it("loads exact group membership from a sanitized manifest for older jobs", async () => {
     const job = cloneJob();
     const fullGroup = job.summary.adapter.groups[0];
