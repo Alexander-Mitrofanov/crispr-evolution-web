@@ -1,0 +1,72 @@
+/* 2026 scientific-workbench refinement */
+h1,
+h2,
+h3,
+h4,
+h5 {
+  text-wrap: balance;
+}
+p,
+li {
+  text-wrap: pretty;
+}
+[id$="-heading"],
+#analysis-form,
+.job-anchor,
+.example-anchor {
+  scroll-margin-top: 88px;
+}
+.status-label-short {
+  display: none;
+}
+.site-shell {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+.hero {
+  min-height: 500px;
+  background:
+    radial-gradient(circle at 77% 26%, rgba(106, 124, 255, 0.24), transparent 24rem),
+    radial-gradient(circle at 16% 88%, rgba(46, 198, 220, 0.13), transparent 28rem),
+    linear-gradient(145deg, var(--night-950) 0%, var(--night-900) 55%, var(--night-800) 100%);
+}
+.nav-shell nav > a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+.nav-shell nav > a::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 8px;
+  left: 0;
+  height: 2px;
+  background: var(--green-bright);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s ease;
+}
+.nav-shell nav > a:hover::after,
+.nav-shell nav > a:focus-visible::after {
+  transform: scaleX(1);
+}
+.service-status {
+  min-height: 44px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.service-offline .status-pulse {
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+.hero-copy {
+  max-width: 760px;
+}
+.hero-action {
+  min-height: 48px;
+  margin-top: 14px;
+  padding: 14px 18px 14px 22px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 28px rgba(5, 9, 29, 0.3);
+}

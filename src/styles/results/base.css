@@ -1,0 +1,350 @@
+.results {
+  padding: clamp(30px, 4vw, 52px);
+}
+.results-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 30px;
+  padding-bottom: 38px;
+}
+.results-title h2 {
+  max-width: 770px;
+}
+.complete-stamp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  color: #275847;
+  border: 1px solid #87ae7b;
+  background: #eef7e9;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+.no-eligible {
+  margin: 0 0 18px;
+  border-top: 3px solid var(--gold);
+  color: #5b4c2b;
+  background: #fbf4df;
+}
+.result-synopsis {
+  margin: 0 0 18px;
+  overflow: hidden;
+  border: 0;
+  background: var(--ink);
+  box-shadow: 0 18px 46px rgba(9, 20, 51, 0.18);
+}
+.synopsis-copy {
+  padding: clamp(24px, 3.5vw, 38px);
+  color: white;
+}
+.synopsis-copy .eyebrow {
+  color: var(--green-bright);
+}
+.synopsis-copy h3 {
+  max-width: 920px;
+  margin: 0;
+  color: var(--on-night);
+  font:
+    500 clamp(1.82rem, 3vw, 2.78rem) ui-serif,
+    "Iowan Old Style",
+    "Palatino Linotype",
+    Georgia,
+    serif;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+.synopsis-copy > p:last-child {
+  max-width: 900px;
+  margin: 15px 0 0;
+  color: var(--on-night-soft);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+.synopsis-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid rgba(255, 255, 255, 0.17);
+}
+.synopsis-cards > div {
+  min-width: 0;
+  min-height: 112px;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+}
+.synopsis-cards > div + div {
+  border-left: 1px solid rgba(255, 255, 255, 0.17);
+}
+.synopsis-cards span {
+  color: var(--on-night-muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.synopsis-cards strong {
+  margin-top: auto;
+  color: var(--green-bright);
+  font:
+    600 1.2rem ui-monospace,
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+}
+.synopsis-cards small {
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--on-night-soft);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.result-section {
+  padding: 37px 0;
+  border-top: 1px solid var(--line);
+}
+.result-heading {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) minmax(260px, 0.65fr);
+  gap: 30px;
+  align-items: end;
+  margin-bottom: 25px;
+}
+.result-heading h3 {
+  margin: 0;
+  color: var(--ink);
+  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-size: 2rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+.result-heading > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 9px;
+}
+.category-card {
+  position: relative;
+  min-height: 119px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr;
+  padding: 17px;
+  overflow: hidden;
+  color: #2f4a42;
+  background: #e7ede6;
+}
+.category-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: #82938b;
+}
+.category-card span {
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+.category-card strong {
+  grid-row: 2;
+  align-self: end;
+  color: var(--ink);
+  font:
+    500 2.4rem ui-serif,
+    "Iowan Old Style",
+    "Palatino Linotype",
+    Georgia,
+    serif;
+}
+.category-card small {
+  grid-row: 2;
+  align-self: end;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+.category-bona-fide {
+  background: #e5f1dd;
+}
+.category-bona-fide::before {
+  background: #4f9565;
+}
+.category-possible {
+  background: #fbf1d9;
+}
+.category-possible::before {
+  background: var(--gold);
+}
+.category-possible-discarded,
+.category-low-score {
+  background: #f3e8e4;
+}
+.category-possible-discarded::before,
+.category-low-score::before {
+  background: #b87363;
+}
+.empty-result {
+  padding: 25px;
+  color: #62736d;
+  background: #eef1eb;
+  font-size: 0.9rem;
+}
+.table-wrap {
+  width: 100%;
+  margin-top: 23px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+th {
+  padding: 11px 13px;
+  color: #64736e;
+  background: #eff1eb;
+  font-size: 0.75rem;
+  letter-spacing: 0.045em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+td {
+  padding: 13px;
+  border-top: 1px solid #e1e3dc;
+  color: #40554e;
+  vertical-align: top;
+}
+td strong,
+td small {
+  display: block;
+}
+td small {
+  margin-top: 3px;
+  color: var(--muted);
+  font:
+    0.72rem ui-monospace,
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+}
+.category-pill {
+  display: inline-flex;
+  padding: 4px 6px;
+  color: #355044;
+  background: #e6ece5;
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.category-pill.category-bona-fide {
+  color: #245c3b;
+  background: #dcefd7;
+}
+.category-pill.category-possible {
+  color: #73551a;
+  background: #f8e9bd;
+}
+.raw-score {
+  color: #233f37;
+  font-size: 0.78rem;
+}
+.interpretation-note,
+.threshold-note,
+.warning-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  color: #52655e;
+  background: #edf1e9;
+}
+.interpretation-note p,
+.threshold-note p,
+.warning-note p {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+.interpretation-note .icon,
+.threshold-note .icon {
+  color: var(--green);
+}
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--line);
+}
+.metric-grid > div {
+  min-height: 102px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px;
+  border-right: 1px solid var(--line);
+}
+.metric-grid > div:last-child {
+  border-right: 0;
+}
+.metric-grid > div.attention {
+  background: #fbf0df;
+}
+.metric-grid span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.metric-grid strong {
+  color: var(--ink);
+  font:
+    500 1.9rem ui-serif,
+    "Iowan Old Style",
+    "Palatino Linotype",
+    Georgia,
+    serif;
+}
+.reason-block {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  gap: 30px;
+  margin-top: 21px;
+}
+.reason-block h4,
+.provenance-grid h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.86rem;
+}
+.reason-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.reason-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 7px;
+  border-bottom: 1px dotted #c7cec7;
+  color: #61716b;
+  font-size: 0.78rem;
+}
+.reason-list span {
+  text-transform: capitalize;
+}

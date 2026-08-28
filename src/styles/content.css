@@ -1,0 +1,82 @@
+.references {
+  margin-top: 72px;
+  padding-top: 45px;
+  border-top: 1px solid var(--line-dark);
+}
+.references-heading {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(250px, 0.6fr);
+  gap: 35px;
+  align-items: end;
+  margin-bottom: 22px;
+}
+.references-heading h2 {
+  margin: 0;
+  color: var(--ink);
+  font:
+    400 clamp(2rem, 3vw, 3rem) ui-serif,
+    "Iowan Old Style",
+    "Palatino Linotype",
+    Georgia,
+    serif;
+  letter-spacing: -0.035em;
+}
+.references-heading > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+.reference-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--line-dark);
+}
+.reference-grid article {
+  min-width: 0;
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+}
+.reference-grid article + article {
+  border-left: 1px solid var(--line-dark);
+}
+.reference-grid article > span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.reference-grid h3 {
+  margin: 18px 0 0;
+  color: var(--ink);
+  font:
+    500 1.35rem ui-serif,
+    "Iowan Old Style",
+    "Palatino Linotype",
+    Georgia,
+    serif;
+}
+.reference-grid p {
+  margin: 7px 0 18px;
+  color: #677771;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.reference-grid article > div {
+  display: flex;
+  gap: 16px;
+  margin-top: auto;
+}
+.reference-grid a {
+  color: var(--action-text);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.reference-grid a:hover {
+  color: var(--action-hover);
+}

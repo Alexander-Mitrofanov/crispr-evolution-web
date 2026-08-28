@@ -1,0 +1,87 @@
+.submit-error {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 15px;
+  padding: 13px 15px;
+  color: #792a24;
+  background: #fbe7e1;
+  font-size: 0.86rem;
+}
+.active-job-lock {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 15px;
+  padding: 13px 15px;
+  color: #5a502f;
+  background: #f9f1dd;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+.active-job-lock strong {
+  color: #4c3d19;
+}
+.privacy-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 19px;
+  border: 1px solid #c9d2ca;
+  border-bottom: 0;
+  color: #465d55;
+  background: #f1f4ee;
+}
+.privacy-notice p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+.privacy-notice strong {
+  color: var(--ink);
+}
+.submit-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  padding: 23px 25px;
+  color: white;
+  background: var(--ink);
+}
+.submit-bar > div > * {
+  display: block;
+}
+.submit-bar strong {
+  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+.submit-bar span {
+  margin-top: 3px;
+  color: var(--on-night-muted);
+  font:
+    400 0.78rem ui-monospace,
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+}
+.primary-button {
+  min-width: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 13px 16px;
+  border: 0;
+  color: var(--on-action);
+  background: var(--action);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.job-anchor,
+.example-anchor {
+  scroll-margin-top: 28px;
+}

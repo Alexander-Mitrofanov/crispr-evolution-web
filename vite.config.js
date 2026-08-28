@@ -19,14 +19,16 @@ function productionCsp(command, value) {
     throw new Error("VITE_API_BASE_URL must be a valid HTTPS origin.");
   }
   if (
-    parsed.protocol !== "https:"
-    || parsed.username
-    || parsed.password
-    || parsed.pathname !== "/"
-    || parsed.search
-    || parsed.hash
+    parsed.protocol !== "https:" ||
+    parsed.username ||
+    parsed.password ||
+    parsed.pathname !== "/" ||
+    parsed.search ||
+    parsed.hash
   ) {
-    throw new Error("VITE_API_BASE_URL must be an exact HTTPS origin without credentials, path, query, or fragment.");
+    throw new Error(
+      "VITE_API_BASE_URL must be an exact HTTPS origin without credentials, path, query, or fragment.",
+    );
   }
 
   const policy = [
@@ -53,11 +55,13 @@ function productionCsp(command, value) {
     name: "production-content-security-policy",
     enforce: "post",
     transformIndexHtml() {
-      return [{
-        tag: "meta",
-        attrs: { "http-equiv": "Content-Security-Policy", content: policy },
-        injectTo: "head-prepend",
-      }];
+      return [
+        {
+          tag: "meta",
+          attrs: { "http-equiv": "Content-Security-Policy", content: policy },
+          injectTo: "head-prepend",
+        },
+      ];
     },
   };
 }

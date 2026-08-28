@@ -12,8 +12,24 @@ const LINE_BOUNDARIES = new Set([
   "\u2028",
   "\u2029",
 ]);
-const PYTHON_WHITESPACE = /[\u0009-\u000D\u001C-\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+/g;
-const PYTHON_EDGE_WHITESPACE = /^[\u0009-\u000D\u001C-\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+|[\u0009-\u000D\u001C-\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+$/g;
+const PYTHON_WHITESPACE_CLASS = [
+  "\\u0009-\\u000D",
+  "\\u001C-\\u0020",
+  "\\u0085",
+  "\\u00A0",
+  "\\u1680",
+  "\\u2000-\\u200A",
+  "\\u2028",
+  "\\u2029",
+  "\\u202F",
+  "\\u205F",
+  "\\u3000",
+].join("");
+const PYTHON_WHITESPACE = new RegExp(`[${PYTHON_WHITESPACE_CLASS}]+`, "g");
+const PYTHON_EDGE_WHITESPACE = new RegExp(
+  `^[${PYTHON_WHITESPACE_CLASS}]+|[${PYTHON_WHITESPACE_CLASS}]+$`,
+  "g",
+);
 
 function stripPythonWhitespace(value) {
   return value.replace(PYTHON_EDGE_WHITESPACE, "");
@@ -37,8 +53,15 @@ export function* fastaLines(value) {
 }
 
 function safeIdentifier(value, fallback, maxLength = 64) {
-  const ascii = String(value).normalize("NFKD").replace(/[^\x00-\x7F]/g, "");
-  return ascii.replace(/[^A-Za-z0-9_-]+/g, "_").replace(/^[_-]+|[_-]+$/g, "").slice(0, maxLength) || fallback;
+  const ascii = String(value)
+    .normalize("NFKD")
+    .replace(/[^\x00-\x7F]/g, "");
+  return (
+    ascii
+      .replace(/[^A-Za-z0-9_-]+/g, "_")
+      .replace(/^[_-]+|[_-]+$/g, "")
+      .slice(0, maxLength) || fallback
+  );
 }
 
 export function inspectFasta(text, { maxHeaderCharacters = 200 } = {}) {
@@ -50,7 +73,13 @@ export function inspectFasta(text, { maxHeaderCharacters = 200 } = {}) {
   let current = null;
 
   if (!source) {
-    return { valid: false, records, recordCount: 0, baseCount: 0, errors: ["Add at least one FASTA record."] };
+    return {
+      valid: false,
+      records,
+      recordCount: 0,
+      baseCount: 0,
+      errors: ["Add at least one FASTA record."],
+    };
   }
 
   if (!source.startsWith(">")) source = `>web_input\n${source}`;
@@ -64,8 +93,13 @@ export function inspectFasta(text, { maxHeaderCharacters = 200 } = {}) {
       const header = line.slice(1).trim();
       const identifier = header.split(PYTHON_WHITESPACE)[0];
       if (!identifier) errors.push(`Line ${lineNumber}: FASTA header is empty.`);
-      if (header.length > maxHeaderCharacters) errors.push(`Line ${lineNumber}: FASTA header exceeds ${maxHeaderCharacters} characters.`);
-      if ([...header].some((character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127)) {
+      if (header.length > maxHeaderCharacters)
+        errors.push(`Line ${lineNumber}: FASTA header exceeds ${maxHeaderCharacters} characters.`);
+      if (
+        [...header].some(
+          (character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127,
+        )
+      ) {
         errors.push(`Line ${lineNumber}: FASTA header contains control characters.`);
       }
       if (identifier && identifiers.has(identifier)) {
@@ -74,7 +108,9 @@ export function inspectFasta(text, { maxHeaderCharacters = 200 } = {}) {
       if (identifier) identifiers.add(identifier);
       const normalizedIdentifier = safeIdentifier(identifier, `sequence_${records.length + 1}`);
       if (safeIdentifiers.has(normalizedIdentifier)) {
-        errors.push(`Record identifiers collide after safe filename normalization: “${normalizedIdentifier}”.`);
+        errors.push(
+          `Record identifiers collide after safe filename normalization: “${normalizedIdentifier}”.`,
+        );
       }
       safeIdentifiers.add(normalizedIdentifier);
       current = { header, identifier, normalizedIdentifier, sequence: "" };
@@ -88,7 +124,9 @@ export function inspectFasta(text, { maxHeaderCharacters = 200 } = {}) {
     const rawSequence = line.replace(PYTHON_WHITESPACE, "");
     const invalid = [...new Set(rawSequence)].filter((symbol) => !IUPAC_DNA_INPUT.has(symbol));
     if (invalid.length) {
-      errors.push(`Line ${lineNumber}: unsupported DNA symbol${invalid.length > 1 ? "s" : ""} ${invalid.join(", ")}.`);
+      errors.push(
+        `Line ${lineNumber}: unsupported DNA symbol${invalid.length > 1 ? "s" : ""} ${invalid.join(", ")}.`,
+      );
     }
     // Normalize only literal ASCII lowercase after validation. In particular,
     // never let Unicode case conversion turn a confusable into an IUPAC base.
@@ -97,7 +135,8 @@ export function inspectFasta(text, { maxHeaderCharacters = 200 } = {}) {
   }
 
   for (const record of records) {
-    if (!record.sequence) errors.push(`Record “${record.identifier || "unnamed"}” has no sequence.`);
+    if (!record.sequence)
+      errors.push(`Record “${record.identifier || "unnamed"}” has no sequence.`);
   }
 
   const baseCount = records.reduce((total, record) => total + record.sequence.length, 0);

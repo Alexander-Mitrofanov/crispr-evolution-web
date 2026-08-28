@@ -1,0 +1,141 @@
+.workflow {
+  overflow: clip;
+  border: 0;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+}
+.job-panel,
+.results {
+  border-radius: var(--radius-lg);
+}
+.mode-card {
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+.mode-card:hover,
+.mode-card.selected {
+  box-shadow: none;
+}
+.mode-top > small,
+.category-pill,
+.complete-stamp,
+.job-badge,
+.orientation-chip {
+  border-radius: 999px;
+}
+.input-panel,
+.readiness,
+.advanced,
+.fixed-policy {
+  border-radius: var(--radius-md);
+}
+.input-panel {
+  box-shadow: none;
+}
+.readiness {
+  background: linear-gradient(160deg, #10254d, #091630);
+  box-shadow: var(--shadow-sm);
+}
+.text-button {
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid var(--action);
+  border-radius: var(--radius-sm);
+  color: var(--action-text);
+  background: var(--action-soft);
+  text-decoration: none;
+}
+.text-button:hover {
+  color: var(--on-action);
+  border-color: var(--action);
+  background: var(--action);
+}
+.example-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.upload-strip {
+  border-radius: var(--radius-sm);
+}
+.upload-strip:focus-within {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+.upload-button,
+.recovery-link button,
+.cancel-button,
+.leave-job-button {
+  border-radius: var(--radius-sm);
+}
+textarea {
+  min-height: 280px;
+  border-color: var(--line-dark);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  background: var(--paper);
+  font-size: 0.86rem;
+}
+textarea::placeholder {
+  color: #5d7169;
+  opacity: 1;
+}
+.input-heading p,
+.input-foot,
+.section-title small,
+.result-heading > p,
+.muted {
+  color: var(--muted);
+}
+.advanced summary {
+  min-height: 52px;
+}
+.number-control,
+.segmented {
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+}
+.number-control {
+  grid-template-columns: 44px 48px 44px;
+}
+.number-control button,
+.segmented button {
+  min-height: 44px;
+}
+.policy-note,
+.privacy-notice,
+.submit-bar,
+.submit-error,
+.active-job-lock,
+.interpretation-note,
+.threshold-note,
+.warning-note {
+  border-radius: var(--radius-md);
+}
+.privacy-notice {
+  border-bottom: 1px solid #c9d2ca;
+  margin-bottom: 10px;
+}
+.submit-bar {
+  box-shadow: 0 14px 34px rgba(9, 20, 51, 0.15);
+}
+.primary-button {
+  min-height: 50px;
+  border-radius: var(--radius-sm);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
+}
+.primary-button:not(:disabled):hover {
+  background: var(--action-hover);
+  box-shadow: 0 12px 24px rgba(9, 20, 51, 0.24);
+  transform: translateY(-1px);
+}
+.hero-action:active,
+.primary-button:not(:disabled):active,
+.upload-button:not(:disabled):active,
+.bundle-button:not(:disabled):active {
+  background: var(--action-pressed);
+  transform: translateY(0);
+}

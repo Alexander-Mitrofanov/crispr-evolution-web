@@ -32,10 +32,14 @@ export function useServiceConfig(client = api) {
         state: "online",
         message: "Analysis service ready",
         version: health?.version || config?.api_version,
-        expiresHours: config?.retention_hours || health?.retention_hours || (config?.retention_seconds ? Math.round(config.retention_seconds / 3600) : null),
+        expiresHours:
+          config?.retention_hours ||
+          health?.retention_hours ||
+          (config?.retention_seconds ? Math.round(config.retention_seconds / 3600) : null),
       };
       limits.value = {
-        maxBases: config?.max_total_bases || config?.max_sequence_bases || health?.max_sequence_bases || 0,
+        maxBases:
+          config?.max_total_bases || config?.max_sequence_bases || health?.max_sequence_bases || 0,
         maxRecordBases: config?.max_record_bases || 0,
         maxRecords: config?.max_records || health?.max_records || 0,
         maxRequestBytes: config?.max_request_bytes || 0,
@@ -44,7 +48,10 @@ export function useServiceConfig(client = api) {
       };
     } catch (error) {
       if (error.name !== "AbortError") {
-        service.value = { state: "offline", message: error.message || "The analysis API could not be reached." };
+        service.value = {
+          state: "offline",
+          message: error.message || "The analysis API could not be reached.",
+        };
       }
     }
   }

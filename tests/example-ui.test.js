@@ -13,13 +13,28 @@ import { inspectFasta } from "../src/fasta.js";
 
 const exampleFasta = readFileSync(resolve(process.cwd(), "public", EXAMPLE_FASTA_PATH), "utf8");
 const service = { state: "online", expiresHours: 72 };
-const limits = { maxRecords: 20, maxBases: 2_000_000, maxRecordBases: 2_000_000, maxHeaderCharacters: 200, maxRequestBytes: 2_000_000 };
+const limits = {
+  maxRecords: 20,
+  maxBases: 2_000_000,
+  maxRecordBases: 2_000_000,
+  maxHeaderCharacters: 200,
+  maxRequestBytes: 2_000_000,
+};
 
-afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 describe("verified local example", () => {
   it("loads bound assets and reveals the result only after explicit viewing", async () => {
-    const fetchMock = vi.fn(async (url) => String(url).endsWith(EXAMPLE_FASTA_PATH) ? { ok: true, text: async () => exampleFasta } : String(url).endsWith(EXAMPLE_RESULT_PATH) ? { ok: true, json: async () => snapshot } : Promise.reject(new Error("Unexpected URL")));
+    const fetchMock = vi.fn(async (url) =>
+      String(url).endsWith(EXAMPLE_FASTA_PATH)
+        ? { ok: true, text: async () => exampleFasta }
+        : String(url).endsWith(EXAMPLE_RESULT_PATH)
+          ? { ok: true, json: async () => snapshot }
+          : Promise.reject(new Error("Unexpected URL")),
+    );
     vi.stubGlobal("fetch", fetchMock);
     const submitSpy = vi.spyOn(api, "submit");
     const onExampleLoaded = vi.fn();
@@ -30,7 +45,11 @@ describe("verified local example", () => {
     const input = screen.getByLabelText(/related contigs or small genomes/i);
     await waitFor(() => expect(input).toHaveValue(exampleFasta));
     expect(onExampleLoaded).toHaveBeenLastCalledWith(null);
-    expect(inspectFasta(input.value)).toMatchObject({ valid: true, recordCount: 5, baseCount: 8_380 });
+    expect(inspectFasta(input.value)).toMatchObject({
+      valid: true,
+      recordCount: 5,
+      baseCount: 8_380,
+    });
     expect(document.getElementById("edit-distance")).toHaveTextContent("1");
     await fireEvent.click(screen.getByRole("button", { name: "View precomputed result" }));
     await waitFor(() => expect(onExampleLoaded).toHaveBeenLastCalledWith(snapshot));
@@ -39,8 +58,19 @@ describe("verified local example", () => {
   });
 
   it("uses the live submission path after the example is edited", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (url) => String(url).endsWith(EXAMPLE_FASTA_PATH) ? { ok: true, text: async () => exampleFasta } : { ok: true, json: async () => snapshot }));
-    const submitSpy = vi.spyOn(api, "submit").mockResolvedValue({ job_id: "0123456789abcdef0123456789abcdef", access_token: "a".repeat(43), status: "queued" });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url) =>
+        String(url).endsWith(EXAMPLE_FASTA_PATH)
+          ? { ok: true, text: async () => exampleFasta }
+          : { ok: true, json: async () => snapshot },
+      ),
+    );
+    const submitSpy = vi.spyOn(api, "submit").mockResolvedValue({
+      job_id: "0123456789abcdef0123456789abcdef",
+      access_token: "a".repeat(43),
+      status: "queued",
+    });
     const onSubmitted = vi.fn();
     render(AnalysisForm, { props: { service, limits, onSubmitted } });
     await fireEvent.click(screen.getByRole("button", { name: "Load flagship example" }));
@@ -53,7 +83,14 @@ describe("verified local example", () => {
   });
 
   it("fails closed when the stored input does not match its result", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (url) => String(url).endsWith(EXAMPLE_FASTA_PATH) ? { ok: true, text: async () => `${exampleFasta}\n` } : { ok: true, json: async () => snapshot }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url) =>
+        String(url).endsWith(EXAMPLE_FASTA_PATH)
+          ? { ok: true, text: async () => `${exampleFasta}\n` }
+          : { ok: true, json: async () => snapshot },
+      ),
+    );
     render(AnalysisForm, { props: { service, limits } });
     await fireEvent.click(screen.getByRole("button", { name: "Load flagship example" }));
     expect(await screen.findByText(/does not match its precomputed result/i)).toBeInTheDocument();
@@ -65,10 +102,18 @@ describe("verified local example", () => {
     expect(screen.getByText("Completed")).toBeInTheDocument();
     expect(screen.getAllByText(/example_record_/).length).toBeGreaterThanOrEqual(5);
     expect(screen.getByRole("heading", { name: /What reached the model/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /How the spacer arrays changed/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /How detections became evolutionary evidence/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /How do five related CRISPR arrays connect/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /How the spacer arrays changed/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /How detections became evolutionary evidence/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /How do five related CRISPR arrays connect/i }),
+    ).toBeInTheDocument();
     expect(screen.getAllByText("Input order supported").length).toBeGreaterThan(0);
-    expect(screen.queryByRole("button", { name: /Download complete result bundle/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Download complete result bundle/i }),
+    ).not.toBeInTheDocument();
   });
 });

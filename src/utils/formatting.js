@@ -50,17 +50,8 @@ export function signedNumber(value, digits = 2) {
 }
 
 export function downloadName(value, fallback) {
-  const candidate = String(value || fallback).split(/[\\/]/).pop();
+  const candidate = String(value || fallback)
+    .split(/[\\/]/)
+    .pop();
   return candidate.replace(/[^A-Za-z0-9._-]+/g, "_") || fallback;
-}
-
-export function preferredScrollBehavior() {
-  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-}
-
-export function revealSection(id, headingSelector = "h2") {
-  const region = document.getElementById(id);
-  if (!region) return;
-  region.scrollIntoView({ behavior: preferredScrollBehavior(), block: "start" });
-  region.querySelector(headingSelector)?.focus({ preventScroll: true });
 }

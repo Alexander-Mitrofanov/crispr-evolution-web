@@ -22,7 +22,9 @@ describe("API client", () => {
   });
 
   it("submits JSON without placing a job token in the request", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ job_id: "abc", access_token: "secret" }, 202));
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ job_id: "abc", access_token: "secret" }, 202));
     const client = createApiClient("https://analysis.example.org", fetchMock);
     const payload = { sequence: ">a\nACGT\n", mode: "detection" };
 

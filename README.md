@@ -10,15 +10,17 @@ reviews stay local:
 
 - `src/App.vue` composes the page and owns no scientific rendering details.
 - `src/components/submission/` contains input, mode, readiness, and option controls.
-- `src/components/jobs/` contains capability recovery, progress, and resume flows.
-- `src/components/results/` contains one focused scientific result view per file.
+- `src/components/jobs/` contains capability-link recovery and progress flows.
+- `src/components/results/` contains vertical overview, orientation,
+  reconstruction, history, and publication slices behind `ResultsView.vue`.
 - `src/components/shell/` and `src/components/common/` contain layout and shared UI.
 - `src/composables/` owns service configuration and in-memory job session state.
 - `src/utils/` contains framework-neutral formatting, Newick, result, and download helpers.
 
-Bearer capabilities stay in memory unless the user explicitly exports a
-recovery file. They are never stored in URLs, cookies, local storage, or session
-storage.
+Bearer capabilities stay in memory and in the explicit `#job=` recovery fragment. URL fragments
+are client-side and are not included in HTTP requests, so API calls still carry the capability only
+in the Authorization header. The complete recovery link is a bearer secret and must be kept private.
+Capabilities are never stored in cookies, local storage, or session storage.
 
 ## Bundled example
 
@@ -39,7 +41,13 @@ The result view renders both hypotheses as responsive SVG rather than embedding 
 
 Anonymous jobs use capability authorization instead of shared browser sessions. Every submission receives a random 128-bit job locator and a separate 256-bit bearer token; only the token digest is stored. There is no job-list endpoint. Status, cancellation, artifacts, and bundles all require the token bound to that job, and a wrong job/token pair returns the same 404 as an unknown job.
 
-The frontend keeps a credential only in the current tab state unless the user explicitly downloads a recovery file. API requests omit cookies and use no-store and no-referrer policies plus an Authorization header. Tokens are never placed in URLs or browser storage. Two jobs can coexist in the durable queue and complete independently, including when users share one NAT address under the configured per-client allowance.
+The frontend writes the active credential to a strict `#job=<locator>.<token>` fragment so reloading
+or copying the current page can recover the job. The fragment is never sent to GitHub Pages or the
+API, but it is visible in browser history and to scripts on the same origin; anyone holding the full
+link can access that job until expiry. API requests omit cookies and use no-store and no-referrer
+policies plus an Authorization header. No capability enters an API URL, local storage, or session
+storage. Two jobs can coexist in the durable queue and complete independently, including when users
+share one NAT address under the configured per-client allowance.
 
 ## Development
 

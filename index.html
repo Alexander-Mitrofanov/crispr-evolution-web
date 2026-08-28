@@ -2,42 +2,126 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#102822" />
-    <meta name="referrer" content="no-referrer" />
-    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <meta
+      name="theme-color"
+      content="#102822"
+    />
+    <meta
+      name="referrer"
+      content="no-referrer"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="%BASE_URL%favicon.svg"
+    />
     <meta
       name="description"
       content="Detect CRISPR arrays and reconstruct spacer-array evolution with CRISPRidentify, SpacerPlacer, and CRISPR-evOr."
     />
-    <link rel="canonical" href="https://alexander-mitrofanov.github.io/crispr-evolution-web/" />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="CRISPR Evolution Workbench" />
-    <meta property="og:title" content="CRISPR Evolution Workbench" />
-    <meta property="og:description" content="Detect CRISPR arrays, reconstruct spacer-array histories, and compare evolutionary order hypotheses." />
-    <meta property="og:url" content="https://alexander-mitrofanov.github.io/crispr-evolution-web/" />
-    <meta property="og:image" content="https://alexander-mitrofanov.github.io/crispr-evolution-web/og.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Branching CRISPR spacer arrays representing evolutionary reconstruction." />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="CRISPR Evolution Workbench" />
-    <meta name="twitter:description" content="Detect, reconstruct, and compare CRISPR spacer-array evolution." />
-    <meta name="twitter:image" content="https://alexander-mitrofanov.github.io/crispr-evolution-web/og.png" />
-    <meta name="twitter:image:alt" content="Branching CRISPR spacer arrays representing evolutionary reconstruction." />
+    <link
+      rel="canonical"
+      href="https://alexander-mitrofanov.github.io/crispr-evolution-web/"
+    />
+    <meta
+      property="og:type"
+      content="website"
+    />
+    <meta
+      property="og:site_name"
+      content="CRISPR Evolution Workbench"
+    />
+    <meta
+      property="og:title"
+      content="CRISPR Evolution Workbench"
+    />
+    <meta
+      property="og:description"
+      content="Detect CRISPR arrays, reconstruct spacer-array histories, and compare evolutionary order hypotheses."
+    />
+    <meta
+      property="og:url"
+      content="https://alexander-mitrofanov.github.io/crispr-evolution-web/"
+    />
+    <meta
+      property="og:image"
+      content="https://alexander-mitrofanov.github.io/crispr-evolution-web/og.png"
+    />
+    <meta
+      property="og:image:width"
+      content="1200"
+    />
+    <meta
+      property="og:image:height"
+      content="630"
+    />
+    <meta
+      property="og:image:alt"
+      content="Branching CRISPR spacer arrays representing evolutionary reconstruction."
+    />
+    <meta
+      name="twitter:card"
+      content="summary_large_image"
+    />
+    <meta
+      name="twitter:title"
+      content="CRISPR Evolution Workbench"
+    />
+    <meta
+      name="twitter:description"
+      content="Detect, reconstruct, and compare CRISPR spacer-array evolution."
+    />
+    <meta
+      name="twitter:image"
+      content="https://alexander-mitrofanov.github.io/crispr-evolution-web/og.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="Branching CRISPR spacer arrays representing evolutionary reconstruction."
+    />
     <title>CRISPR Evolution Workbench</title>
   </head>
   <body>
-    <a id="skip-link" class="skip-link" href="#analysis-form" hidden>Skip to analysis form</a>
-    <main id="frame-blocked-message" class="frame-blocked-message" aria-labelledby="frame-blocked-title" hidden>
+    <a
+      id="skip-link"
+      class="skip-link"
+      href="#analysis-form"
+      hidden
+      >Skip to analysis form</a
+    >
+    <main
+      id="frame-blocked-message"
+      class="frame-blocked-message"
+      aria-labelledby="frame-blocked-title"
+      hidden
+    >
       <section>
         <p class="eyebrow">Submission safety</p>
         <h1 id="frame-blocked-title">Open this workbench in its own tab.</h1>
-        <p>The analysis interface is unavailable inside an embedded frame. No sequence was loaded or sent.</p>
-        <a href="./" target="_blank" rel="noopener noreferrer">Open in a new tab</a>
+        <p>
+          The analysis interface is unavailable inside an embedded frame. No sequence was loaded or
+          sent.
+        </p>
+        <a
+          id="frame-blocked-open"
+          href="./"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Open in a new tab</a
+        >
       </section>
     </main>
-    <div id="root" hidden></div>
-    <script type="module" src="/src/main.js"></script>
+    <div
+      id="root"
+      hidden
+    ></div>
+    <script
+      type="module"
+      src="/src/main.js"
+    ></script>
   </body>
 </html>

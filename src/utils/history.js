@@ -20,20 +20,26 @@ export function historyLossCount(node) {
 }
 
 export function historyValueList(value) {
-  const values = asArray(value).flat(4).filter((item) => item != null && String(item).trim());
+  const values = asArray(value)
+    .flat(4)
+    .filter((item) => item != null && String(item).trim());
   return values.length ? values.map(String).join(", ") : "—";
 }
 
 export function specialEventSummary(node) {
-  return [
-    ["contradictions", node?.contradictions],
-    ["duplications", node?.duplications],
-    ["rearrangements", node?.rearrangements],
-    ["reacquisitions", node?.reacquisitions],
-    ["independent gains", node?.independent_gains],
-    ["other duplications", node?.other_duplication_events],
-  ].filter(([, values]) => historyValueList(values) !== "—")
-    .map(([label, values]) => `${label}: ${historyValueList(values)}`).join("; ") || "—";
+  return (
+    [
+      ["contradictions", node?.contradictions],
+      ["duplications", node?.duplications],
+      ["rearrangements", node?.rearrangements],
+      ["reacquisitions", node?.reacquisitions],
+      ["independent gains", node?.independent_gains],
+      ["other duplications", node?.other_duplication_events],
+    ]
+      .filter(([, values]) => historyValueList(values) !== "—")
+      .map(([label, values]) => `${label}: ${historyValueList(values)}`)
+      .join("; ") || "—"
+  );
 }
 
 export function entryRootGains(entry) {

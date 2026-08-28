@@ -1,3 +1,8 @@
+import publicApiContract from "./contracts/public-api-v1.json";
+
+export const CATEGORY_POLICIES = Object.freeze([...publicApiContract.enums.category_policies]);
+export const DEFAULT_CATEGORY_POLICY = CATEGORY_POLICIES[0];
+
 export const ANALYSIS_MODES = [
   {
     id: "detection",
@@ -43,25 +48,20 @@ export const STAGES = [
   { id: "package_results", label: "Package results", detail: "Reports, provenance, and archive" },
 ];
 
-export const TERMINAL_STATUSES = new Set([
-  "completed",
-  "completed_no_eligible_groups",
-  "failed",
-  "cancelled",
-  "expired",
-]);
+export const TERMINAL_STATUSES = new Set(publicApiContract.enums.terminal_statuses);
 
 export function stagesForMode(mode) {
-  const excluded = {
-    detection: new Set([
-      "adapt_arrays",
-      "preflight_groups",
-      "reconstruct_spacer_histories",
-      "compare_orientations",
-    ]),
-    reconstruction: new Set(["compare_orientations"]),
-    orientation: new Set(),
-  }[mode] || new Set();
+  const excluded =
+    {
+      detection: new Set([
+        "adapt_arrays",
+        "preflight_groups",
+        "reconstruct_spacer_histories",
+        "compare_orientations",
+      ]),
+      reconstruction: new Set(["compare_orientations"]),
+      orientation: new Set(),
+    }[mode] || new Set();
   return STAGES.filter((stage) => !excluded.has(stage.id));
 }
 
@@ -77,5 +77,7 @@ export function orientationLabel(value) {
 }
 
 export function categoryClass(value) {
-  return String(value || "unknown").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  return String(value || "unknown")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-");
 }

@@ -3,7 +3,9 @@ export function parseNewick(value) {
   if (!source || source.length > 10_000) return null;
   let position = 0;
   let nextId = 0;
-  const skip = () => { while (position < source.length && /\s/.test(source[position])) position += 1; };
+  const skip = () => {
+    while (position < source.length && /\s/.test(source[position])) position += 1;
+  };
   const readLabel = (required) => {
     skip();
     const start = position;
@@ -24,7 +26,7 @@ export function parseNewick(value) {
   };
   const readNode = () => {
     skip();
-    const node = { id: nextId += 1, name: "", length: 0, children: [] };
+    const node = { id: (nextId += 1), name: "", length: 0, children: [] };
     if (source[position] === "(") {
       position += 1;
       node.children.push(readNode());
@@ -35,7 +37,8 @@ export function parseNewick(value) {
         node.children.push(readNode());
       }
       skip();
-      if (source[position] !== ")" || node.children.length < 2) throw new Error("invalid Newick branch");
+      if (source[position] !== ")" || node.children.length < 2)
+        throw new Error("invalid Newick branch");
       position += 1;
       node.name = readLabel(false);
     } else node.name = readLabel(true);
@@ -54,7 +57,13 @@ export function parseNewick(value) {
   }
 }
 
-export function layoutNewick(value, height = 320, scaleMode = "branch", sharedDistance = null, treeWidth = 430) {
+export function layoutNewick(
+  value,
+  height = 320,
+  scaleMode = "branch",
+  sharedDistance = null,
+  treeWidth = 430,
+) {
   const tree = parseNewick(value);
   if (!tree) return null;
   const nodes = [];
@@ -62,7 +71,8 @@ export function layoutNewick(value, height = 320, scaleMode = "branch", sharedDi
   const visit = (node, depth = 0, distance = 0, parent = null) => {
     Object.assign(node, { depth, distance, parent });
     nodes.push(node);
-    if (node.children.length) node.children.forEach((child) => visit(child, depth + 1, distance + child.length, node));
+    if (node.children.length)
+      node.children.forEach((child) => visit(child, depth + 1, distance + child.length, node));
     else leaves.push(node);
   };
   visit(tree);
@@ -70,7 +80,12 @@ export function layoutNewick(value, height = 320, scaleMode = "branch", sharedDi
   const maxDistance = Math.max(0, ...nodes.map((node) => node.distance));
   const top = 34;
   const bottom = height - 34;
-  leaves.forEach((leaf, index) => { leaf.y = leaves.length === 1 ? height / 2 : top + (index / Math.max(1, leaves.length - 1)) * (bottom - top); });
+  leaves.forEach((leaf, index) => {
+    leaf.y =
+      leaves.length === 1
+        ? height / 2
+        : top + (index / Math.max(1, leaves.length - 1)) * (bottom - top);
+  });
   const place = (node) => {
     if (!node.children.length) return node.y;
     const positions = node.children.map(place);
@@ -80,7 +95,10 @@ export function layoutNewick(value, height = 320, scaleMode = "branch", sharedDi
   place(tree);
   const distanceExtent = Number(sharedDistance) > 0 ? Number(sharedDistance) : maxDistance;
   nodes.forEach((node) => {
-    const measure = scaleMode === "branch" && distanceExtent > 0 ? node.distance / distanceExtent : node.depth / maxDepth;
+    const measure =
+      scaleMode === "branch" && distanceExtent > 0
+        ? node.distance / distanceExtent
+        : node.depth / maxDepth;
     node.x = 28 + measure * treeWidth;
   });
   return { tree, nodes, leaves, height, maxDistance };
