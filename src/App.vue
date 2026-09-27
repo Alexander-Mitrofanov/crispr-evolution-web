@@ -68,6 +68,7 @@ function leaveJob() {
       <ModeSelector
         v-if="page === 'methods'"
         @select="chooseMethod"
+        @database="showDatabase"
       />
       <KeepAlive>
         <CatalogView v-if="page === 'database'" />

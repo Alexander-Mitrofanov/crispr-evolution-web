@@ -21,10 +21,14 @@ afterEach(() => {
 });
 
 describe("method-first navigation", () => {
-  it("shows only the available methods, with no upload form or illustration", () => {
+  it("offers the database and available methods without an upload form", () => {
     const { container } = renderApp();
     const picker = screen.getByRole("region", { name: "Choose a method" });
-    expect(within(picker).getAllByRole("link")).toHaveLength(ANALYSIS_MODES.length);
+    expect(within(picker).getAllByRole("link")).toHaveLength(ANALYSIS_MODES.length + 1);
+    expect(within(picker).getByRole("link", { name: "Search the database" })).toHaveAttribute(
+      "href",
+      "?view=database",
+    );
     for (const method of ANALYSIS_MODES) {
       expect(within(picker).getByRole("link", { name: method.title })).toHaveAttribute(
         "href",
@@ -35,6 +39,25 @@ describe("method-first navigation", () => {
     expect(container.querySelector('input[type="file"]')).toBeNull();
     expect(screen.queryByRole("img", { name: /Genomic locus/i })).not.toBeInTheDocument();
     expect(container.querySelector("footer")).toBeNull();
+  });
+
+  it("opens the database from the main page and restores it through browser history", async () => {
+    vi.spyOn(api, "catalogSummary").mockResolvedValue({ available: true });
+    const records = vi
+      .spyOn(api, "catalogPage")
+      .mockResolvedValue({ items: [], next_cursor: null });
+    renderApp();
+    await fireEvent.click(screen.getByRole("link", { name: "Search the database" }));
+    expect(await screen.findByRole("heading", { name: "CRISPR–Cas database" })).toHaveFocus();
+    expect(window.location.search).toBe("?view=database");
+    expect(await screen.findByRole("combobox", { name: "Search by" })).toBeVisible();
+    expect(records).not.toHaveBeenCalled();
+    window.history.back();
+    await waitFor(() =>
+      expect(screen.getByRole("link", { name: "Search the database" })).toBeVisible(),
+    );
+    window.history.forward();
+    await waitFor(() => expect(screen.getByRole("searchbox")).toBeVisible());
   });
 
   it.each(ANALYSIS_MODES)("opens the corresponding upload page for $id", async (method) => {

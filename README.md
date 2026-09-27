@@ -26,7 +26,8 @@ Capabilities are never stored in cookies, local storage, or session storage.
 
 ## Reference database
 
-The Database navigation opens `?view=database` while preserving any active job recovery
+The main page's **Search the database** option and the **Database** navigation link
+open `?view=database` while preserving any active job recovery
 fragment. Public catalog requests use the same configured API origin and never include
 job credentials. The dataset is served by the API; database files are not bundled in this
 static public frontend.

@@ -1,7 +1,14 @@
 <script setup>
 import { ANALYSIS_MODES } from "../../science.js";
 
-const emit = defineEmits(["select"]);
+const emit = defineEmits(["select", "database"]);
+
+function openDatabase(event) {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0)
+    return;
+  event.preventDefault();
+  emit("database");
+}
 
 function choose(event, id) {
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0)
@@ -23,6 +30,16 @@ function choose(event, id) {
       Choose a method
     </h1>
     <div class="method-grid">
+      <a
+        class="method-link database-entry"
+        href="?view=database"
+        aria-label="Search the database"
+        aria-describedby="database-entry-description"
+        @click="openDatabase"
+      >
+        <strong>Search the database</strong>
+        <span id="database-entry-description">Genomes, repeats, spacers &amp; Cas genes</span>
+      </a>
       <a
         v-for="item in ANALYSIS_MODES"
         :key="item.id"

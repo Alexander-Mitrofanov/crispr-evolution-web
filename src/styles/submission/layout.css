@@ -78,6 +78,9 @@ main {
   border-color: var(--action);
   color: var(--action);
 }
+.database-entry strong {
+  color: var(--action-text);
+}
 .method-description {
   max-width: 75ch;
   margin: 12px 0 0;
