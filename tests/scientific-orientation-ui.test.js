@@ -5,8 +5,10 @@ import ResultsView from "../src/components/results/ResultsView.vue";
 import { cloneResultJob, resultCredential } from "./support/resultFixture.js";
 
 describe("scientific orientation and history presentation", () => {
-  it("shows orientation boundary semantics and both likelihood hypotheses", () => {
+  it("shows orientation boundary semantics and both likelihood hypotheses", async () => {
     render(ResultsView, { props: { job: cloneResultJob(), credential: resultCredential } });
+    await fireEvent.click(screen.getByRole("tab", { name: "History", exact: true }));
+    await fireEvent.click(screen.getByRole("tab", { name: "Orientation", exact: true }));
     expect(screen.getByText("1 decisive · 0 unresolved")).toBeInTheDocument();
     expect(screen.getByText(/threshold is an evidence rule/i)).toHaveTextContent(
       /not a p-value or probability/i,
@@ -18,6 +20,7 @@ describe("scientific orientation and history presentation", () => {
     expect(
       Number(orientationPlot.querySelector(".orientation-marker").getAttribute("x1")),
     ).toBeGreaterThan(50);
+    await fireEvent.click(screen.getByRole("tab", { name: "History", exact: true }));
     const eventRibbon = screen.getByRole("img", { name: "42 acquisitions and 4 deletions" });
     expect(
       Number(eventRibbon.querySelector(".event-ribbon-gains").getAttribute("width")),
@@ -42,6 +45,7 @@ describe("scientific orientation and history presentation", () => {
 
   it("switches structured input and reverse histories and exposes node events", async () => {
     render(ResultsView, { props: { job: cloneResultJob(), credential: resultCredential } });
+    await fireEvent.click(screen.getByRole("tab", { name: "History", exact: true }));
     const input = screen.getByRole("button", { name: /Input spacer order.*lnL/i });
     const reverse = screen.getByRole("button", { name: /Reversed spacer order.*lnL/i });
     expect(input).toHaveAttribute("aria-pressed", "true");
@@ -58,6 +62,7 @@ describe("scientific orientation and history presentation", () => {
 
   it("preserves topology, canvas, exact-branch, and loss-count inspection", async () => {
     render(ResultsView, { props: { job: cloneResultJob(), credential: resultCredential } });
+    await fireEvent.click(screen.getByRole("tab", { name: "History", exact: true }));
     const topology = screen.getByRole("button", { name: "Readable topology" });
     const branchScale = screen.getByRole("button", { name: "Shared branch scale" });
     expect(topology).toHaveAttribute("aria-pressed", "true");
@@ -96,6 +101,7 @@ describe("scientific orientation and history presentation", () => {
       other_duplication_events: [12],
     });
     render(ResultsView, { props: { job, credential: resultCredential } });
+    await fireEvent.click(screen.getByRole("tab", { name: "History", exact: true }));
     await fireEvent.click(screen.getByText("Exact node and branch data"));
     const rootRow = screen.getByRole("row", { name: /Inner4.*Inferred root/i });
     expect(rootRow).toHaveTextContent("contradictions: 7");
@@ -106,7 +112,7 @@ describe("scientific orientation and history presentation", () => {
     expect(rootRow).toHaveTextContent("other duplications: 12");
   });
 
-  it("caps oversized histories and falls back for malformed structured trees", () => {
+  it("caps oversized histories and falls back for malformed structured trees", async () => {
     const oversizedJob = cloneResultJob();
     const input = oversizedJob.summary.orientation.reconstructions.find(
       (entry) => entry.hypothesis === "input",
@@ -120,6 +126,7 @@ describe("scientific orientation and history presentation", () => {
     const { unmount } = render(ResultsView, {
       props: { job: oversizedJob, credential: resultCredential },
     });
+    await fireEvent.click(screen.getByRole("tab", { name: "History", exact: true }));
     expect(
       screen.getByText("Structured history available in the result bundle"),
     ).toBeInTheDocument();
@@ -133,6 +140,7 @@ describe("scientific orientation and history presentation", () => {
       (entry) => entry.hypothesis === "input",
     ).newick = "(not-valid";
     render(ResultsView, { props: { job: malformedJob, credential: resultCredential } });
+    await fireEvent.click(screen.getByRole("tab", { name: "History", exact: true }));
     expect(
       screen.getByRole("img", {
         name: /Supported history model tree.*repeat_cfad14d7184c_group_001/i,
@@ -140,7 +148,7 @@ describe("scientific orientation and history presentation", () => {
     ).toBeInTheDocument();
   });
 
-  it("never substitutes an available comparison history for a missing supported history", () => {
+  it("never substitutes an available comparison history for a missing supported history", async () => {
     const job = cloneResultJob();
     const comparison = job.summary.orientation.comparisons[0];
     comparison.forward_ln_likelihood_bdm = -39.24813645021139;
@@ -153,6 +161,7 @@ describe("scientific orientation and history presentation", () => {
     );
 
     render(ResultsView, { props: { job, credential: resultCredential } });
+    await fireEvent.click(screen.getByRole("tab", { name: "History", exact: true }));
 
     expect(
       screen.getByText(

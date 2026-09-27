@@ -10,6 +10,7 @@ const props = defineProps({
   limits: { type: Object, required: true },
   service: { type: Object, required: true },
   requestBytes: { type: Number, required: true },
+  molecule: { type: String, default: "DNA" },
 });
 
 const checks = computed(() => {
@@ -26,16 +27,16 @@ const checks = computed(() => {
   return [
     {
       ok: inspection.valid,
-      label: inspection.valid ? "Valid IUPAC DNA FASTA" : "Valid FASTA required",
+      label: inspection.valid ? `Valid IUPAC ${props.molecule} FASTA` : "Valid FASTA required",
       detail: inspection.errors[0],
     },
     { ok: inspection.valid && unique, label: "Unique record identifiers" },
     {
       ok: inspection.recordCount >= selectedMode.minimumRecords,
-      label: `${inspection.recordCount || 0} of ${selectedMode.minimumRecords} public cohort records`,
+      label: `${inspection.recordCount || 0} of ${selectedMode.minimumRecords} required input records`,
       detail:
-        selectedMode.id === "detection"
-          ? "Detection accepts one or more records."
+        selectedMode.minimumRecords === 1
+          ? "This analysis accepts one or more records."
           : `This public-service cohort policy requires ${selectedMode.minimumRecords} records; model eligibility still requires at least two comparable detected arrays.`,
     },
     ...(selectedMode.id === "orientation"
@@ -81,17 +82,23 @@ const checks = computed(() => {
 </script>
 
 <template>
-  <aside
-    class="readiness"
-    aria-labelledby="readiness-title"
-  >
-    <div class="readiness-head">
-      <span class="readiness-icon"><AppIcon name="shield" /></span>
-      <div>
-        <h3 id="readiness-title">Submission readiness</h3>
-        <p>Checked locally before upload</p>
-      </div>
-    </div>
+  <details class="readiness">
+    <summary>
+      <span>{{
+        !inspection.recordCount
+          ? "Input requirements"
+          : checks.every((item) => item.ok || item.recommended)
+            ? "Ready to analyze"
+            : "Review input requirements"
+      }}</span>
+      <small
+        >{{ selectedMode.minimumRecords }}+
+        {{ selectedMode.minimumRecords === 1 ? "record" : "related records"
+        }}<template v-if="limits.maxBases">
+          · {{ formatNumber(limits.maxBases) }} bases max</template
+        ></small
+      >
+    </summary>
     <ul>
       <li
         v-for="item in checks"
@@ -117,5 +124,5 @@ const checks = computed(() => {
       />
       Results and credentials expire after {{ service.expiresHours }} hours.
     </p>
-  </aside>
+  </details>
 </template>

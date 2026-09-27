@@ -46,16 +46,19 @@ const tree = computed(() => {
       </div>
       <span>{{ formatNumber(reconstructionMetric(row, "leaves")) }} leaves</span>
     </div>
-    <ReconstructionVerdict :row="row" />
     <AncestralHistoryExplorer
       :summary="summary"
       :group="group"
       :fallback-tree="tree"
       :reported-by-default="reportedByDefault"
     />
-    <div class="reconstruction-visual-grid">
-      <ReconstructionEvents :row="row" /><DeletionModelEvidence :row="row" />
-    </div>
-    <SpacerInventory :row="row" />
+    <details class="model-details">
+      <summary>Events &amp; model estimates</summary>
+      <ReconstructionVerdict :row="row" />
+      <div class="reconstruction-visual-grid">
+        <ReconstructionEvents :row="row" /><DeletionModelEvidence :row="row" />
+      </div>
+      <SpacerInventory :row="row" />
+    </details>
   </article>
 </template>

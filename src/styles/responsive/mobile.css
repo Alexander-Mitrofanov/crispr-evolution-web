@@ -5,7 +5,19 @@
     width: min(100% - 28px, 1240px);
   }
   .nav-shell nav > a {
-    display: none;
+    display: inline-flex;
+  }
+  .nav-shell {
+    flex-wrap: wrap;
+    gap: 4px;
+    padding-block: 12px;
+  }
+  .nav-shell nav {
+    width: 100%;
+    gap: 16px;
+  }
+  .nav-shell .service-status {
+    margin-left: auto;
   }
   .service-status {
     min-width: 0;
@@ -23,10 +35,11 @@
   .hero-grid {
     min-height: 0;
     grid-template-columns: 1fr;
-    padding: 26px 0 42px;
+    padding: 28px 0 16px;
+    gap: 20px;
   }
   .hero h1 {
-    font-size: clamp(2.5rem, 12vw, 3.6rem);
+    font-size: 1.85rem;
     letter-spacing: -0.035em;
   }
   .hero-suite {
@@ -42,7 +55,7 @@
   }
   .workflow {
     margin-inline: -14px;
-    border-radius: 20px;
+    border-radius: var(--radius-md);
   }
   .workflow {
     padding: 28px 20px;
@@ -63,15 +76,15 @@
     display: none;
   }
   .mode-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .mode-card,
   .mode-card:last-child {
     min-height: 0;
     grid-column: auto;
   }
-  .mode-card:not(.selected) {
-    padding-block: 16px;
+  .mode-card {
+    padding: 12px;
   }
   .mode-card:not(.selected) > p,
   .mode-card:not(.selected) > .tool-chain {
@@ -81,8 +94,8 @@
     min-height: 24px;
     margin-bottom: 10px;
   }
-  .mode-card:not(.selected) > strong {
-    font-size: 1.25rem;
+  .mode-card > strong {
+    font-size: 0.8rem;
   }
   .input-heading,
   .input-foot {
@@ -138,25 +151,25 @@
   .results {
     margin-inline: -14px;
     padding: 28px 20px;
-    border-radius: 20px;
-  }
-  .job-heading,
-  .results-title {
-    display: block;
-  }
-  .result-jump-nav {
-    top: 6px;
-    margin: -8px -4px 24px;
     border-radius: var(--radius-md);
   }
-  .result-jump-nav span {
-    padding-left: 8px;
+  .job-heading {
+    display: block;
+  }
+  .result-tabs {
+    gap: 18px;
+  }
+  .readiness ul {
+    grid-template-columns: 1fr;
+  }
+  .locus-hero {
+    max-width: 400px;
   }
   .result-synopsis {
-    box-shadow: 0 14px 32px rgba(9, 20, 51, 0.15);
+    box-shadow: none;
   }
   .synopsis-copy {
-    padding: 23px 19px;
+    padding: 0 0 20px;
   }
   .synopsis-copy > p:last-child {
     font-size: 0.86rem;
@@ -166,7 +179,7 @@
     padding: 15px;
   }
   .synopsis-cards strong {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
   .synopsis-cards small {
     overflow: visible;
@@ -182,8 +195,7 @@
   .recovery-link-status {
     grid-column: auto;
   }
-  .job-badge,
-  .complete-stamp {
+  .job-badge {
     margin-top: 17px;
   }
   .stage-list {
@@ -275,15 +287,14 @@
     padding: 19px;
   }
   .verdict-metrics {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .verdict-metrics span + span {
-    border-top: 1px solid rgba(255, 255, 255, 0.22);
-    border-left: 0;
+    border-left: 1px solid var(--line);
   }
   .orientation-landscape {
     padding: 20px 14px;
-    box-shadow: 0 16px 36px rgba(9, 20, 51, 0.16);
+    box-shadow: none;
   }
   .orientation-landscape-header {
     font-size: 0.7rem;
@@ -433,5 +444,20 @@
   .reference-grid article + article {
     border-top: 1px solid var(--line-dark);
     border-left: 0;
+  }
+  .method-picker {
+    margin-block: 32px 40px;
+  }
+  .method-grid {
+    grid-template-columns: 1fr;
+    margin-top: 16px;
+  }
+  .method-link {
+    min-height: 90px;
+    padding-block: 20px;
+  }
+  .history-settings > summary,
+  .history-inspector > summary {
+    padding-inline: 18px;
   }
 }

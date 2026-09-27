@@ -9,8 +9,8 @@
   color: var(--ink);
   font-size: 0.78rem;
   font-weight: 900;
-  letter-spacing: 0.055em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .graphic-label small {
   color: var(--muted);
@@ -32,12 +32,8 @@
 .model-selection > strong {
   display: block;
   color: var(--green);
-  font:
-    500 2rem ui-serif,
-    "Iowan Old Style",
-    "Palatino Linotype",
-    Georgia,
-    serif;
+  font-size: 2rem;
+  font-weight: 500;
 }
 .model-selection > p {
   margin: 12px 0 0;
@@ -86,18 +82,14 @@
 }
 .event-ribbon b {
   color: var(--ink);
-  font:
-    500 2.25rem ui-serif,
-    "Iowan Old Style",
-    "Palatino Linotype",
-    Georgia,
-    serif;
+  font-size: 2.25rem;
+  font-weight: 500;
 }
 .event-ribbon small {
   grid-column: 1 / -1;
   font-size: 0.75rem;
   font-weight: 800;
-  text-transform: uppercase;
+  text-transform: none;
 }
 .event-ribbon-label-gains {
   color: #285f4b;
@@ -206,12 +198,8 @@
 }
 .model-call strong {
   color: var(--green);
-  font:
-    500 2rem ui-serif,
-    "Iowan Old Style",
-    "Palatino Linotype",
-    Georgia,
-    serif;
+  font-size: 2rem;
+  font-weight: 500;
 }
 .model-call span {
   font-size: 0.75rem;

@@ -1,37 +1,93 @@
-import { render, screen, within } from "@testing-library/vue";
+import { fireEvent, render, screen, within } from "@testing-library/vue";
 import { describe, expect, it } from "vitest";
 
 import ResultsView from "../src/components/results/ResultsView.vue";
 import { cloneResultJob, resultCredential } from "./support/resultFixture.js";
 
 describe("scientific result overview", () => {
-  it("maps navigation to stable scientific section targets", () => {
+  it("supports keyboard navigation without changing the recovery URL", async () => {
+    const job = cloneResultJob();
+    const { rerender } = render(ResultsView, { props: { job, credential: resultCredential } });
+    const originalUrl = window.location.href;
+    const overview = screen.getByRole("tab", { name: "Overview", exact: true });
+    overview.focus();
+    await fireEvent.keyDown(overview, { key: "ArrowLeft" });
+    const files = screen.getByRole("tab", { name: "Files & methods", exact: true });
+    expect(files).toHaveFocus();
+    expect(files).toHaveAttribute("aria-selected", "true");
+    await fireEvent.keyDown(files, { key: "Home" });
+    expect(overview).toHaveFocus();
+    await fireEvent.keyDown(overview, { key: "ArrowRight" });
+    const arrays = screen.getByRole("tab", { name: "Arrays", exact: true });
+    expect(arrays).toHaveFocus();
+    await rerender({ job: { ...job } });
+    expect(arrays).toHaveAttribute("aria-selected", "true");
+    await fireEvent.keyDown(arrays, { key: "End" });
+    expect(files).toHaveFocus();
+    await fireEvent.keyDown(files, { key: "ArrowRight" });
+    expect(overview).toHaveFocus();
+    expect(window.location.href).toBe(originalUrl);
+  });
+
+  it.each([
+    ["leader", ["Overview", "Leader context", "Arrays", "Files & methods"]],
+    ["detection", ["Overview", "Arrays", "Files & methods"]],
+    ["cas", ["Overview", "Cas systems", "Files & methods"]],
+    ["tracrrna", ["Overview", "tracrRNA", "Files & methods"]],
+    [
+      "loci",
+      ["Overview", "Cas systems", "tracrRNA", "Leader context", "Arrays", "Files & methods"],
+    ],
+    ["reconstruction", ["Overview", "Arrays", "History", "Files & methods"]],
+  ])("shows only relevant result tabs for %s", (mode, labels) => {
+    render(ResultsView, { props: { job: { ...cloneResultJob(), mode } } });
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent.trim())).toEqual(labels);
+  });
+
+  it("preserves history selections when switching result tabs", async () => {
+    render(ResultsView, { props: { job: cloneResultJob() } });
+    await fireEvent.click(screen.getByRole("tab", { name: "History", exact: true }));
+    await fireEvent.click(screen.getByRole("button", { name: /Reversed spacer order.*lnL/i }));
+    await fireEvent.click(screen.getByRole("tab", { name: "Arrays", exact: true }));
+    expect(screen.queryByRole("button", { name: /Reversed spacer order.*lnL/i })).toBeNull();
+    await fireEvent.click(screen.getByRole("tab", { name: "History", exact: true }));
+    expect(screen.getByRole("button", { name: /Reversed spacer order.*lnL/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  it("shows one result panel at a time with accessible tab relationships", async () => {
     render(ResultsView, { props: { job: cloneResultJob(), credential: resultCredential } });
-    const navigation = screen.getByRole("navigation", { name: "Result sections" });
-    for (const [name, target] of [
-      ["Synopsis", "#synopsis-heading"],
-      ["Detection", "#category-heading"],
-      ["Preflight", "#preflight-heading"],
-      ["Evidence chain", "#group-map-heading"],
-      ["CRISPR-evOr", "#orientation-heading"],
-      ["SpacerPlacer", "#reconstruction-heading"],
-      ["Provenance", "#provenance-heading"],
-    ]) {
-      expect(within(navigation).getByRole("link", { name })).toHaveAttribute("href", target);
-      expect(document.querySelector(target)).toBeInTheDocument();
+    const navigation = screen.getByRole("tablist", { name: "Result sections" });
+    for (const name of ["Overview", "Arrays", "Orientation", "History", "Files & methods"]) {
+      const tab = within(navigation).getByRole("tab", { name, exact: true });
+      await fireEvent.click(tab);
+      expect(tab).toHaveAttribute("aria-selected", "true");
+      const panels = screen.getAllByRole("tabpanel");
+      expect(panels).toHaveLength(1);
+      expect(panels[0]).toHaveAttribute("id", tab.getAttribute("aria-controls"));
+      expect(panels[0]).toHaveAttribute("aria-labelledby", tab.id);
     }
   });
 
-  it("keeps detector category primary and never formats raw score as probability", () => {
+  it("keeps model scores optional and never formats them as probabilities", async () => {
     render(ResultsView, { props: { job: cloneResultJob(), credential: resultCredential } });
+    await fireEvent.click(screen.getByRole("tab", { name: "Arrays", exact: true }));
+    expect(
+      screen.queryByRole("columnheader", { name: "Raw CRISPRidentify Model score" }),
+    ).toBeNull();
+    await fireEvent.click(screen.getByRole("checkbox", { name: "Show model scores" }));
     expect(screen.getByText("Raw CRISPRidentify Model score")).toBeInTheDocument();
     expect(screen.getByText(/not a calibrated probability/i)).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/81\.67%/);
   });
 
-  it("connects detector members, canonical repeat, and evolutionary outputs", () => {
+  it("connects detector members, canonical repeat, and evolutionary outputs", async () => {
     render(ResultsView, { props: { job: cloneResultJob(), credential: resultCredential } });
     expect(screen.getAllByText("example_record_01").length).toBeGreaterThan(0);
+    await fireEvent.click(screen.getByRole("tab", { name: "Files & methods", exact: true }));
+    await fireEvent.click(screen.getByText("Filtering & evidence", { selector: "summary" }));
     expect(screen.getByRole("img", { name: /Canonical repeat CGGTTCAT/i })).toHaveAttribute(
       "tabindex",
       "0",
@@ -64,7 +120,7 @@ describe("scientific result overview", () => {
       },
     });
     expect(screen.getByText("No eligible evolutionary groups")).toBeInTheDocument();
-    expect(screen.getByText(/workflow completed successfully/i)).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: /Which spacer order/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/Detection completed/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /Spacer orientation/i })).not.toBeInTheDocument();
   });
 });

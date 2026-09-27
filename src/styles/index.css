@@ -20,7 +20,11 @@
 @import "./results/history/ancestry.css";
 @import "./results/reconstruction.css";
 @import "./results/provenance.css";
+@import "./results/repeats.css";
+@import "./results/sequence-search.css";
 @import "./content.css";
+@import "./loci.css";
+@import "./catalog.css";
 @import "./refinements/global-shell.css";
 @import "./refinements/submission.css";
 @import "./refinements/jobs.css";
@@ -29,5 +33,7 @@
 @import "./responsive/tablet.css";
 @import "./responsive/mobile.css";
 @import "./responsive/compact.css";
+@import "./responsive/catalog.css";
+@import "./responsive/sequence-search.css";
 @import "./responsive/accessibility.css";
 @import "./responsive/print.css";

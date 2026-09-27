@@ -10,24 +10,29 @@ const DEFAULT_LIMITS = Object.freeze({
   maxArchiveBytes: 0,
   maxHeaderCharacters: 200,
 });
+const RETRY_INTERVAL_MS = 10_000;
 
 export function useServiceConfig(client = api) {
   const service = ref({ state: "checking", message: "Checking analysis service" });
   const limits = ref({ ...DEFAULT_LIMITS });
   let controller;
+  let retryTimer;
 
   async function refresh() {
+    window.clearTimeout(retryTimer);
     controller?.abort();
-    controller = new AbortController();
     if (!client.configured) {
       service.value = { state: "offline", message: "Analysis endpoint not configured" };
       return;
     }
+    const request = new AbortController();
+    controller = request;
     try {
       const [health, config] = await Promise.all([
-        client.health({ signal: controller.signal }),
-        client.config({ signal: controller.signal }),
+        client.health({ signal: request.signal }),
+        client.config({ signal: request.signal }),
       ]);
+      if (request.signal.aborted) return;
       service.value = {
         state: "online",
         message: "Analysis service ready",
@@ -47,16 +52,32 @@ export function useServiceConfig(client = api) {
         maxHeaderCharacters: config?.max_header_characters || 200,
       };
     } catch (error) {
-      if (error.name !== "AbortError") {
+      if (!request.signal.aborted && error.name !== "AbortError") {
+        // Cancel the other read before scheduling another pair of requests.
+        request.abort();
         service.value = {
           state: "offline",
           message: error.message || "The analysis API could not be reached.",
         };
+        retryTimer = window.setTimeout(refresh, RETRY_INTERVAL_MS);
       }
+    } finally {
+      if (controller === request) controller = undefined;
     }
   }
 
+  function retryWhenAvailable() {
+    if (service.value.state === "offline" && !controller) void refresh();
+  }
+
+  window.addEventListener("focus", retryWhenAvailable);
+  window.addEventListener("online", retryWhenAvailable);
   onMounted(refresh);
-  onBeforeUnmount(() => controller?.abort());
+  onBeforeUnmount(() => {
+    window.clearTimeout(retryTimer);
+    controller?.abort();
+    window.removeEventListener("focus", retryWhenAvailable);
+    window.removeEventListener("online", retryWhenAvailable);
+  });
   return { service, limits, refresh };
 }

@@ -34,7 +34,7 @@ describe("private job recovery links", () => {
     render(RecoveryLink, { props: { credential } });
 
     const notice = screen.getByRole("complementary", { name: /private job recovery link/i });
-    expect(notice).toHaveTextContent(/fragment stays in the browser/i);
+    expect(notice).toHaveTextContent(/reopen this job until it expires/i);
     expect(notice).toHaveTextContent(/anyone with the full link can access/i);
     await fireEvent.click(screen.getByRole("button", { name: /copy recovery link/i }));
 

@@ -38,11 +38,7 @@ async function copyLink() {
     />
     <div>
       <strong>Recovery link ready</strong>
-      <p>
-        This page address can reopen the job until it expires. Its <code>#job</code> fragment stays
-        in the browser and the API receives the capability only in the Authorization header. Anyone
-        with the full link can access the job.
-      </p>
+      <p>Reopen this job until it expires. Anyone with the full link can access the job.</p>
     </div>
     <button
       type="button"

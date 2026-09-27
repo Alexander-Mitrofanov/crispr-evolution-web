@@ -1,5 +1,18 @@
 import { asList, firstDefined, firstRecord } from "./values.js";
 
+function normalizeUnit(value, index) {
+  const row = firstRecord(value) || {};
+  const interval = firstRecord(row.source_interval) || row;
+  return {
+    ordinal: firstDefined(row, "ordinal", "index") ?? index + 1,
+    sequence:
+      row.kind === "deletion" ? null : typeof value === "string" ? value : (row.sequence ?? null),
+    sequence_status: row.kind === "deletion" ? "deletion" : (row.sequence_status ?? null),
+    start: interval.start ?? null,
+    end: interval.end ?? null,
+  };
+}
+
 export function normalizeDetectionArray(value) {
   const row = firstRecord(value) || {};
   return {
@@ -12,6 +25,9 @@ export function normalizeDetectionArray(value) {
     spacer_count: firstDefined(row, "spacer_count", "Number of spacers"),
     start: firstDefined(row, "start", "Start"),
     strand: firstDefined(row, "strand", "Strand"),
+    repeats: asList(firstDefined(row, "repeats", "repeat_sequences")).map(normalizeUnit),
+    spacers: asList(firstDefined(row, "spacers", "spacer_sequences")).map(normalizeUnit),
+    sequences_truncated: row.sequences_truncated === true,
   };
 }
 

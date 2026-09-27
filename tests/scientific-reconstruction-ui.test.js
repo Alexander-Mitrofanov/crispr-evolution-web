@@ -1,11 +1,11 @@
-import { render, screen } from "@testing-library/vue";
+import { fireEvent, render, screen } from "@testing-library/vue";
 import { describe, expect, it } from "vitest";
 
 import ResultsView from "../src/components/results/ResultsView.vue";
 import { cloneResultJob, resultCredential } from "./support/resultFixture.js";
 
 describe("scientific reconstruction presentation", () => {
-  it("keeps absent reconstruction metrics absent and accepts documented aliases", () => {
+  it("keeps absent reconstruction metrics absent and accepts documented aliases", async () => {
     const missingJob = cloneResultJob();
     const missing = missingJob.summary.orientation.selected_reconstructions[0];
     for (const key of [
@@ -29,6 +29,7 @@ describe("scientific reconstruction presentation", () => {
     const { unmount } = render(ResultsView, {
       props: { job: missingJob, credential: resultCredential },
     });
+    await fireEvent.click(screen.getByRole("tab", { name: "History", exact: true }));
     expect(document.querySelector(".spacerplacer-verdict strong")).toHaveTextContent(
       "— acquisitions · — deletions",
     );
@@ -71,6 +72,7 @@ describe("scientific reconstruction presentation", () => {
       preferred_model: "BDM",
     });
     render(ResultsView, { props: { job: aliasJob, credential: resultCredential } });
+    await fireEvent.click(screen.getByRole("tab", { name: "History", exact: true }));
     expect(document.querySelector(".spacerplacer-verdict strong")).toHaveTextContent(
       "7 acquisitions · 2 deletions",
     );

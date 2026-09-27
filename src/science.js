@@ -5,8 +5,48 @@ export const DEFAULT_CATEGORY_POLICY = CATEGORY_POLICIES[0];
 
 export const ANALYSIS_MODES = [
   {
+    id: "loci",
+    number: "",
+    title: "Annotate a CRISPR locus",
+    short: "Arrays, Cas systems, tracrRNA & leader context",
+    description:
+      "Combine array detection, Cas cassette classification, tracrRNA candidates and leader context windows. Leader prediction is not yet available.",
+    minimumRecords: 1,
+    tools: ["CRISPRidentify v2", "CasAndra", "CRISPRtracrRNA v3", "CRISPRleader v2"],
+  },
+  {
+    id: "leader",
+    number: "",
+    title: "Extract leader context",
+    short: "CRISPRleader v2 · context only",
+    description:
+      "Extract source-verified windows on both sides of accepted CRISPR arrays. Leader prediction is unavailable in this development release.",
+    minimumRecords: 1,
+    tools: ["CRISPRidentify v2", "CRISPRleader v2"],
+  },
+  {
+    id: "cas",
+    number: "",
+    title: "Find Cas systems",
+    short: "CasAndra",
+    description:
+      "Detect Cas proteins and classify nearby cassettes. Report exact genomic coordinates and model evidence.",
+    minimumRecords: 1,
+    tools: ["CasAndra"],
+  },
+  {
+    id: "tracrrna",
+    number: "",
+    title: "Screen tracrRNA models",
+    short: "CRISPRtracrRNA v3",
+    description:
+      "Screen Type II or Type V-K covariance models. These model-supported candidates do not establish complete transcript boundaries.",
+    minimumRecords: 1,
+    tools: ["CRISPRtracrRNA v3"],
+  },
+  {
     id: "detection",
-    number: "01",
+    number: "",
     title: "Detect arrays",
     short: "CRISPRidentify v2",
     description:
@@ -15,8 +55,29 @@ export const ANALYSIS_MODES = [
     tools: ["CRISPRidentify v2"],
   },
   {
+    id: "repeat_context",
+    number: "",
+    title: "Compare repeats in array context",
+    short: "Observed repeats · isolated and local RNA folding",
+    description:
+      "Detect arrays and compare each observed repeat's predicted pairing in isolation and in array context. Both DNA orientation hypotheses are retained.",
+    minimumRecords: 1,
+    tools: ["CRISPRidentify v2", "CRISPRrepeat", "ViennaRNA"],
+  },
+  {
+    id: "repeats",
+    number: "",
+    title: "Analyze repeat sequences",
+    short: "Repeat-only DNA or RNA · structural evidence",
+    description:
+      "Fold supplied repeats and inspect their predicted pair support. DNA retains both orientation hypotheses; " +
+      "RNA is supplied in transcribed 5′→3′ order. No array context is inferred.",
+    minimumRecords: 1,
+    tools: ["CRISPRrepeat", "ViennaRNA"],
+  },
+  {
     id: "reconstruction",
-    number: "02",
+    number: "",
     title: "Evolution & reconstruction",
     short: "SpacerPlacer",
     description:
@@ -26,7 +87,7 @@ export const ANALYSIS_MODES = [
   },
   {
     id: "orientation",
-    number: "03",
+    number: "",
     title: "Orientation-aware evolution",
     short: "CRISPR-evOr",
     badge: "Recommended for related isolates",
@@ -45,12 +106,49 @@ export const STAGES = [
   { id: "preflight_groups", label: "Preflight groups", detail: "Testing evolutionary eligibility" },
   { id: "reconstruct_spacer_histories", label: "Reconstruct histories", detail: "SpacerPlacer" },
   { id: "compare_orientations", label: "Compare orientations", detail: "CRISPR-evOr" },
+  { id: "annotate_cas", label: "Annotate Cas systems", detail: "CasAndra" },
+  { id: "predict_tracrrna", label: "Predict tracrRNA candidates", detail: "CRISPRtracrRNA v3" },
+  {
+    id: "extract_leader_context",
+    label: "Extract leader context",
+    detail: "CRISPRleader v2 · both sides, no prediction",
+  },
+  { id: "crisprrepeat", label: "Analyze repeat evidence", detail: "CRISPRrepeat · ViennaRNA" },
   { id: "package_results", label: "Package results", detail: "Reports, provenance, and archive" },
 ];
 
 export const TERMINAL_STATUSES = new Set(publicApiContract.enums.terminal_statuses);
 
 export function stagesForMode(mode) {
+  const annotationStages = {
+    repeats: ["queued", "validate_input", "crisprrepeat", "package_results"],
+    repeat_context: [
+      "queued",
+      "validate_input",
+      "detect_arrays",
+      "crisprrepeat",
+      "package_results",
+    ],
+    leader: [
+      "queued",
+      "validate_input",
+      "detect_arrays",
+      "extract_leader_context",
+      "package_results",
+    ],
+    cas: ["queued", "validate_input", "annotate_cas", "package_results"],
+    tracrrna: ["queued", "validate_input", "predict_tracrrna", "package_results"],
+    loci: [
+      "queued",
+      "validate_input",
+      "detect_arrays",
+      "annotate_cas",
+      "predict_tracrrna",
+      "extract_leader_context",
+      "package_results",
+    ],
+  }[mode];
+  if (annotationStages) return STAGES.filter((stage) => annotationStages.includes(stage.id));
   const excluded =
     {
       detection: new Set([
@@ -62,7 +160,13 @@ export function stagesForMode(mode) {
       reconstruction: new Set(["compare_orientations"]),
       orientation: new Set(),
     }[mode] || new Set();
-  return STAGES.filter((stage) => !excluded.has(stage.id));
+  return STAGES.filter(
+    (stage) =>
+      !excluded.has(stage.id) &&
+      !["annotate_cas", "predict_tracrrna", "extract_leader_context", "crisprrepeat"].includes(
+        stage.id,
+      ),
+  );
 }
 
 export function orientationLabel(value) {

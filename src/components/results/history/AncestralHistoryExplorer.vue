@@ -59,6 +59,7 @@ const fitCanvas = ref(
   Boolean(typeof window !== "undefined" && window.matchMedia?.("(max-width: 980px)")?.matches),
 );
 const selectedNodeName = ref("");
+const nodeInspector = ref(null);
 const descriptionId = useId();
 
 watch(
@@ -165,6 +166,7 @@ const branchSummary = computed(
 );
 const chooseNode = (name) => {
   selectedNodeName.value = String(name || "");
+  if (nodeInspector.value) nodeInspector.value.open = true;
 };
 const chooseHypothesis = (kind) => {
   if (candidateFor(kind)) {
@@ -191,12 +193,7 @@ const chooseHypothesis = (kind) => {
     </p>
     <div class="history-heading">
       <div>
-        <p class="eyebrow">Interactive ancestral history</p>
-        <h5>Where gains and losses are placed</h5>
-        <p>
-          Switch hypotheses to see why their likelihoods differ. Numeric column IDs identify
-          clustered spacers; the repeating palette helps trace a column across rows.
-        </p>
+        <h5>Ancestral arrays</h5>
       </div>
       <div class="history-legend">
         <span><i class="legend-gain" /> acquisition</span
@@ -219,32 +216,6 @@ const chooseHypothesis = (kind) => {
         and detailed artifacts.
       </p>
     </div>
-    <div
-      class="history-controls"
-      :aria-label="`Reconstruction hypotheses for ${group}`"
-    >
-      <button
-        v-for="kind in ['input', 'reverse']"
-        :key="kind"
-        type="button"
-        :class="['history-hypothesis', { active: hypothesis === kind }]"
-        :aria-pressed="hypothesis === kind"
-        :disabled="!candidateFor(kind)"
-        @click="chooseHypothesis(kind)"
-      >
-        <span
-          >{{ hypothesisLabel(kind) }}<b v-if="kind === supportedHypothesis">supported</b
-          ><b v-else-if="!supportedHypothesis && kind === 'input'">reported default</b
-          ><b v-else-if="!candidateFor(kind)">history unavailable</b></span
-        ><strong
-          >{{ formatNumber(candidateFor(kind)?.acquisition_count) }} gains ·
-          {{ formatNumber(candidateFor(kind)?.deletion_count) }} losses</strong
-        ><small
-          >BDM lnL {{ formatNumber(likelihood(kind), 3) }} · max root-to-tip
-          {{ formatNumber(entryTreeHeight(candidateFor(kind)), 6) }}</small
-        >
-      </button>
-    </div>
     <div class="history-summary">
       <span
         ><small>History status</small><strong>{{ historyStatus }}</strong></span
@@ -257,75 +228,107 @@ const chooseHypothesis = (kind) => {
         ><small>Hypothesis shown</small><strong>{{ hypothesisLabel(hypothesis) }}</strong></span
       >
     </div>
-    <div
-      v-if="inputEntry && reverseEntry"
-      class="history-contrast"
-    >
-      <AppIcon
-        name="info"
-        :size="18"
-      />
-      <p>
-        <strong>Why the histories differ:</strong> input order needs
-        {{ formatNumber(inputEntry.deletion_count) }} inferred deletions and places
-        {{ formatNumber(entryRootGains(inputEntry)) }} acquisition{{
-          entryRootGains(inputEntry) === 1 ? "" : "s"
-        }}
-        at the root; reversed order needs {{ formatNumber(reverseEntry.deletion_count) }} deletions
-        and places {{ formatNumber(entryRootGains(reverseEntry)) }} at the root. CRISPR-evOr
-        compares the full model likelihoods, not counts alone.
-      </p>
-    </div>
-    <div class="history-scale">
-      <span>Tree layout</span
-      ><button
-        type="button"
-        :class="{ active: scaleMode === 'topology' }"
-        :aria-pressed="scaleMode === 'topology'"
-        @click="scaleMode = 'topology'"
+    <details class="history-settings">
+      <summary>History controls</summary>
+      <div
+        class="history-controls"
+        :aria-label="`Reconstruction hypotheses for ${group}`"
       >
-        Readable topology</button
-      ><button
-        type="button"
-        :class="{ active: scaleMode === 'branch' }"
-        :aria-pressed="scaleMode === 'branch'"
-        @click="scaleMode = 'branch'"
+        <button
+          v-for="kind in ['input', 'reverse']"
+          :key="kind"
+          type="button"
+          :class="['history-hypothesis', { active: hypothesis === kind }]"
+          :aria-pressed="hypothesis === kind"
+          :disabled="!candidateFor(kind)"
+          @click="chooseHypothesis(kind)"
+        >
+          <span
+            >{{ hypothesisLabel(kind) }}<b v-if="kind === supportedHypothesis">supported</b
+            ><b v-else-if="!supportedHypothesis && kind === 'input'">reported default</b
+            ><b v-else-if="!candidateFor(kind)">history unavailable</b></span
+          ><strong
+            >{{ formatNumber(candidateFor(kind)?.acquisition_count) }} gains ·
+            {{ formatNumber(candidateFor(kind)?.deletion_count) }} losses</strong
+          ><small
+            >BDM lnL {{ formatNumber(likelihood(kind), 3) }} · max root-to-tip
+            {{ formatNumber(entryTreeHeight(candidateFor(kind)), 6) }}</small
+          >
+        </button>
+      </div>
+      <details
+        v-if="inputEntry && reverseEntry"
+        class="history-explanation"
       >
-        Shared branch scale</button
-      ><small
-        >Shared scale uses {{ formatNumber(sharedDistance, 6) }} as the common root-to-tip
-        extent.<span v-if="omittedSpacerColumns > 0">
-          Showing the first {{ MAX_HISTORY_SPACER_COLUMNS }} of {{ completeOrder.length }} spacer
-          columns.</span
-        ></small
+        <summary>Compare histories</summary>
+        <div class="history-contrast">
+          <AppIcon
+            name="info"
+            :size="18"
+          />
+          <p>
+            <strong>Why the histories differ:</strong> input order needs
+            {{ formatNumber(inputEntry.deletion_count) }} inferred deletions and places
+            {{ formatNumber(entryRootGains(inputEntry)) }} acquisition{{
+              entryRootGains(inputEntry) === 1 ? "" : "s"
+            }}
+            at the root; reversed order needs
+            {{ formatNumber(reverseEntry.deletion_count) }} deletions and places
+            {{ formatNumber(entryRootGains(reverseEntry)) }} at the root. CRISPR-evOr compares the
+            full model likelihoods, not counts alone.
+          </p>
+        </div>
+      </details>
+      <div class="history-scale">
+        <span>Tree layout</span
+        ><button
+          type="button"
+          :class="{ active: scaleMode === 'topology' }"
+          :aria-pressed="scaleMode === 'topology'"
+          @click="scaleMode = 'topology'"
+        >
+          Readable topology</button
+        ><button
+          type="button"
+          :class="{ active: scaleMode === 'branch' }"
+          :aria-pressed="scaleMode === 'branch'"
+          @click="scaleMode = 'branch'"
+        >
+          Shared branch scale</button
+        ><small
+          >Root-to-tip: {{ formatNumber(sharedDistance, 6) }}.<span v-if="omittedSpacerColumns > 0">
+            Showing the first {{ MAX_HISTORY_SPACER_COLUMNS }} of {{ completeOrder.length }} spacer
+            columns.</span
+          ></small
+        >
+      </div>
+      <div
+        class="history-view-controls"
+        role="group"
+        aria-label="Ancestral history canvas view"
       >
-    </div>
-    <div
-      class="history-view-controls"
-      role="group"
-      aria-label="Ancestral history canvas view"
-    >
-      <span>Canvas view</span
-      ><button
-        type="button"
-        :class="{ active: fitCanvas }"
-        :aria-pressed="fitCanvas"
-        @click="fitCanvas = true"
-      >
-        Fit overview</button
-      ><button
-        type="button"
-        :class="{ active: !fitCanvas }"
-        :aria-pressed="!fitCanvas"
-        @click="fitCanvas = false"
-      >
-        Readable detail</button
-      ><small>{{
-        fitCanvas
-          ? "Overview fits the full tree and matrix; switch to detail to read every label."
-          : "Readable detail preserves label size; pan horizontally when the matrix exceeds the available width."
-      }}</small>
-    </div>
+        <span>Canvas view</span
+        ><button
+          type="button"
+          :class="{ active: fitCanvas }"
+          :aria-pressed="fitCanvas"
+          @click="fitCanvas = true"
+        >
+          Fit overview</button
+        ><button
+          type="button"
+          :class="{ active: !fitCanvas }"
+          :aria-pressed="!fitCanvas"
+          @click="fitCanvas = false"
+        >
+          Readable detail</button
+        ><small>{{
+          fitCanvas
+            ? "Full tree; switch to detail for labels."
+            : "Scroll horizontally to inspect every spacer."
+        }}</small>
+      </div>
+    </details>
     <div
       v-if="exceedsSizeLimit"
       class="history-size-limit"
@@ -353,25 +356,28 @@ const chooseHypothesis = (kind) => {
         :description-id="descriptionId"
         @select-node="chooseNode"
       />
-      <HistoryNodeBrowser
-        :layout="layout"
-        :node-data="nodeData"
-        :spacer-order="spacerOrder"
-        :complete-order="completeOrder"
-        :selected-node-name="effectiveSelectedName"
-        @select-node="chooseNode"
-      />
+      <details
+        ref="nodeInspector"
+        class="history-inspector"
+      >
+        <summary>Inspect nodes</summary>
+        <HistoryNodeBrowser
+          :layout="layout"
+          :node-data="nodeData"
+          :spacer-order="spacerOrder"
+          :complete-order="completeOrder"
+          :selected-node-name="effectiveSelectedName"
+          @select-node="chooseNode"
+        />
+      </details>
       <HistoryExactTable
         :layout="layout"
         :node-data="nodeData"
         :group="group"
       />
       <p class="history-caveat">
-        <strong>Model interpretation:</strong> internal arrays, branch events, topology, and branch
-        lengths are array-derived model estimates—not an independent organismal phylogeny. Every
-        unique spacer requires a first inferred acquisition somewhere in the history; these totals
-        are not newly observed mutations, and orientation support does not establish transcription
-        direction or a leader sequence.
+        Array-derived estimates, not an independent organismal phylogeny. Orientation support does
+        not establish transcription direction or a leader sequence.
       </p>
     </template>
     <TreeDiagram

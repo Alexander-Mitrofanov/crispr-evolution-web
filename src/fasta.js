@@ -1,5 +1,6 @@
 export const IUPAC_DNA = new Set("ACGTRYSWKMBDHVN".split(""));
 const IUPAC_DNA_INPUT = new Set("ACGTRYSWKMBDHVNacgtryswkmbdhvn".split(""));
+const IUPAC_RNA_INPUT = new Set("ACGURYSWKMBDHVNacguryswkmbdhvn".split(""));
 const LINE_BOUNDARIES = new Set([
   "\n",
   "\r",
@@ -64,13 +65,14 @@ function safeIdentifier(value, fallback, maxLength = 64) {
   );
 }
 
-export function inspectFasta(text, { maxHeaderCharacters = 200 } = {}) {
+export function inspectFasta(text, { maxHeaderCharacters = 200, molecule = "DNA" } = {}) {
   let source = stripPythonWhitespace(String(text || "").replace(/^\uFEFF+/, ""));
   const errors = [];
   const records = [];
   const identifiers = new Set();
   const safeIdentifiers = new Set();
   let current = null;
+  const alphabet = molecule === "RNA" ? IUPAC_RNA_INPUT : IUPAC_DNA_INPUT;
 
   if (!source) {
     return {
@@ -122,10 +124,10 @@ export function inspectFasta(text, { maxHeaderCharacters = 200 } = {}) {
       continue;
     }
     const rawSequence = line.replace(PYTHON_WHITESPACE, "");
-    const invalid = [...new Set(rawSequence)].filter((symbol) => !IUPAC_DNA_INPUT.has(symbol));
+    const invalid = [...new Set(rawSequence)].filter((symbol) => !alphabet.has(symbol));
     if (invalid.length) {
       errors.push(
-        `Line ${lineNumber}: unsupported DNA symbol${invalid.length > 1 ? "s" : ""} ${invalid.join(", ")}.`,
+        `Line ${lineNumber}: unsupported ${molecule} symbol${invalid.length > 1 ? "s" : ""} ${invalid.join(", ")}.`,
       );
     }
     // Normalize only literal ASCII lowercase after validation. In particular,

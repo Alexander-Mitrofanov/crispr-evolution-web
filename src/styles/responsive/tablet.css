@@ -10,12 +10,12 @@
     min-height: auto;
   }
   .hero-grid {
-    grid-template-columns: minmax(0, 0.9fr) minmax(340px, 0.8fr);
+    grid-template-columns: minmax(0, 1.25fr) minmax(230px, 1fr);
     gap: 32px;
-    padding: 34px 0 58px;
+    padding: 32px 0;
   }
   .hero h1 {
-    font-size: clamp(2.55rem, 5vw, 3.65rem);
+    font-size: 1.9rem;
   }
   .section-intro {
     grid-template-columns: minmax(0, 1.25fr) minmax(240px, 0.7fr);
@@ -26,12 +26,7 @@
   .mode-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .mode-card:last-child {
-    grid-column: 1 / -1;
-  }
-  .mode-card {
-    min-height: 220px;
-  }
+
   .input-layout {
     grid-template-columns: 1fr;
   }
@@ -105,22 +100,5 @@
   }
   [id$="-heading"] {
     scroll-margin-top: 118px;
-  }
-  .result-jump-nav {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    overflow: visible;
-    border-radius: var(--radius-md);
-  }
-  .result-jump-nav span {
-    display: none;
-  }
-  .result-jump-nav a {
-    min-width: 0;
-    min-height: 44px;
-    justify-content: center;
-    padding: 6px;
-    text-align: center;
-    white-space: normal;
   }
 }

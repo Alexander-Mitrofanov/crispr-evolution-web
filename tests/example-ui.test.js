@@ -39,10 +39,12 @@ describe("verified local example", () => {
     const submitSpy = vi.spyOn(api, "submit");
     const onExampleLoaded = vi.fn();
     const onSubmitted = vi.fn();
-    render(AnalysisForm, { props: { service, limits, onExampleLoaded, onSubmitted } });
+    render(AnalysisForm, {
+      props: { service, limits, initialMode: "orientation", onExampleLoaded, onSubmitted },
+    });
     await fireEvent.click(screen.getByRole("button", { name: "Increase spacer edit distance" }));
-    await fireEvent.click(screen.getByRole("button", { name: "Load flagship example" }));
-    const input = screen.getByLabelText(/related contigs or small genomes/i);
+    await fireEvent.click(screen.getByRole("button", { name: "Load example" }));
+    const input = screen.getByLabelText(/contigs or small genomes/i);
     await waitFor(() => expect(input).toHaveValue(exampleFasta));
     expect(onExampleLoaded).toHaveBeenLastCalledWith(null);
     expect(inspectFasta(input.value)).toMatchObject({
@@ -72,9 +74,9 @@ describe("verified local example", () => {
       status: "queued",
     });
     const onSubmitted = vi.fn();
-    render(AnalysisForm, { props: { service, limits, onSubmitted } });
-    await fireEvent.click(screen.getByRole("button", { name: "Load flagship example" }));
-    const input = screen.getByLabelText(/related contigs or small genomes/i);
+    render(AnalysisForm, { props: { service, limits, initialMode: "orientation", onSubmitted } });
+    await fireEvent.click(screen.getByRole("button", { name: "Load example" }));
+    const input = screen.getByLabelText(/contigs or small genomes/i);
     await waitFor(() => expect(input).toHaveValue(exampleFasta));
     await fireEvent.update(input, `${exampleFasta.trimEnd()}A\n`);
     await fireEvent.click(screen.getByRole("button", { name: "Compute" }));
@@ -91,26 +93,27 @@ describe("verified local example", () => {
           : { ok: true, json: async () => snapshot },
       ),
     );
-    render(AnalysisForm, { props: { service, limits } });
-    await fireEvent.click(screen.getByRole("button", { name: "Load flagship example" }));
+    render(AnalysisForm, { props: { service, limits, initialMode: "orientation" } });
+    await fireEvent.click(screen.getByRole("button", { name: "Load example" }));
     expect(await screen.findByText(/does not match its precomputed result/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/related contigs or small genomes/i)).toHaveValue("");
+    expect(screen.getByLabelText(/contigs or small genomes/i)).toHaveValue("");
   });
 
-  it("renders the cached result through the ordinary Vue result components", () => {
+  it("renders the cached result through the ordinary Vue result components", async () => {
     render(ResultsView, { props: { job: snapshot.job, exampleSnapshot: snapshot } });
     expect(screen.getByText("Completed")).toBeInTheDocument();
     expect(screen.getAllByText(/example_record_/).length).toBeGreaterThanOrEqual(5);
+    await fireEvent.click(screen.getByRole("tab", { name: "Files & methods", exact: true }));
+    await fireEvent.click(screen.getByText("Filtering & evidence", { selector: "summary" }));
     expect(screen.getByRole("heading", { name: /What reached the model/i })).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: /How the spacer arrays changed/i }),
-    ).toBeInTheDocument();
+    await fireEvent.click(screen.getByRole("tab", { name: "History", exact: true }));
+    expect(screen.getByRole("heading", { name: "Spacer history" })).toBeInTheDocument();
+    await fireEvent.click(screen.getByRole("tab", { name: "Files & methods", exact: true }));
     expect(
       screen.getByRole("heading", { name: /How detections became evolutionary evidence/i }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: /How do five related CRISPR arrays connect/i }),
-    ).toBeInTheDocument();
+    await fireEvent.click(screen.getByRole("tab", { name: "Overview", exact: true }));
+    expect(screen.getByRole("heading", { name: "Five related CRISPR arrays" })).toBeInTheDocument();
     expect(screen.getAllByText("Input order supported").length).toBeGreaterThan(0);
     expect(
       screen.queryByRole("button", { name: /Download complete result bundle/i }),

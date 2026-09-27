@@ -98,6 +98,52 @@ export function createApiClient(baseUrl = DEFAULT_API_BASE, fetchImpl = globalTh
       .trim()
       .replace(/\/+$/, ""),
 
+    async catalogSummary({ signal } = {}) {
+      return parseJsonResponse(
+        await fetchImpl(endpoint(contractPath("catalog_summary")), {
+          ...PRIVATE_REQUEST_POLICY,
+          headers: { Accept: "application/json" },
+          signal,
+        }),
+      );
+    },
+
+    async catalogPage(entity, filters = {}, { signal } = {}) {
+      const routes = {
+        assemblies: "catalog_assemblies",
+        arrays: "catalog_arrays",
+        repeats: "catalog_repeats",
+        spacers: "catalog_spacers",
+        cas_genes: "catalog_cas_genes",
+        cas_systems: "catalog_cas_systems",
+      };
+      if (!routes[entity])
+        throw new ApiError("Unknown database record type.", 0, "invalid_catalog_entity");
+      const query = new URLSearchParams();
+      for (const key of ["q", "assembly_accession", "array_id", "cursor", "limit", "match"]) {
+        if (filters[key] !== undefined && filters[key] !== null && filters[key] !== "") {
+          query.set(key, String(filters[key]));
+        }
+      }
+      return parseJsonResponse(
+        await fetchImpl(endpoint(`${contractPath(routes[entity])}?${query}`), {
+          ...PRIVATE_REQUEST_POLICY,
+          headers: { Accept: "application/json" },
+          signal,
+        }),
+      );
+    },
+
+    async catalogArray(arrayId, { signal } = {}) {
+      return parseJsonResponse(
+        await fetchImpl(endpoint(contractPath("catalog_array", { array_id: arrayId })), {
+          ...PRIVATE_REQUEST_POLICY,
+          headers: { Accept: "application/json" },
+          signal,
+        }),
+      );
+    },
+
     async health({ signal } = {}) {
       return parseJsonResponse(
         await fetchImpl(endpoint(contractPath("health")), {

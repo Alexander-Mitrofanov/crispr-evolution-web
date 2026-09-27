@@ -9,7 +9,7 @@
   }
   .brand-symbol {
     width: 38px;
-    transform: scale(0.86) skew(-8deg);
+    transform: scale(0.86);
     transform-origin: left center;
   }
   .brand-copy strong {
@@ -20,7 +20,7 @@
     letter-spacing: 0.1em;
   }
   .hero h1 {
-    font-size: clamp(2.2rem, 10.6vw, 3rem);
+    font-size: 1.7rem;
   }
   .hero-lead {
     font-size: 0.96rem;
@@ -47,7 +47,7 @@
   .metric-grid > div:last-child {
     border-bottom: 0;
   }
-  .result-jump-nav a {
+  .result-tabs button {
     min-height: 44px;
   }
 }

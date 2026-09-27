@@ -39,7 +39,7 @@
   }
   .service-status,
   .history-hypothesis,
-  .result-jump-nav {
+  .result-tabs {
     border-color: currentColor;
   }
   .history-spacer.present {
@@ -59,6 +59,7 @@
   .hero::after {
     display: none;
   }
+  .result-tabs button[aria-selected="true"],
   .mode-card.selected,
   .history-hypothesis.active,
   .history-scale button.active,
@@ -127,7 +128,7 @@
   .legend-loss {
     border-width: 3px !important;
   }
-  .result-jump-nav,
+  .result-tabs,
   .service-status {
     background: Canvas;
   }

@@ -71,6 +71,13 @@ export default defineConfig(({ command, mode }) => {
   const csp = productionCsp(command, process.env.VITE_API_BASE_URL || env.VITE_API_BASE_URL);
   return {
     base: normalizeBase(process.env.VITE_BASE_PATH || env.VITE_BASE_PATH),
+    define:
+      command === "serve" &&
+      mode === "development" &&
+      !env.VITE_API_BASE_URL &&
+      !process.env.VITE_API_BASE_URL
+        ? { "import.meta.env.VITE_API_BASE_URL": JSON.stringify("http://127.0.0.1:8000") }
+        : {},
     plugins: [vue(), ...(csp ? [csp] : [])],
     test: {
       environment: "jsdom",

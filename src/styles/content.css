@@ -1,82 +1,45 @@
 .references {
-  margin-top: 72px;
-  padding-top: 45px;
-  border-top: 1px solid var(--line-dark);
+  margin-top: 28px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
 }
-.references-heading {
-  display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(250px, 0.6fr);
-  gap: 35px;
-  align-items: end;
-  margin-bottom: 22px;
-}
-.references-heading h2 {
-  margin: 0;
-  color: var(--ink);
-  font:
-    400 clamp(2rem, 3vw, 3rem) ui-serif,
-    "Iowan Old Style",
-    "Palatino Linotype",
-    Georgia,
-    serif;
-  letter-spacing: -0.035em;
-}
-.references-heading > p {
-  margin: 0;
+.references summary {
+  padding: 14px 0;
   color: var(--muted);
   font-size: 0.82rem;
-  line-height: 1.6;
+  cursor: pointer;
 }
 .reference-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  border: 1px solid var(--line-dark);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  margin-top: 16px;
 }
 .reference-grid article {
   min-width: 0;
-  min-height: 190px;
-  display: flex;
-  flex-direction: column;
-  padding: 22px;
-}
-.reference-grid article + article {
-  border-left: 1px solid var(--line-dark);
 }
 .reference-grid article > span {
   color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  font-size: 0.74rem;
 }
 .reference-grid h3 {
-  margin: 18px 0 0;
+  margin: 10px 0 0;
   color: var(--ink);
-  font:
-    500 1.35rem ui-serif,
-    "Iowan Old Style",
-    "Palatino Linotype",
-    Georgia,
-    serif;
+  font-size: 1rem;
+  font-weight: 600;
 }
 .reference-grid p {
-  margin: 7px 0 18px;
-  color: #677771;
-  font-size: 0.78rem;
-  line-height: 1.5;
+  margin: 8px 0 12px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
 }
 .reference-grid article > div {
   display: flex;
   gap: 16px;
-  margin-top: auto;
 }
 .reference-grid a {
   color: var(--action-text);
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-decoration-thickness: 1px;
+  font-size: 0.8rem;
   text-underline-offset: 3px;
-}
-.reference-grid a:hover {
-  color: var(--action-hover);
 }

@@ -44,18 +44,14 @@
   color: var(--group-dark);
   font-size: 0.72rem;
   font-weight: 900;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .group-bridge-heading strong {
   margin-top: 3px;
   color: var(--ink);
-  font:
-    500 1.2rem ui-serif,
-    "Iowan Old Style",
-    "Palatino Linotype",
-    Georgia,
-    serif;
+  font-size: 1.2rem;
+  font-weight: 500;
 }
 .group-bridge-heading code {
   max-width: 54%;
@@ -78,8 +74,8 @@
   color: var(--on-night-muted);
   font-size: 0.72rem;
   font-weight: 900;
-  letter-spacing: 0.055em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .repeat-sequence {
   display: flex;
@@ -158,8 +154,8 @@
 }
 .flow-label strong {
   font-size: 0.78rem;
-  letter-spacing: 0.045em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .group-member-list {
   display: grid;
@@ -253,7 +249,7 @@
 .group-connector strong {
   font-size: 0.72rem;
   line-height: 1.45;
-  text-transform: uppercase;
+  text-transform: none;
 }
 .group-connector b {
   color: var(--group-accent);
@@ -281,18 +277,14 @@
   color: var(--group-dark);
   font-size: 0.72rem;
   font-weight: 900;
-  letter-spacing: 0.045em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .outcome-card strong {
   margin-top: 8px;
   color: var(--ink);
-  font:
-    500 1.05rem ui-serif,
-    "Iowan Old Style",
-    "Palatino Linotype",
-    Georgia,
-    serif;
+  font-size: 1.05rem;
+  font-weight: 500;
   line-height: 1.15;
 }
 .outcome-card span {

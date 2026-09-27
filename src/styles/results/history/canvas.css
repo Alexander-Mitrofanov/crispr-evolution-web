@@ -69,8 +69,8 @@
     Consolas,
     "Liberation Mono",
     monospace;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .history-column-label {
   fill: #405a52;

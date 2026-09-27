@@ -3,17 +3,24 @@ import { useAnalysisForm } from "../../features/submission/index.js";
 import AppIcon from "../common/AppIcon.vue";
 import AdvancedOptions from "./AdvancedOptions.vue";
 import FastaInput from "./FastaInput.vue";
-import ModeSelector from "./ModeSelector.vue";
+import { ANALYSIS_MODES } from "../../science.js";
 import ReadinessPanel from "./ReadinessPanel.vue";
 
 const props = defineProps({
   service: { type: Object, required: true },
   limits: { type: Object, required: true },
   hasActiveJob: Boolean,
+  initialMode: {
+    type: String,
+    default: "loci",
+    validator: (value) => ANALYSIS_MODES.some((item) => item.id === value),
+  },
 });
-const emit = defineEmits(["submitted", "example-loaded"]);
+const emit = defineEmits(["submitted", "example-loaded", "back"]);
 const {
   mode,
+  molecule,
+  inputLimits,
   sequence,
   filename,
   options,
@@ -36,19 +43,27 @@ const {
     class="workflow"
     aria-labelledby="workflow-title"
   >
+    <button
+      class="back-to-methods"
+      type="button"
+      @click="$emit('back')"
+    >
+      All methods
+    </button>
     <div class="section-intro">
-      <h2 id="workflow-title">Make the question explicit before running the model.</h2>
-      <p>
-        Detection confidence and evolutionary evidence answer different questions. This workflow
-        keeps them separate.
-      </p>
+      <h1
+        id="workflow-title"
+        tabindex="-1"
+      >
+        {{ selectedMode.title }}
+      </h1>
+      <p class="method-description">{{ selectedMode.description }}</p>
     </div>
     <form
       id="analysis-form"
       novalidate
       @submit.prevent="submit"
     >
-      <ModeSelector v-model="mode" />
       <section
         class="input-section"
         aria-labelledby="input-step-heading"
@@ -57,37 +72,68 @@ const {
           id="input-step-heading"
           class="section-title"
         >
-          <span><b>2</b> Provide related genomic records</span
-          ><small>DNA FASTA · unique sequence identifiers</small>
+          Sequences
         </h3>
+        <fieldset
+          v-if="mode === 'repeats'"
+          class="repeat-molecule"
+        >
+          <legend>Input molecule</legend>
+          <label
+            ><input
+              v-model="options.molecule"
+              type="radio"
+              value="DNA"
+              name="repeat-molecule"
+            />
+            DNA repeats — both orientation hypotheses</label
+          >
+          <label
+            ><input
+              v-model="options.molecule"
+              type="radio"
+              value="RNA"
+              name="repeat-molecule"
+            />
+            RNA repeats — transcribed 5′→3′ sequence</label
+          >
+          <p>
+            Up to 1,000 repeats, 200 nt per record, within the service limits. Use T for DNA and U
+            for RNA; mixed T/U input is rejected.
+          </p>
+        </fieldset>
         <div class="input-layout">
           <FastaInput
             v-model:sequence="sequence"
             v-model:filename="filename"
             :inspection="inspection"
+            :repeat-input="mode === 'repeats'"
+            :molecule="molecule"
             :loading-example="loadingExample"
+            :show-example="mode === 'orientation'"
             :example-disabled="hasActiveJob"
             :max-request-bytes="limits.maxRequestBytes"
             @load-example="loadExample"
           /><ReadinessPanel
             :inspection="inspection"
             :selected-mode="selectedMode"
-            :limits="limits"
+            :limits="inputLimits"
+            :molecule="molecule"
             :service="service"
             :request-bytes="requestBytes"
           />
         </div>
       </section>
       <section
+        v-if="mode !== 'repeats'"
         class="policy-section"
         aria-labelledby="policy-step-heading"
       >
         <h3
           id="policy-step-heading"
-          class="section-title"
+          class="sr-only"
         >
-          <span><b>3</b> Review analysis policy</span
-          ><small>No arbitrary command-line arguments are accepted</small>
+          Options
         </h3>
         <AdvancedOptions
           v-model="options"
@@ -118,23 +164,27 @@ const {
       >
         <AppIcon name="shield" />
         <p>
-          <strong>This public interface is for non-sensitive research data only.</strong> Submission
-          sends sequence data to the service operator for analysis. The exact bundled masked example
-          is matched locally and its cached result is never submitted. The job token protects result
-          retrieval; it is not end-to-end encryption from the operator. Terminal job data is
-          automatically deleted
+          <strong>Non-sensitive research data only.</strong> Sequences are sent to the service
+          operator. Results are deleted
           {{
             service.expiresHours
               ? `${service.expiresHours} hours after the run finishes`
               : "under the configured retention policy"
-          }}. Do not submit personal, clinical, controlled, or unpublished sensitive sequences; use
-          an institutionally approved private route instead.
+          }}.
         </p>
+        <details class="privacy-details">
+          <summary>Data privacy</summary>
+          <p>
+            The job token protects retrieval; it is not end-to-end encryption from the operator. Do
+            not submit personal, clinical, controlled, or unpublished sensitive sequences; use an
+            institutionally approved private route. The bundled example is matched locally and is
+            never submitted.
+          </p>
+        </details>
       </div>
       <div class="submit-bar">
         <div>
-          <strong>{{ selectedMode.title }}</strong
-          ><span>{{ selectedMode.tools.join(" → ") }}</span>
+          <span>{{ selectedMode.tools.join(" → ") }}</span>
         </div>
         <button
           class="primary-button"

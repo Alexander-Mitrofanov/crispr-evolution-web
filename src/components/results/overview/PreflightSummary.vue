@@ -27,10 +27,8 @@ const metrics = computed(() => [
   >
     <div class="result-heading">
       <div>
-        <p class="eyebrow">Evolution preflight</p>
         <h3 id="preflight-heading">What reached the model</h3>
       </div>
-      <p>Filtering is reported before reconstruction so absence of a result is explainable.</p>
     </div>
     <div class="metric-grid">
       <div

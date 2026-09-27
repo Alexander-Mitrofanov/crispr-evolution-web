@@ -36,24 +36,20 @@
   gap: 10px;
   font-size: 0.82rem;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: none;
 }
 .history-hypothesis > span b {
   padding: 4px 6px;
   color: white;
   background: var(--group-accent);
   font-size: 0.7rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
 }
 .history-hypothesis > strong {
-  margin-top: 15px;
+  margin-top: 10px;
   color: var(--ink);
-  font:
-    500 1.75rem ui-serif,
-    "Iowan Old Style",
-    "Palatino Linotype",
-    Georgia,
-    serif;
+  font-size: 1.1rem;
+  font-weight: 500;
 }
 .history-hypothesis > small {
   margin-top: 3px;
@@ -87,8 +83,8 @@
   color: var(--muted);
   font-size: 0.68rem;
   font-weight: 900;
-  letter-spacing: 0.055em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .history-summary strong {
   overflow-wrap: anywhere;
@@ -130,8 +126,8 @@
   margin-right: 5px;
   font-size: 0.75rem;
   font-weight: 900;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .history-scale button {
   padding: 6px 9px;

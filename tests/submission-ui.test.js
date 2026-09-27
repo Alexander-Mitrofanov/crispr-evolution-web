@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { api } from "../src/api.js";
 import AnalysisForm from "../src/components/submission/AnalysisForm.vue";
+import { ANALYSIS_MODES } from "../src/science.js";
 
 const service = { state: "online", expiresHours: 72 };
 const limits = {
@@ -17,24 +18,34 @@ const renderForm = (props = {}) => render(AnalysisForm, { props: { service, limi
 afterEach(() => vi.restoreAllMocks());
 
 describe("Vue submission policy", () => {
-  it("exposes the numbered workflow as a level-three heading hierarchy", () => {
+  it.each(ANALYSIS_MODES)("submits the method selected for the $id page", async ({ id }) => {
+    const submitSpy = vi.spyOn(api, "submit").mockResolvedValue({
+      job_id: "0123456789abcdef0123456789abcdef",
+      access_token: "a".repeat(43),
+      status: "queued",
+    });
+    renderForm({ initialMode: id });
+    await fireEvent.update(screen.getByRole("textbox"), ">a\nACGT\n>b\nACGT\n");
+    await fireEvent.click(screen.getByRole("button", { name: "Compute", exact: true }));
+    expect(submitSpy).toHaveBeenCalledWith(expect.objectContaining({ mode: id }));
+  });
+
+  it("exposes a concise form heading hierarchy", () => {
     renderForm();
 
     expect(
-      screen.getByRole("heading", { level: 3, name: /1 Choose the analysis goal/i }),
+      screen.getByRole("heading", { level: 1, name: "Annotate a CRISPR locus" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Sequences" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Options" })).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { level: 3, name: /2 Provide related genomic records/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { level: 3, name: /3 Review analysis policy/i }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "Choose the analysis goal" })).toBeInTheDocument();
+      screen.queryByRole("radio", { name: /Orientation-aware evolution/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("presents advanced analysis policy as a native disclosure button", async () => {
     renderForm();
-    const disclosure = screen.getByText("Advanced analysis policy").closest("summary");
+    const disclosure = screen.getByText("Analysis options").closest("summary");
     const details = disclosure.closest("details");
 
     expect(disclosure.tagName).toBe("SUMMARY");
@@ -57,8 +68,8 @@ describe("Vue submission policy", () => {
     expect(notice).toHaveTextContent(/institutionally approved private route/i);
   });
 
-  it("explains the cohort gate, bounded service, and correction fallback", () => {
-    renderForm();
+  it("explains the cohort gate, bounded service, and correction fallback", async () => {
+    renderForm({ initialMode: "orientation" });
     expect(
       screen.getByText(/public-service cohort policy requires 2 records/i),
     ).toBeInTheDocument();
@@ -85,7 +96,7 @@ describe("Vue submission policy", () => {
     const submitSpy = vi.spyOn(api, "submit").mockReturnValue(new Promise(() => {}));
     renderForm();
     await fireEvent.update(
-      screen.getByLabelText(/related contigs or small genomes/i),
+      screen.getByLabelText(/contigs or small genomes/i),
       ">a\nACGT\n>b\nACGT\n",
     );
     const form = screen.getByRole("button", { name: /compute/i }).closest("form");
@@ -108,7 +119,7 @@ describe("Vue submission policy", () => {
   it("enforces the JSON request limit for pasted input", async () => {
     renderForm({ limits: { ...limits, maxRequestBytes: 120 } });
     await fireEvent.update(
-      screen.getByLabelText(/related contigs or small genomes/i),
+      screen.getByLabelText(/contigs or small genomes/i),
       `>a\n${"A".repeat(80)}`,
     );
     expect(screen.getByText(/request fits the upload limit/i).closest("li")).toHaveClass(

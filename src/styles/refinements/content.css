@@ -1,12 +1,5 @@
-.reference-grid {
-  background: white;
-  box-shadow: none;
-}
-.reference-grid article {
-  background: white;
-}
 .reference-grid a {
-  min-height: 40px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 5px;

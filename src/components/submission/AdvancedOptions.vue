@@ -15,9 +15,7 @@ const strictPolicy = CATEGORY_POLICIES[1];
 <template>
   <details class="advanced">
     <summary>
-      <span class="advanced-summary-copy"
-        ><strong>Advanced analysis policy</strong
-        ><small>Optional, transparent, and bounded settings</small></span
+      <span class="advanced-summary-copy"><strong>Analysis options</strong></span
       ><span
         class="advanced-summary-action"
         aria-hidden="true"
@@ -26,7 +24,57 @@ const strictPolicy = CATEGORY_POLICIES[1];
       >
     </summary>
     <div class="advanced-body">
-      <fieldset>
+      <div
+        v-if="['leader', 'loci'].includes(mode)"
+        class="option-column"
+      >
+        <label for="leader-flank-length"
+          ><strong>Leader context window (nt per side)</strong></label
+        >
+        <input
+          id="leader-flank-length"
+          type="number"
+          min="1"
+          max="5000"
+          step="1"
+          required
+          :value="modelValue.leaderFlankLength"
+          @input="update({ leaderFlankLength: Number($event.target.value) })"
+        />
+        <small
+          >1–5,000 nt; default 500. Both sides of Bona-fide and Possible arrays are retained. Leader
+          prediction is unavailable; this window is not an inferred leader boundary.</small
+        >
+      </div>
+      <fieldset v-if="['loci', 'tracrrna'].includes(mode)">
+        <legend>tracrRNA covariance models</legend>
+        <label class="radio-line"
+          ><input
+            type="radio"
+            name="tracr-model"
+            value="II"
+            :checked="modelValue.tracrModelType === 'II'"
+            @change="update({ tracrModelType: 'II' })"
+          /><span
+            ><strong>Type II</strong><small>Type II-associated tracrRNA models</small></span
+          ></label
+        >
+        <label class="radio-line"
+          ><input
+            type="radio"
+            name="tracr-model"
+            value="V"
+            :checked="modelValue.tracrModelType === 'V'"
+            @change="update({ tracrModelType: 'V' })"
+          /><span
+            ><strong>Type V-K</strong
+            ><small>Four retained Type V-K model families; not all Cas12 subtypes</small></span
+          ></label
+        >
+      </fieldset>
+      <fieldset
+        v-if="['detection', 'reconstruction', 'orientation', 'repeat_context'].includes(mode)"
+      >
         <legend>Eligible CRISPRidentify categories</legend>
         <label class="radio-line"
           ><input
@@ -53,7 +101,7 @@ const strictPolicy = CATEGORY_POLICIES[1];
         >
       </fieldset>
       <div
-        v-if="mode !== 'detection'"
+        v-if="['reconstruction', 'orientation'].includes(mode)"
         class="option-column"
       >
         <label for="edit-distance"
@@ -87,7 +135,7 @@ const strictPolicy = CATEGORY_POLICIES[1];
         </div>
       </div>
       <div
-        v-if="mode !== 'detection'"
+        v-if="['reconstruction', 'orientation'].includes(mode)"
         class="option-column"
       >
         <span
@@ -120,7 +168,10 @@ const strictPolicy = CATEGORY_POLICIES[1];
           </button>
         </div>
       </div>
-      <div class="policy-note">
+      <div
+        v-if="['detection', 'reconstruction', 'orientation'].includes(mode)"
+        class="policy-note"
+      >
         <strong>{{ mode === "detection" ? "Detection only" : "Tree policy" }}</strong
         ><span>{{
           mode === "detection"

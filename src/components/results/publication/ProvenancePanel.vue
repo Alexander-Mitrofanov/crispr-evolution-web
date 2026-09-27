@@ -6,6 +6,7 @@ import AppIcon from "../../common/AppIcon.vue";
 
 const props = defineProps({
   summary: { type: Object, required: true },
+  showWarnings: { type: Boolean, default: true },
 });
 const warnings = computed(() => asArray(props.summary.warnings));
 const provenance = computed(() => props.summary.provenance);
@@ -30,13 +31,11 @@ const displayValue = (value) =>
   >
     <div class="result-heading">
       <div>
-        <p class="eyebrow">Reproducibility</p>
-        <h3 id="provenance-heading">Warnings & provenance</h3>
+        <h3 id="provenance-heading">Methods & provenance</h3>
       </div>
-      <p>Warnings should travel with downstream interpretations.</p>
     </div>
     <ul
-      v-if="warnings.length"
+      v-if="showWarnings && warnings.length"
       class="warning-list"
     >
       <li
@@ -53,7 +52,7 @@ const displayValue = (value) =>
       </li>
     </ul>
     <p
-      v-else
+      v-else-if="showWarnings"
       class="no-warnings"
     >
       <AppIcon
@@ -62,6 +61,27 @@ const displayValue = (value) =>
       />
       No workflow warnings were reported.
     </p>
+    <div
+      v-if="provenance.repositories?.length"
+      class="repository-provenance"
+    >
+      <h4>Exact tool revisions</h4>
+      <ul>
+        <li
+          v-for="entry in provenance.repositories"
+          :key="entry.display_name"
+        >
+          {{ entry.display_name }}:
+          <a
+            :href="`${entry.repository.replace(/\.git$/, '')}/commit/${entry.commit}`"
+            :aria-label="`${entry.display_name} revision ${entry.commit.slice(0, 12)}`"
+            target="_blank"
+            rel="noopener noreferrer"
+            >{{ entry.commit.slice(0, 12) }}</a
+          >
+        </li>
+      </ul>
+    </div>
     <div class="provenance-grid">
       <div>
         <h4>Tool versions</h4>

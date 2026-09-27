@@ -11,10 +11,13 @@ const INITIAL_OPTIONS = Object.freeze({
   categoryPolicy: DEFAULT_CATEGORY_POLICY,
   spacerEditDistance: 1,
   biasCorrection: true,
+  tracrModelType: "II",
+  leaderFlankLength: 500,
+  molecule: "DNA",
 });
 
 export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.fetch) {
-  const mode = ref("orientation");
+  const mode = ref(props.initialMode || "loci");
   const sequence = ref("");
   const filename = ref("input.fasta");
   const options = ref({ ...INITIAL_OPTIONS });
@@ -26,9 +29,21 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
   let submittingLatch = false;
   let exampleLatch = false;
 
+  const molecule = computed(() => (mode.value === "repeats" ? options.value.molecule : "DNA"));
+  const inputLimits = computed(() =>
+    mode.value === "repeats"
+      ? {
+          ...props.limits,
+          maxRecords: Math.min(props.limits.maxRecords || 1000, 1000),
+          maxRecordBases: Math.min(props.limits.maxRecordBases || 200, 200),
+        }
+      : props.limits,
+  );
+
   const inspection = computed(() =>
     inspectFasta(sequence.value, {
       maxHeaderCharacters: props.limits.maxHeaderCharacters || 200,
+      molecule: molecule.value,
     }),
   );
   const selectedMode = computed(() => ANALYSIS_MODES.find((item) => item.id === mode.value));
@@ -56,11 +71,12 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
   });
   const withinLimits = computed(
     () =>
-      (!props.limits.maxRecords || inspection.value.recordCount <= props.limits.maxRecords) &&
-      (!props.limits.maxBases || inspection.value.baseCount <= props.limits.maxBases) &&
-      (!props.limits.maxRecordBases ||
+      (!inputLimits.value.maxRecords ||
+        inspection.value.recordCount <= inputLimits.value.maxRecords) &&
+      (!inputLimits.value.maxBases || inspection.value.baseCount <= inputLimits.value.maxBases) &&
+      (!inputLimits.value.maxRecordBases ||
         inspection.value.records.every(
-          (record) => record.sequence.length <= props.limits.maxRecordBases,
+          (record) => record.sequence.length <= inputLimits.value.maxRecordBases,
         )),
   );
   const withinRequest = computed(
@@ -72,12 +88,16 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
       inspection.value.recordCount >= selectedMode.value.minimumRecords &&
       withinLimits.value &&
       withinRequest.value &&
+      (!["loci", "leader"].includes(mode.value) ||
+        (Number.isInteger(options.value.leaderFlankLength) &&
+          options.value.leaderFlankLength >= 1 &&
+          options.value.leaderFlankLength <= 5000)) &&
       (props.service.state === "online" || precomputedPolicyMatches.value) &&
       !props.hasActiveJob,
   );
 
   async function loadExample() {
-    if (exampleLatch) return;
+    if (exampleLatch || mode.value !== "orientation") return;
     exampleLatch = true;
     loadingExample.value = true;
     error.value = "";
@@ -104,7 +124,6 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
       const { snapshot } = await validateExampleInput(rawSnapshot, exampleSequence, {
         maxHeaderCharacters: props.limits.maxHeaderCharacters || 200,
       });
-      mode.value = "orientation";
       options.value = { ...INITIAL_OPTIONS };
       sequence.value = exampleSequence;
       filename.value = snapshot.example.input.filename;
@@ -154,6 +173,8 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
 
   return {
     mode,
+    molecule,
+    inputLimits,
     sequence,
     filename,
     options,

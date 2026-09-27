@@ -38,27 +38,9 @@ const noDeletionGroups = computed(() =>
   >
     <div class="result-heading">
       <div>
-        <p class="eyebrow">SpacerPlacer ancestral reconstruction</p>
-        <h3 id="reconstruction-heading">How the spacer arrays changed</h3>
+        <h3 id="reconstruction-heading">Spacer history</h3>
       </div>
-      <p>
-        Inspect rooted histories, aligned spacer states, branch events, diversity, and
-        deletion-model evidence.
-      </p>
-    </div>
-    <div class="tree-policy">
-      <span
-        class="tree-glyph"
-        aria-hidden="true"
-        ><AppIcon name="tree"
-      /></span>
-      <div>
-        <strong>Tree policy used: {{ String(treePolicy).replaceAll("_", " ") }}</strong>
-        <p>
-          Decisive groups report the supported hypothesis. Unresolved groups retain input order only
-          as a reporting default.
-        </p>
-      </div>
+      <p>SpacerPlacer reconstruction</p>
     </div>
     <div
       v-if="orientation?.reconstructions_truncated"
@@ -85,6 +67,21 @@ const noDeletionGroups = computed(() =>
     </div>
     <details class="reconstruction-values">
       <summary>Exact SpacerPlacer estimates and runtime</summary>
+      <div class="tree-policy">
+        <span
+          class="tree-glyph"
+          aria-hidden="true"
+          ><AppIcon name="tree"
+        /></span>
+        <div>
+          <strong>Tree policy used: {{ String(treePolicy).replaceAll("_", " ") }}</strong>
+          <p>
+            Decisive groups report the supported hypothesis. Unresolved groups retain input order
+            only as a reporting default.
+          </p>
+        </div>
+      </div>
+
       <div class="table-wrap reconstruction-table">
         <table>
           <thead>
@@ -130,4 +127,10 @@ const noDeletionGroups = computed(() =>
       </p>
     </div>
   </section>
+  <p
+    v-else
+    class="empty-result"
+  >
+    No reconstruction was reported.
+  </p>
 </template>

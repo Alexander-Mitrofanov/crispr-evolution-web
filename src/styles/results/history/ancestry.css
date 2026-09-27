@@ -48,18 +48,14 @@
   color: var(--group-dark);
   font-size: 0.72rem;
   font-weight: 900;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .ancestor-state strong {
   margin-top: 3px;
   color: var(--ink);
-  font:
-    500 1.2rem ui-serif,
-    "Iowan Old Style",
-    "Palatino Linotype",
-    Georgia,
-    serif;
+  font-size: 1.2rem;
+  font-weight: 500;
 }
 .ancestor-state small {
   margin-top: 5px;

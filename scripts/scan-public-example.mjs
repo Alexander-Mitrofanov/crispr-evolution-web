@@ -3,11 +3,10 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 
 import { EXAMPLE_FASTA_PATH, EXAMPLE_RESULT_PATH, validateExampleInput } from "../src/example.js";
+import { hasForbiddenPublicIdentity } from "./public-identity-policy.mjs";
 
 const roots = ["public", "dist"].filter((root) => existsSync(root));
 const sequenceExtension = /\.(?:fa|fasta|fna|ffn|fas)$/i;
-const forbiddenIdentityMetadata =
-  /(?:(?:CP|FR|LN|LR|AP)\d{6}|(?:organism|strain|accession|ncbi_url|region_start_1based|region_end_1based)\s*[=:"])/i;
 
 function fail(message) {
   throw new Error(message);
@@ -47,19 +46,15 @@ for (const root of roots) {
   ) {
     fail(`example FASTA headers are not fully masked in ${root}`);
   }
-  if (
-    forbiddenIdentityMetadata.test(fasta) ||
-    forbiddenIdentityMetadata.test(JSON.stringify(snapshot))
-  ) {
+  if (hasForbiddenPublicIdentity(fasta) || hasForbiddenPublicIdentity(JSON.stringify(snapshot))) {
     fail(`source identity metadata is present in ${root}`);
   }
   for (const file of walk(root)) {
     if (!/\.(?:html|js|json|txt|css)$/i.test(file)) continue;
     const text = readFileSync(file, "utf8");
-    if (
-      forbiddenIdentityMetadata.test(text) ||
-      forbiddenIdentityMetadata.test(relative(root, file))
-    ) {
+    const name = relative(root, file);
+    const compiledBundle = root === "dist" && /^assets\/[^/]+\.js$/i.test(name);
+    if (hasForbiddenPublicIdentity(text, { compiledBundle }) || hasForbiddenPublicIdentity(name)) {
       fail(`source identity metadata is present: ${relative(root, file)}`);
     }
   }

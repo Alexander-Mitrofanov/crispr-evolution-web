@@ -15,16 +15,11 @@ const unique = computed(() => reconstructionMetric(props.row, "unique"));
 <template>
   <div class="spacerplacer-verdict">
     <div>
-      <small>Evolutionary reconstruction at a glance</small
-      ><strong
+      <strong
         >{{ formatNumber(acquisitions) }} acquisitions ·
         {{ formatNumber(deletions) }} deletions</strong
       >
-      <p>
-        SpacerPlacer placed ancestral events across {{ formatNumber(leaves) }} related arrays. An
-        acquisition includes a spacer’s inferred first entry into the history; these are model
-        estimates, not newly observed mutations.
-      </p>
+      <p>Model estimates across {{ formatNumber(leaves) }} arrays, not observed mutations.</p>
     </div>
     <div class="verdict-metrics">
       <span

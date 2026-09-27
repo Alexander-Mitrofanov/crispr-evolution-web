@@ -9,7 +9,10 @@ const props = defineProps({
   sequence: { type: String, required: true },
   filename: { type: String, required: true },
   inspection: { type: Object, required: true },
+  molecule: { type: String, default: "DNA" },
+  repeatInput: Boolean,
   loadingExample: Boolean,
+  showExample: { type: Boolean, default: true },
   exampleDisabled: Boolean,
   maxRequestBytes: { type: Number, default: 0 },
 });
@@ -52,12 +55,13 @@ async function onFile(event) {
       class="input-heading"
     >
       <div>
-        <label for="fasta-input">Related contigs or small genomes</label>
-        <p>
-          Paste FASTA or upload a plain-text file. The first token in every header must be unique.
-        </p>
+        <label for="fasta-input">{{
+          repeatInput ? "Repeat sequences" : "Contigs or small genomes"
+        }}</label>
+        <p>{{ molecule }} FASTA with unique record identifiers.</p>
       </div>
       <button
+        v-if="showExample"
         class="text-button example-button"
         type="button"
         :disabled="loadingExample || exampleDisabled"
@@ -71,7 +75,7 @@ async function onFile(event) {
         <AppIcon
           name="file"
           :size="16"
-        />{{ loadingExample ? "Loading example…" : "Load flagship example" }}
+        />{{ loadingExample ? "Loading example…" : "Load example" }}
       </button>
     </div>
     <div class="upload-strip">
@@ -97,14 +101,22 @@ async function onFile(event) {
       <span class="filename">{{ sequence ? filename : "No file selected" }}</span>
       <span class="input-stats"
         ><b>{{ inspection.recordCount }}</b> records <i />
-        <b>{{ readableBases(inspection.baseCount) }}</b></span
+        <b>{{
+          repeatInput
+            ? `${inspection.baseCount.toLocaleString()} nt`
+            : readableBases(inspection.baseCount)
+        }}</b></span
       >
     </div>
     <textarea
       id="fasta-input"
       spellcheck="false"
       :value="sequence"
-      placeholder=">isolate_A&#10;ACGT…&#10;>isolate_B&#10;ACGT…"
+      :placeholder="
+        repeatInput
+          ? `>repeat_A\n${molecule === 'RNA' ? 'ACGU…' : 'ACGT…'}`
+          : '>isolate_A\nACGT…\n>isolate_B\nACGT…'
+      "
       aria-describedby="fasta-help fasta-errors"
       @input="updateSequence($event.target.value)"
     />
@@ -112,8 +124,13 @@ async function onFile(event) {
       id="fasta-help"
       class="input-foot"
     >
-      <span>Accepted symbols: A C G T and IUPAC ambiguity codes</span
-      ><span>Input stays in this browser until submission</span>
+      <span
+        >IUPAC {{ molecule }} accepted. Input stays local until submission.<template
+          v-if="repeatInput"
+        >
+          Ambiguous bases remain visible; affected folding results may be unsupported.</template
+        ></span
+      >
     </div>
     <div
       id="fasta-errors"

@@ -21,10 +21,8 @@ const { bundle, individual, downloading, error, download } = useArtifactDownload
   >
     <div class="result-heading">
       <div>
-        <p class="eyebrow">Export</p>
-        <h3 id="downloads-heading">Reports and result bundle</h3>
+        <h3 id="downloads-heading">Downloads</h3>
       </div>
-      <p>Downloads are authenticated in request headers. The token never enters a download URL.</p>
     </div>
     <p class="download-memory-note">
       <AppIcon

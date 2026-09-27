@@ -1,52 +1,40 @@
 <script setup>
 import { ANALYSIS_MODES } from "../../science.js";
-import AppIcon from "../common/AppIcon.vue";
 
-defineProps({ modelValue: { type: String, required: true } });
-defineEmits(["update:modelValue"]);
+const emit = defineEmits(["select"]);
+
+function choose(event, id) {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0)
+    return;
+  event.preventDefault();
+  emit("select", id);
+}
 </script>
 
 <template>
   <section
-    class="mode-section"
-    aria-labelledby="analysis-goal-heading"
+    class="method-picker"
+    aria-labelledby="methods-heading"
   >
-    <h3
-      id="analysis-goal-heading"
-      class="section-title"
+    <h1
+      id="methods-heading"
+      tabindex="-1"
     >
-      <span><b>1</b> Choose the analysis goal</span
-      ><small>The workflow only runs the tools needed for your question.</small>
-    </h3>
-    <fieldset class="mode-fieldset">
-      <legend class="sr-only">Choose the analysis goal</legend>
-      <div class="mode-grid">
-        <label
-          v-for="item in ANALYSIS_MODES"
-          :key="item.id"
-          :class="['mode-card', { selected: modelValue === item.id }]"
-        >
-          <input
-            type="radio"
-            name="mode"
-            :value="item.id"
-            :checked="modelValue === item.id"
-            @change="$emit('update:modelValue', item.id)"
-          />
-          <span class="mode-top"
-            ><b>{{ item.number }}</b
-            ><small v-if="item.badge">{{ item.badge }}</small
-            ><i aria-hidden="true"
-              ><AppIcon
-                name="check"
-                :size="16" /></i
-          ></span>
-          <strong>{{ item.title }}</strong
-          ><span class="mode-tool">{{ item.short }}</span>
-          <p>{{ item.description }}</p>
-          <span class="tool-chain">{{ item.tools.join("  →  ") }}</span>
-        </label>
-      </div>
-    </fieldset>
+      Choose a method
+    </h1>
+    <div class="method-grid">
+      <a
+        v-for="item in ANALYSIS_MODES"
+        :key="item.id"
+        class="method-link"
+        :href="`?method=${item.id}`"
+        :aria-label="item.title"
+        :aria-describedby="`method-${item.id}-description`"
+        @click="choose($event, item.id)"
+      >
+        <strong>{{ item.title }}</strong>
+        <span :id="`method-${item.id}-description`">{{ item.short }}</span>
+      </a>
+    </div>
   </section>
 </template>

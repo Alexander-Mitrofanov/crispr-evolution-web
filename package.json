@@ -1,6 +1,6 @@
 {
-  "name": "crispr-evolution-web",
-  "version": "1.0.0",
+  "name": "crisprloci-v2",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
   "scripts": {

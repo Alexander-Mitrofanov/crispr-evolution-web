@@ -1,7 +1,7 @@
-# CRISPR Evolution Workbench frontend
+# CRISPRloci v2 frontend
 
-Static Vue 3 frontend for the CRISPRidentify v2, SpacerPlacer, and CRISPR-evOr
-workflow. It is built with Vite and contains no server-side runtime or secrets.
+Static Vue 3 frontend for CRISPRidentify v2, CasAndra, CRISPRtracrRNA v3,
+SpacerPlacer and evOr workflows. It is built with Vite and contains no server-side runtime or secrets.
 
 ## Structure
 
@@ -11,6 +11,8 @@ reviews stay local:
 - `src/App.vue` composes the page and owns no scientific rendering details.
 - `src/components/submission/` contains input, mode, readiness, and option controls.
 - `src/components/jobs/` contains capability-link recovery and progress flows.
+- `src/components/catalog/` presents the read-only reference database, with state in
+  `src/composables/useCatalog.js` and scientific formatting in `src/features/catalog/`.
 - `src/components/results/` contains vertical overview, orientation,
   reconstruction, history, and publication slices behind `ResultsView.vue`.
 - `src/components/shell/` and `src/components/common/` contain layout and shared UI.
@@ -21,6 +23,36 @@ Bearer capabilities stay in memory and in the explicit `#job=` recovery fragment
 are client-side and are not included in HTTP requests, so API calls still carry the capability only
 in the Authorization header. The complete recovery link is a bearer secret and must be kept private.
 Capabilities are never stored in cookies, local storage, or session storage.
+
+## Reference database
+
+The Database navigation opens `?view=database` while preserving any active job recovery
+fragment. Public catalog requests use the same configured API origin and never include
+job credentials. The dataset is served by the API; database files are not bundled in this
+static public frontend.
+
+The initial page shows only a search form. Select accession number, repeat, spacer or
+Cas gene, enter a specific value, and submit it. No records are fetched before submission;
+editing the input or changing the search type clears results and cancels pending reads.
+Accessions must be complete and versioned. Repeat/spacer queries match exact nucleotide
+sequences globally. Cas queries match original annotations/profiles or explicit gene-name
+tokens from those labels, ignoring case. The API's snapshot-pinned search index supports
+these global searches. Every result uses bounded pagination; an empty intermediate page
+can still have a next page. Coverage, provenance and scientific limits are collapsed
+beneath submitted results.
+
+Arrays link to ordered repeat and spacer occurrence pages. Unknown values stay unknown;
+deletions use explicit 0-based interbase boundaries rather than invented intervals or
+sequences. Cas evidence retains caller scores and flags without treating predictions as
+experimentally established. Downloads contain only the currently displayed page: CSV
+includes all public record fields, and FASTA includes observed sequences (or explicitly
+labelled array repeat consensus). Repeats and spacers are occurrences, not unique families.
+
+From the private monorepo, `backend/.venv/bin/python scripts/browser_catalog.py --origin
+http://127.0.0.1:5173` checks the running frontend against a configured, imported catalog
+with its exact-search index. It checks the empty initial screen, explicit searches,
+genome context, details, downloads, browser history and mobile layout, saving screenshots under
+`output/playwright/catalog/`. It starts no services and submits no analysis jobs.
 
 ## Bundled example
 
@@ -62,14 +94,14 @@ base path:
 
 ```bash
 VITE_API_BASE_URL=https://crispr-evor-web-server.tail58d78e.ts.net \
-VITE_BASE_PATH=/crispr-evolution-web/ \
+VITE_BASE_PATH=/YOUR-FRONTEND-REPOSITORY/ \
 npm run build
 ```
 
 `VITE_API_BASE_URL` must be an origin without a path, query, credentials, or
 fragment; production builds fail closed when it is missing or invalid.
 `VITE_BASE_PATH` is normalized to one leading and trailing `/`, so both
-`crispr-evolution-web` and `/crispr-evolution-web/` produce the same base.
+`YOUR-FRONTEND-REPOSITORY` and `/YOUR-FRONTEND-REPOSITORY/` produce the same base.
 
 The public repository contains the contents of this directory at its root.
 Consequently, `.github/workflows/pages.yml` here is intentionally shaped for a
@@ -79,6 +111,6 @@ backend/scientific directories cannot cross the publication boundary.
 
 The build also runs scripts/scan-public-example.mjs. The scanner validates the snapshot and both SHA-256 bindings in public and dist, permits the intended FASTA asset, rejects unexpected sequence assets, and rejects superseded example material.
 
-Production frontend: <https://alexander-mitrofanov.github.io/crispr-evolution-web/>
+Production origin is chosen at deployment; no production site is changed by this migration.
 
 API origin: <https://crispr-evor-web-server.tail58d78e.ts.net>

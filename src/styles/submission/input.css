@@ -1,18 +1,18 @@
 .input-section,
 .policy-section {
-  padding: 37px 0;
+  padding: 22px 0;
   border-top: 1px solid var(--line);
 }
 .input-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 285px;
-  gap: 17px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   align-items: stretch;
 }
 .input-panel {
   min-width: 0;
-  padding: 23px;
-  border: 1px solid var(--line);
+  padding: 0;
+  border: 0;
   background: white;
 }
 .input-heading {
@@ -47,7 +47,7 @@
   align-items: center;
   margin-top: 20px;
   padding: 10px;
-  background: #f1f3ed;
+  background: var(--surface-subtle);
 }
 .upload-strip > input {
   position: absolute;
@@ -103,7 +103,7 @@
 }
 textarea {
   width: 100%;
-  min-height: 260px;
+  min-height: 180px;
   display: block;
   margin-top: 10px;
   resize: vertical;

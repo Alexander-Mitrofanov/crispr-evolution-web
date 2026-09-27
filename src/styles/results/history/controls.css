@@ -1,6 +1,6 @@
 .history-explorer {
   border-bottom: 1px solid var(--line);
-  background: #f4f5ef;
+  background: white;
 }
 .history-heading {
   display: flex;
@@ -12,12 +12,8 @@
 .history-heading h5 {
   margin: 0;
   color: var(--ink);
-  font:
-    500 1.82rem ui-serif,
-    "Iowan Old Style",
-    "Palatino Linotype",
-    Georgia,
-    serif;
+  font-size: 1rem;
+  font-weight: 500;
   letter-spacing: -0.02em;
 }
 .history-heading > div:first-child > p:last-child {
@@ -87,4 +83,19 @@
 }
 .history-truncation {
   margin: 16px 0 0;
+}
+
+.history-settings > summary,
+.history-inspector > summary {
+  min-height: 44px;
+  padding: 16px 24px;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.history-settings {
+  padding-bottom: 8px;
+}
+.history-inspector .ancestor-browser {
+  margin-top: 0;
 }

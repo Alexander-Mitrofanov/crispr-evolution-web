@@ -53,8 +53,7 @@ const treePolicyText = computed(() =>
   >
     <div class="result-heading">
       <div>
-        <p class="eyebrow">CRISPR-evOr hypothesis test</p>
-        <h3 id="orientation-heading">Which spacer order is better supported?</h3>
+        <h3 id="orientation-heading">Spacer orientation</h3>
       </div>
       <span class="orientation-chip"
         >{{ decisions.filter((item) => item.label !== "Unresolved").length }} decisive ·
@@ -62,8 +61,8 @@ const treePolicyText = computed(() =>
       >
     </div>
     <p class="visual-intro">
-      Each marker is the forward-minus-reverse BDM log-likelihood difference. Values from −5 through
-      +5 are deliberately inconclusive.
+      CRISPR-evOr compares input and reversed spacer order. The shaded center marks unresolved
+      evidence.
     </p>
     <div
       v-if="comparisons.length"
@@ -144,37 +143,40 @@ const treePolicyText = computed(() =>
         </div>
       </div>
     </div>
-    <div
+    <details
       v-if="comparisons.length"
-      class="hypothesis-list"
+      class="result-details"
     >
-      <HypothesisComparison
-        v-for="(group, index) in comparisons"
-        :key="groupIdentity(group, index)"
-        :group="group"
-        :index="index"
-        :decision="decisions[index]"
-      />
-    </div>
+      <summary>Likelihoods &amp; tree policy</summary>
+      <div class="hypothesis-list">
+        <HypothesisComparison
+          v-for="(group, index) in comparisons"
+          :key="groupIdentity(group, index)"
+          :group="group"
+          :index="index"
+          :decision="decisions[index]"
+        />
+      </div>
+      <div class="tree-policy">
+        <span
+          class="tree-glyph"
+          aria-hidden="true"
+          ><AppIcon name="tree"
+        /></span>
+        <div>
+          <strong
+            >Tree policy:
+            {{ String(orientation.tree_policy || "not_reported").replaceAll("_", " ") }}</strong
+          >
+          <p>{{ treePolicyText }}</p>
+        </div>
+      </div>
+    </details>
     <div
       v-else
       class="empty-result"
     >
       No finite orientation comparison was produced.
-    </div>
-    <div class="tree-policy">
-      <span
-        class="tree-glyph"
-        aria-hidden="true"
-        ><AppIcon name="tree"
-      /></span>
-      <div>
-        <strong
-          >Tree policy:
-          {{ String(orientation.tree_policy || "not_reported").replaceAll("_", " ") }}</strong
-        >
-        <p>{{ treePolicyText }}</p>
-      </div>
     </div>
     <div class="threshold-note">
       <AppIcon
@@ -188,4 +190,10 @@ const treePolicyText = computed(() =>
       </p>
     </div>
   </section>
+  <p
+    v-else
+    class="empty-result"
+  >
+    No orientation result was reported.
+  </p>
 </template>

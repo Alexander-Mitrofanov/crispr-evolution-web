@@ -9,10 +9,13 @@
   .hero-visual,
   .nav-shell nav,
   .recovery-link,
-  .result-jump-nav,
+  .result-tabs,
   .submit-bar,
   .privacy-notice {
     display: none !important;
+  }
+  .result-tab-panel[hidden] {
+    display: block;
   }
   .workflow,
   .results,
