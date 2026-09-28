@@ -40,6 +40,14 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
 describe("service readiness retries", () => {
+  it("retains explicitly advertised scientific modes", async () => {
+    const api = client();
+    api.config.mockResolvedValue({ modes: ["detection", "protospacer", null] });
+    const state = mountService(api);
+    await flushPromises();
+    expect(state.service.value.modes).toEqual(["detection", "protospacer"]);
+  });
+
   it("retries continued outages at a bounded rate and stops after unmount", async () => {
     const api = client();
     api.health.mockRejectedValue(new Error("Unavailable"));

@@ -3,6 +3,7 @@ export function buildSubmission({ sequence, filename, mode, options }) {
     sequence,
     filename,
     mode,
+    ...(mode === "viral_search" ? { viral_max_mismatches: options.viralMaxMismatches ?? 2 } : {}),
     ...(mode === "repeats" ? { molecule: options.molecule || "DNA" } : {}),
     ...(["loci", "tracrrna"].includes(mode)
       ? { tracr_model_type: options.tracrModelType || "II" }

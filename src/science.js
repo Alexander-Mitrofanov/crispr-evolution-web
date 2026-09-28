@@ -5,6 +5,16 @@ export const DEFAULT_CATEGORY_POLICY = CATEGORY_POLICIES[0];
 
 export const ANALYSIS_MODES = [
   {
+    id: "viral_search",
+    title: "Find viruses for my spacers",
+    short: "Spacer sequences against viral RefSeq",
+    description:
+      "Search supplied CRISPR spacers against viral reference sequences, including phages. Results retain candidate matches and their sequence evidence.",
+    minimumRecords: 1,
+    tools: ["CRISPRspacer", "NCBI BLAST+"],
+    requiresAdvertisement: true,
+  },
+  {
     id: "loci",
     number: "",
     title: "Annotate a CRISPR locus",
@@ -76,6 +86,18 @@ export const ANALYSIS_MODES = [
     tools: ["CRISPRrepeat", "ViennaRNA"],
   },
   {
+    id: "protospacer",
+    number: "",
+    title: "Find spacers in my sequence",
+    short: "Exact matches to reference spacers",
+    description:
+      "Compare uploaded DNA with the installed 2017 research spacer collection hosted by NCBI. " +
+      "Find full-length exact matches in both orientations; matches alone do not identify a host or establish targeting.",
+    minimumRecords: 1,
+    tools: ["CRISPRspacer"],
+    requiresAdvertisement: true,
+  },
+  {
     id: "reconstruction",
     number: "",
     title: "Evolution & reconstruction",
@@ -114,6 +136,11 @@ export const STAGES = [
     detail: "CRISPRleader v2 · both sides, no prediction",
   },
   { id: "crisprrepeat", label: "Analyze repeat evidence", detail: "CRISPRrepeat · ViennaRNA" },
+  {
+    id: "crisprspacer",
+    label: "Search spacer references",
+    detail: "CRISPRspacer · validated sequence matches",
+  },
   { id: "package_results", label: "Package results", detail: "Reports, provenance, and archive" },
 ];
 
@@ -121,6 +148,8 @@ export const TERMINAL_STATUSES = new Set(publicApiContract.enums.terminal_status
 
 export function stagesForMode(mode) {
   const annotationStages = {
+    viral_search: ["queued", "validate_input", "crisprspacer", "package_results"],
+    protospacer: ["queued", "validate_input", "crisprspacer", "package_results"],
     repeats: ["queued", "validate_input", "crisprrepeat", "package_results"],
     repeat_context: [
       "queued",
@@ -163,9 +192,22 @@ export function stagesForMode(mode) {
   return STAGES.filter(
     (stage) =>
       !excluded.has(stage.id) &&
-      !["annotate_cas", "predict_tracrrna", "extract_leader_context", "crisprrepeat"].includes(
-        stage.id,
-      ),
+      ![
+        "annotate_cas",
+        "predict_tracrrna",
+        "extract_leader_context",
+        "crisprrepeat",
+        "crisprspacer",
+      ].includes(stage.id),
+  );
+}
+
+export function analysisModeAvailable(mode, service) {
+  const selected = ANALYSIS_MODES.find((item) => item.id === mode);
+  return Boolean(
+    selected &&
+    (!selected.requiresAdvertisement ||
+      (service?.state === "online" && service.modes?.includes(mode))),
   );
 }
 

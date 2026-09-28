@@ -5,9 +5,14 @@ import App from "../src/App.vue";
 import { api } from "../src/api.js";
 import { ANALYSIS_MODES } from "../src/science.js";
 
+const configured = api.configured;
 const renderApp = () => {
+  api.configured = true;
   vi.spyOn(api, "health").mockResolvedValue({ version: "1.0.0" });
-  vi.spyOn(api, "config").mockResolvedValue({ api_version: "1.0.0" });
+  vi.spyOn(api, "config").mockResolvedValue({
+    api_version: "1.0.0",
+    modes: ANALYSIS_MODES.map((mode) => mode.id),
+  });
   Object.defineProperty(Element.prototype, "scrollIntoView", {
     configurable: true,
     value: vi.fn(),
@@ -16,20 +21,24 @@ const renderApp = () => {
 };
 
 afterEach(() => {
+  api.configured = configured;
   vi.restoreAllMocks();
   window.history.replaceState(null, "", "/");
 });
 
 describe("method-first navigation", () => {
-  it("offers the database and available methods without an upload form", () => {
+  it("offers the database and available methods without an upload form", async () => {
     const { container } = renderApp();
+    await screen.findByRole("link", { name: "Spacer searches", exact: true });
     const picker = screen.getByRole("region", { name: "Choose a method" });
-    expect(within(picker).getAllByRole("link")).toHaveLength(ANALYSIS_MODES.length + 1);
+    expect(within(picker).getAllByRole("link")).toHaveLength(ANALYSIS_MODES.length);
     expect(within(picker).getByRole("link", { name: "Search the database" })).toHaveAttribute(
       "href",
       "?view=database",
     );
-    for (const method of ANALYSIS_MODES) {
+    for (const method of ANALYSIS_MODES.filter(
+      (item) => !["protospacer", "viral_search"].includes(item.id),
+    )) {
       expect(within(picker).getByRole("link", { name: method.title })).toHaveAttribute(
         "href",
         `?method=${method.id}`,
@@ -62,8 +71,17 @@ describe("method-first navigation", () => {
 
   it.each(ANALYSIS_MODES)("opens the corresponding upload page for $id", async (method) => {
     renderApp();
-    await fireEvent.click(screen.getByRole("link", { name: method.title }));
-    expect(screen.getByRole("heading", { level: 1, name: method.title })).toHaveFocus();
+    const spacer = ["protospacer", "viral_search"].includes(method.id);
+    await fireEvent.click(
+      await screen.findByRole("link", { name: spacer ? "Spacer searches" : method.title }),
+    );
+    if (method.id === "viral_search")
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Find viruses for my spacers", exact: true }),
+      );
+    expect(
+      screen.getByRole("heading", { level: 1, name: spacer ? "Spacer searches" : method.title }),
+    ).toHaveFocus();
     expect(screen.getByRole("button", { name: "Upload FASTA", exact: true })).toBeInTheDocument();
     expect(screen.getByLabelText("Upload FASTA file")).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Choose a method" })).not.toBeInTheDocument();

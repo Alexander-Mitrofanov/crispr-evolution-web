@@ -67,6 +67,7 @@ function leaveJob() {
       </button>
       <ModeSelector
         v-if="page === 'methods'"
+        :service="service"
         @select="chooseMethod"
         @database="showDatabase"
       />
@@ -82,6 +83,7 @@ function leaveJob() {
           :limits="limits"
           :has-active-job="Boolean(credential)"
           @back="showMethods"
+          @change-mode="chooseMethod"
           @submitted="submitted"
           @example-loaded="exampleLoaded"
         />

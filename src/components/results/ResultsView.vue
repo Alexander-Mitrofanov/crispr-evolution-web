@@ -7,6 +7,8 @@ import { mergeAdapterMembership } from "../../utils/results.js";
 import AppIcon from "../common/AppIcon.vue";
 import LeaderResults from "./annotations/LeaderResults.vue";
 import RepeatResults from "./repeats/RepeatResults.vue";
+import ViralResults from "./protospacer/ViralResults.vue";
+import ProtospacerResults from "./protospacer/ProtospacerResults.vue";
 import AnnotationResults from "./annotations/AnnotationResults.vue";
 import DetectionSummary from "./overview/DetectionSummary.vue";
 import EvidenceMap from "./overview/EvidenceMap.vue";
@@ -45,7 +47,11 @@ const annotationMode = computed(() =>
   ["cas", "tracrrna", "loci", "leader"].includes(props.job?.mode),
 );
 const repeatMode = computed(() => ["repeats", "repeat_context"].includes(props.job?.mode));
-const hasDetection = computed(() => !["cas", "tracrrna", "repeats"].includes(props.job?.mode));
+const viralMode = computed(() => props.job?.mode === "viral_search");
+const protospacerMode = computed(() => props.job?.mode === "protospacer");
+const hasDetection = computed(
+  () => !["cas", "tracrrna", "repeats", "protospacer", "viral_search"].includes(props.job?.mode),
+);
 const hasEvolution = computed(() => ["reconstruction", "orientation"].includes(props.job?.mode));
 const cas = computed(() => summary.value.casandra || { status: "not_requested" });
 const tracr = computed(() => summary.value.tracrrna || { status: "not_requested" });
@@ -64,6 +70,8 @@ const tabs = computed(() => [
     : []),
   ...(hasDetection.value ? [{ id: "arrays", label: "Arrays" }] : []),
   ...(repeatMode.value ? [{ id: "repeats", label: "Repeat evidence" }] : []),
+  ...(viralMode.value ? [{ id: "viral", label: "Viral matches" }] : []),
+  ...(protospacerMode.value ? [{ id: "protospacer", label: "Protospacer matches" }] : []),
   ...(props.job?.mode === "orientation" && !noEligible.value
     ? [{ id: "orientation", label: "Orientation" }]
     : []),
@@ -176,7 +184,9 @@ async function navigateTabs(event, index) {
       tabindex="0"
     >
       <ResultSynopsis
-        v-if="tab.id === 'overview' && !annotationMode && !repeatMode"
+        v-if="
+          tab.id === 'overview' && !annotationMode && !repeatMode && !protospacerMode && !viralMode
+        "
         :summary="summary"
         :example-snapshot="exampleSnapshot"
         :no-eligible="noEligible"
@@ -211,6 +221,30 @@ async function navigateTabs(event, index) {
         :key="job.job_id"
         :summary="detection"
         :arrays="arrays"
+      />
+      <ViralResults
+        v-if="viralMode && ['overview', 'viral'].includes(tab.id)"
+        :available="summary.viral_search.available"
+        :completed="summary.viral_search.execution_completed"
+        :outcome="summary.viral_search.outcome"
+        :reference="summary.viral_search.reference"
+        :counts="summary.viral_search.counts"
+        :matches="summary.viral_search.matches"
+        :candidates="summary.viral_search.candidate_viruses"
+        :queries="summary.viral_search.queries"
+        :substitutions="summary.viral_search.max_substitutions"
+        :truncated="summary.viral_search.truncated"
+      />
+      <ProtospacerResults
+        v-if="protospacerMode && ['overview', 'protospacer'].includes(tab.id)"
+        :available="summary.protospacer.available"
+        :search-complete="summary.protospacer.search_complete"
+        :outcome="summary.protospacer.outcome"
+        :reference="summary.protospacer.reference"
+        :counts="summary.protospacer.counts"
+        :matches="summary.protospacer.matches"
+        :truncated="summary.protospacer.matches_truncated"
+        :compact="tab.id === 'overview'"
       />
       <OrientationResults
         v-if="tab.id === 'orientation'"

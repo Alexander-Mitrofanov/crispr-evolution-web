@@ -4,6 +4,7 @@ import AppIcon from "../common/AppIcon.vue";
 import AdvancedOptions from "./AdvancedOptions.vue";
 import FastaInput from "./FastaInput.vue";
 import { ANALYSIS_MODES } from "../../science.js";
+import SpacerSearchControls from "./SpacerSearchControls.vue";
 import ReadinessPanel from "./ReadinessPanel.vue";
 
 const props = defineProps({
@@ -16,7 +17,7 @@ const props = defineProps({
     validator: (value) => ANALYSIS_MODES.some((item) => item.id === value),
   },
 });
-const emit = defineEmits(["submitted", "example-loaded", "back"]);
+const emit = defineEmits(["submitted", "example-loaded", "back", "change-mode"]);
 const {
   mode,
   molecule,
@@ -55,10 +56,24 @@ const {
         id="workflow-title"
         tabindex="-1"
       >
-        {{ selectedMode.title }}
+        {{
+          ["protospacer", "viral_search"].includes(mode) ? "Spacer searches" : selectedMode.title
+        }}
       </h1>
-      <p class="method-description">{{ selectedMode.description }}</p>
+      <p
+        v-if="!['protospacer', 'viral_search'].includes(mode)"
+        class="method-description"
+      >
+        {{ selectedMode.description }}
+      </p>
     </div>
+    <SpacerSearchControls
+      v-if="['protospacer', 'viral_search'].includes(mode)"
+      :mode="mode"
+      v-model:mismatches="options.viralMaxMismatches"
+      :service="service"
+      @direction="emit('change-mode', $event)"
+    />
     <form
       id="analysis-form"
       novalidate
@@ -108,6 +123,7 @@ const {
             v-model:filename="filename"
             :inspection="inspection"
             :repeat-input="mode === 'repeats'"
+            :spacer-input="mode === 'viral_search'"
             :molecule="molecule"
             :loading-example="loadingExample"
             :show-example="mode === 'orientation'"
@@ -125,7 +141,7 @@ const {
         </div>
       </section>
       <section
-        v-if="mode !== 'repeats'"
+        v-if="!['repeats', 'protospacer', 'viral_search'].includes(mode)"
         class="policy-section"
         aria-labelledby="policy-step-heading"
       >
@@ -200,7 +216,9 @@ const {
                 ? "Current job still open"
                 : precomputedPolicyMatches
                   ? "View precomputed result"
-                  : "Compute"
+                  : ["protospacer", "viral_search"].includes(mode)
+                    ? "Search references"
+                    : "Compute"
           }}<AppIcon name="arrow" />
         </button>
       </div>

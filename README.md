@@ -24,6 +24,32 @@ are client-side and are not included in HTTP requests, so API calls still carry 
 in the Authorization header. The complete recovery link is a bearer secret and must be kept private.
 Capabilities are never stored in cookies, local storage, or session storage.
 
+## Spacer searches
+
+Choose **Spacer searches** on the main page, then select a direction:
+
+- **Find spacers in my sequence:** submit target DNA to find full-length exact
+  reference-spacer matches on both strands, using the NCBI-hosted 2017 research
+  spacer collection.
+- **Find viruses for my spacers:** submit one DNA spacer per FASTA record and
+  choose 0, 1 or 2 substitutions. The server searches viral RefSeq with BLAST+
+  and retains full-length ungapped alignments. Eligible spacers are 18–80 nt;
+  shorter or ambiguous records are reported as skipped. The displayed service
+  record and request limits also apply.
+
+Both modes appear only when their server reference is configured. The two forms
+keep separate drafts while switching direction. Results show coordinates, strands,
+reference identity, and complete JSON/TSV downloads. Viral results can be filtered
+by spacer, accession or title and summarize support from distinct spacer sequences.
+BLAST retrieval is heuristic; matches do not establish infection, host range or
+functional targeting. PAM compatibility and CRISPR-array overlap are not evaluated.
+Reference databases stay on the server and are not bundled with this frontend.
+
+`python scripts/browser_spacer_searches.py --origin http://127.0.0.1:4187 --output
+/tmp/spacer-browser` verifies both UI flows against an already running build using
+intercepted synthetic API responses. Build with `VITE_API_BASE_URL=https://analysis.example.org`
+and serve the Vite preview on port 4187 first. This browser check makes no live jobs.
+
 ## Reference database
 
 The main page's **Search the database** option and the **Database** navigation link

@@ -4,7 +4,7 @@ import { ApiError, api } from "../../api.js";
 import { EXAMPLE_FASTA_PATH, EXAMPLE_RESULT_PATH, validateExampleInput } from "../../example.js";
 import { inspectFasta } from "../../fasta.js";
 import { normalizeJobCredential } from "../../jobStore.js";
-import { ANALYSIS_MODES, DEFAULT_CATEGORY_POLICY } from "../../science.js";
+import { ANALYSIS_MODES, DEFAULT_CATEGORY_POLICY, analysisModeAvailable } from "../../science.js";
 import { buildSubmission } from "../../submission.js";
 
 const INITIAL_OPTIONS = Object.freeze({
@@ -14,6 +14,7 @@ const INITIAL_OPTIONS = Object.freeze({
   tracrModelType: "II",
   leaderFlankLength: 500,
   molecule: "DNA",
+  viralMaxMismatches: 2,
 });
 
 export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.fetch) {
@@ -31,13 +32,15 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
 
   const molecule = computed(() => (mode.value === "repeats" ? options.value.molecule : "DNA"));
   const inputLimits = computed(() =>
-    mode.value === "repeats"
-      ? {
-          ...props.limits,
-          maxRecords: Math.min(props.limits.maxRecords || 1000, 1000),
-          maxRecordBases: Math.min(props.limits.maxRecordBases || 200, 200),
-        }
-      : props.limits,
+    mode.value === "viral_search"
+      ? { ...props.limits, maxRecordBases: Math.min(props.limits.maxRecordBases || 80, 80) }
+      : mode.value === "repeats"
+        ? {
+            ...props.limits,
+            maxRecords: Math.min(props.limits.maxRecords || 1000, 1000),
+            maxRecordBases: Math.min(props.limits.maxRecordBases || 200, 200),
+          }
+        : props.limits,
   );
 
   const inspection = computed(() =>
@@ -93,6 +96,7 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
           options.value.leaderFlankLength >= 1 &&
           options.value.leaderFlankLength <= 5000)) &&
       (props.service.state === "online" || precomputedPolicyMatches.value) &&
+      analysisModeAvailable(mode.value, props.service) &&
       !props.hasActiveJob,
   );
 

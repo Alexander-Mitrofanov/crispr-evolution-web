@@ -5,7 +5,7 @@ import { api } from "../src/api.js";
 import AnalysisForm from "../src/components/submission/AnalysisForm.vue";
 import { ANALYSIS_MODES } from "../src/science.js";
 
-const service = { state: "online", expiresHours: 72 };
+const service = { state: "online", expiresHours: 72, modes: ANALYSIS_MODES.map((mode) => mode.id) };
 const limits = {
   maxRecords: 20,
   maxBases: 2_000_000,
@@ -26,7 +26,12 @@ describe("Vue submission policy", () => {
     });
     renderForm({ initialMode: id });
     await fireEvent.update(screen.getByRole("textbox"), ">a\nACGT\n>b\nACGT\n");
-    await fireEvent.click(screen.getByRole("button", { name: "Compute", exact: true }));
+    await fireEvent.click(
+      screen.getByRole("button", {
+        name: ["protospacer", "viral_search"].includes(id) ? "Search references" : "Compute",
+        exact: true,
+      }),
+    );
     expect(submitSpy).toHaveBeenCalledWith(expect.objectContaining({ mode: id }));
   });
 

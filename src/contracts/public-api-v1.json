@@ -187,6 +187,7 @@
           "sequence",
           "filename",
           "mode",
+          "viral_max_mismatches",
           "leader_flank_length",
           "tracr_model_type",
           "category_policy",
@@ -204,7 +205,8 @@
           "tracr_model_type": "string",
           "category_policy": "ref:CategoryPolicy",
           "spacer_distance": "integer",
-          "bias_corrections": "boolean"
+          "bias_corrections": "boolean",
+          "viral_max_mismatches": "integer"
         },
         "nullable": ["filename"]
       },
@@ -357,6 +359,7 @@
       "JobOptions": {
         "properties": [
           "molecule",
+          "viral_max_mismatches",
           "leader_flank_length",
           "tracr_model_type",
           "category_policy",
@@ -383,7 +386,8 @@
           "spacer_distance": "integer",
           "bias_corrections_requested": "boolean",
           "bias_corrections_effective": "boolean",
-          "warnings": "array:string"
+          "warnings": "array:string",
+          "viral_max_mismatches": "integer"
         },
         "nullable": []
       },
@@ -1003,7 +1007,9 @@
       "loci",
       "leader",
       "repeats",
-      "repeat_context"
+      "repeat_context",
+      "protospacer",
+      "viral_search"
     ],
     "category_policies": ["bona_fide_possible", "bona_fide_only"],
     "job_statuses": [

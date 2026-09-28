@@ -37,6 +37,9 @@ export function useServiceConfig(client = api) {
         state: "online",
         message: "Analysis service ready",
         version: health?.version || config?.api_version,
+        modes: Array.isArray(config?.modes)
+          ? config.modes.filter((mode) => typeof mode === "string")
+          : [],
         expiresHours:
           config?.retention_hours ||
           health?.retention_hours ||

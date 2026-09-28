@@ -2,6 +2,7 @@
 import { computed } from "vue";
 
 import { readableBytes, formatNumber } from "../../utils/formatting.js";
+import { analysisModeAvailable } from "../../science.js";
 import AppIcon from "../common/AppIcon.vue";
 
 const props = defineProps({
@@ -77,6 +78,18 @@ const checks = computed(() => {
       label: "Analysis service available",
       detail: service.state === "offline" ? service.message : null,
     },
+    ...(selectedMode.requiresAdvertisement
+      ? [
+          {
+            ok: analysisModeAvailable(selectedMode.id, service),
+            label: analysisModeAvailable(selectedMode.id, service)
+              ? "Reference spacer search available"
+              : "Reference spacer search unavailable on this service",
+            detail:
+              "The service must advertise an installed reference collection before submission.",
+          },
+        ]
+      : []),
   ];
 });
 </script>

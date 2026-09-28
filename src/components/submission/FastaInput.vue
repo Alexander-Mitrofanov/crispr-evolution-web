@@ -11,6 +11,7 @@ const props = defineProps({
   inspection: { type: Object, required: true },
   molecule: { type: String, default: "DNA" },
   repeatInput: Boolean,
+  spacerInput: Boolean,
   loadingExample: Boolean,
   showExample: { type: Boolean, default: true },
   exampleDisabled: Boolean,
@@ -56,7 +57,11 @@ async function onFile(event) {
     >
       <div>
         <label for="fasta-input">{{
-          repeatInput ? "Repeat sequences" : "Contigs or small genomes"
+          spacerInput
+            ? "Spacer sequences"
+            : repeatInput
+              ? "Repeat sequences"
+              : "Contigs or small genomes"
         }}</label>
         <p>{{ molecule }} FASTA with unique record identifiers.</p>
       </div>

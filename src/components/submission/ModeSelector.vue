@@ -1,5 +1,19 @@
 <script setup>
-import { ANALYSIS_MODES } from "../../science.js";
+import { computed } from "vue";
+import { ANALYSIS_MODES, analysisModeAvailable } from "../../science.js";
+
+const props = defineProps({ service: { type: Object, default: () => ({}) } });
+const modes = computed(() =>
+  ANALYSIS_MODES.filter(
+    (item) =>
+      !["protospacer", "viral_search"].includes(item.id) &&
+      analysisModeAvailable(item.id, props.service),
+  ),
+);
+
+const spacerMode = computed(() =>
+  ["protospacer", "viral_search"].find((mode) => analysisModeAvailable(mode, props.service)),
+);
 
 const emit = defineEmits(["select", "database"]);
 
@@ -41,7 +55,16 @@ function choose(event, id) {
         <span id="database-entry-description">Genomes, repeats, spacers &amp; Cas genes</span>
       </a>
       <a
-        v-for="item in ANALYSIS_MODES"
+        v-if="spacerMode"
+        aria-label="Spacer searches"
+        class="method-link"
+        :href="`?method=${spacerMode}`"
+        @click="choose($event, spacerMode)"
+        ><strong>Spacer searches</strong
+        ><span>Find spacers in DNA or candidate viruses for your spacers</span></a
+      >
+      <a
+        v-for="item in modes"
         :key="item.id"
         class="method-link"
         :href="`?method=${item.id}`"
