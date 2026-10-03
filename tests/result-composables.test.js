@@ -21,6 +21,38 @@ afterEach(() => {
 });
 
 describe("result request composables", () => {
+  it("puts the compact result before sequence ports and downloads its exact contents", async () => {
+    const blob = new Blob([JSON.stringify({ complete: true, data: { matches: [] } })]);
+    const client = { downloadArtifact: vi.fn().mockResolvedValue(blob) };
+    const save = vi.fn();
+    const artifacts = [
+      { artifact_id: "native", name: "annotations.json" },
+      { artifact_id: "spacers", name: "spacers.json" },
+      { artifact_id: "compact", filename: "result.json" },
+      { artifact_id: "repeats", name: "repeats.json" },
+      { artifact_id: "arrays", name: "arrays.json" },
+    ];
+    const result = inScope(() =>
+      useArtifactDownloads(ref({ artifacts }), ref(credential), client, save),
+    );
+    expect(result.individual.value.map((artifact) => artifact.artifact_id)).toEqual([
+      "compact",
+      "arrays",
+      "repeats",
+      "spacers",
+      "native",
+    ]);
+    await result.download(result.individual.value[0]);
+    expect(client.downloadArtifact).toHaveBeenCalledWith(
+      credential.jobId,
+      "compact",
+      credential.accessToken,
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(save).toHaveBeenCalledWith(blob, "result.json");
+    expect(artifacts[0].artifact_id).toBe("native");
+  });
+
   it("selects a bundle, filters empty artifacts, and saves authenticated downloads", async () => {
     const blob = new Blob(["zip"]);
     const client = { downloadArtifact: vi.fn().mockResolvedValue(blob) };

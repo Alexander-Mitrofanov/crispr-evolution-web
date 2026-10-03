@@ -63,7 +63,7 @@ async function onFile(event) {
               ? "Repeat sequences"
               : "Contigs or small genomes"
         }}</label>
-        <p>{{ molecule }} FASTA with unique record identifiers.</p>
+        <p>{{ molecule }} FASTA or a compatible sequence JSON from a previous analysis.</p>
       </div>
       <button
         v-if="showExample"
@@ -93,13 +93,13 @@ async function onFile(event) {
           name="upload"
           :size="18"
         />
-        Upload FASTA
+        Upload FASTA or JSON
       </button>
       <input
         ref="fileInput"
         type="file"
         tabindex="-1"
-        accept=".fa,.fasta,.fna,.ffn,.fas,.txt,text/plain"
+        accept=".fa,.fasta,.fna,.ffn,.fas,.txt,.json,text/plain,application/json"
         aria-label="Upload FASTA file"
         @change="onFile"
       />
@@ -133,7 +133,7 @@ async function onFile(event) {
         >IUPAC {{ molecule }} accepted. Input stays local until submission.<template
           v-if="repeatInput"
         >
-          Ambiguous bases remain visible; affected folding results may be unsupported.</template
+          Ambiguous bases remain visible; affected analyses may be unsupported.</template
         ></span
       >
     </div>

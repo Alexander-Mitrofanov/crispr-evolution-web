@@ -2,7 +2,7 @@ import { computed, ref } from "vue";
 
 import { ApiError, api } from "../../api.js";
 import { EXAMPLE_FASTA_PATH, EXAMPLE_RESULT_PATH, validateExampleInput } from "../../example.js";
-import { inspectFasta } from "../../fasta.js";
+import { inspectSequenceInput } from "./sequenceInput.js";
 import { normalizeJobCredential } from "../../jobStore.js";
 import { ANALYSIS_MODES, DEFAULT_CATEGORY_POLICY, analysisModeAvailable } from "../../science.js";
 import { buildSubmission } from "../../submission.js";
@@ -34,17 +34,21 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
   const inputLimits = computed(() =>
     mode.value === "viral_search"
       ? { ...props.limits, maxRecordBases: Math.min(props.limits.maxRecordBases || 80, 80) }
-      : mode.value === "repeats"
+      : ["repeats", "repeat_map"].includes(mode.value)
         ? {
             ...props.limits,
-            maxRecords: Math.min(props.limits.maxRecords || 1000, 1000),
+            maxRecords: Math.min(
+              props.limits.maxRecords || 1000,
+              mode.value === "repeat_map" ? 100 : 1000,
+            ),
             maxRecordBases: Math.min(props.limits.maxRecordBases || 200, 200),
           }
         : props.limits,
   );
 
   const inspection = computed(() =>
-    inspectFasta(sequence.value, {
+    inspectSequenceInput(sequence.value, {
+      mode: mode.value,
       maxHeaderCharacters: props.limits.maxHeaderCharacters || 200,
       molecule: molecule.value,
     }),

@@ -1009,7 +1009,8 @@
       "repeats",
       "repeat_context",
       "protospacer",
-      "viral_search"
+      "viral_search",
+      "repeat_map"
     ],
     "category_policies": ["bona_fide_possible", "bona_fide_only"],
     "job_statuses": [

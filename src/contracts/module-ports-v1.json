@@ -1,0 +1,14 @@
+{
+  "detection": "target",
+  "orientation": "target",
+  "reconstruction": "target",
+  "cas": "target",
+  "tracrrna": "target",
+  "loci": "target",
+  "leader": "target",
+  "repeat_context": "target",
+  "protospacer": "target",
+  "repeats": "repeat",
+  "repeat_map": "repeat",
+  "viral_search": "spacer"
+}

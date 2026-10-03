@@ -24,6 +24,21 @@ const { bundle, individual, downloading, error, download } = useArtifactDownload
         <h3 id="downloads-heading">Downloads</h3>
       </div>
     </div>
+    <p v-if="individual.some((artifact) => (artifact.filename || artifact.name) === 'result.json')">
+      result.json is the compact scientific result for this analysis. Detailed evidence and
+      provenance are available in the complete bundle.
+    </p>
+    <p
+      v-if="
+        individual.some((artifact) =>
+          ['repeats.json', 'spacers.json', 'input-sequences.json'].includes(artifact.name),
+        )
+      "
+    >
+      Continue an analysis: upload repeats.json to repeat analysis or repeat mapping, spacers.json
+      to viral search, or input-sequences.json to a mode accepting the same input type. arrays.json
+      contains compact array evidence; full tool details are in the bundle.
+    </p>
     <p class="download-memory-note">
       <AppIcon
         name="info"
@@ -74,7 +89,11 @@ const { bundle, individual, downloading, error, download } = useArtifactDownload
           ><strong>{{
             artifact.label || artifact.filename || artifact.name || `Artifact ${index + 1}`
           }}</strong
-          ><small>{{ artifact.media_type || artifact.kind || "Result file" }}</small></span
+          ><small>{{
+            (artifact.filename || artifact.name) === "result.json"
+              ? "Compact scientific result · JSON"
+              : artifact.media_type || artifact.kind || "Result file"
+          }}</small></span
         ><AppIcon
           name="download"
           :size="17"

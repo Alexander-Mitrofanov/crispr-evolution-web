@@ -1,6 +1,7 @@
 import { normalizeAdapter } from "./adapter.js";
 import { normalizeLeader } from "./leader.js";
 import { normalizeRepeats } from "./repeats.js";
+import { normalizeRepeatMap } from "./repeatMap.js";
 import { normalizeViral } from "./viral.js";
 import { normalizeProtospacer } from "./protospacer.js";
 import { normalizeDetection } from "./detection.js";
@@ -21,6 +22,7 @@ export function normalizePublicResult(value, context = {}) {
     detection: normalizeDetection(summary),
     crisprleader: normalizeLeader(summary.crisprleader),
     repeats: normalizeRepeats(summary.repeats),
+    repeat_map: normalizeRepeatMap(summary.repeat_map),
     viral_search: normalizeViral(summary.viral_search),
     protospacer: normalizeProtospacer(summary.protospacer),
     orientation: normalizeOrientation(summary),

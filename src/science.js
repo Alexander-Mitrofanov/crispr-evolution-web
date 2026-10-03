@@ -5,6 +5,17 @@ export const DEFAULT_CATEGORY_POLICY = CATEGORY_POLICIES[0];
 
 export const ANALYSIS_MODES = [
   {
+    id: "repeat_map",
+    title: "Map repeats to reference families",
+    short: "CRISPRmap v2 · annotated reference evidence",
+    description:
+      "Compare up to 100 DNA repeats, at most 200 bases each, with a frozen annotated reference. " +
+      "Recover exact labels and inspect near matches within three global edits, with conflicting or missing labels retained.",
+    minimumRecords: 1,
+    tools: ["CRISPRmap v2"],
+    requiresAdvertisement: true,
+  },
+  {
     id: "viral_search",
     title: "Find viruses for my spacers",
     short: "Spacer sequences against viral RefSeq",
@@ -135,6 +146,7 @@ export const STAGES = [
     label: "Extract leader context",
     detail: "CRISPRleader v2 · both sides, no prediction",
   },
+  { id: "crisprmap", label: "Map repeat references", detail: "CRISPRmap v2" },
   { id: "crisprrepeat", label: "Analyze repeat evidence", detail: "CRISPRrepeat · ViennaRNA" },
   {
     id: "crisprspacer",
@@ -148,6 +160,7 @@ export const TERMINAL_STATUSES = new Set(publicApiContract.enums.terminal_status
 
 export function stagesForMode(mode) {
   const annotationStages = {
+    repeat_map: ["queued", "validate_input", "crisprmap", "package_results"],
     viral_search: ["queued", "validate_input", "crisprspacer", "package_results"],
     protospacer: ["queued", "validate_input", "crisprspacer", "package_results"],
     repeats: ["queued", "validate_input", "crisprrepeat", "package_results"],
@@ -196,6 +209,7 @@ export function stagesForMode(mode) {
         "annotate_cas",
         "predict_tracrrna",
         "extract_leader_context",
+        "crisprmap",
         "crisprrepeat",
         "crisprspacer",
       ].includes(stage.id),

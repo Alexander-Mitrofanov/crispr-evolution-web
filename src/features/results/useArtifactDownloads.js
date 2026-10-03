@@ -28,7 +28,22 @@ export function useArtifactDownloads(job, credential, client = api, save = saveB
     ),
   );
   const individual = computed(() =>
-    artifacts.value.filter((artifact) => artifact !== bundle.value),
+    artifacts.value
+      .filter((artifact) => artifact !== bundle.value)
+      .sort((a, b) => {
+        const priority = [
+          "result.json",
+          "arrays.json",
+          "repeats.json",
+          "spacers.json",
+          "input-sequences.json",
+        ];
+        const rank = (artifact) =>
+          priority.includes(artifact.filename || artifact.name)
+            ? priority.indexOf(artifact.filename || artifact.name)
+            : priority.length;
+        return rank(a) - rank(b);
+      }),
   );
 
   function abortDownload() {

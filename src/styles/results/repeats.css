@@ -173,3 +173,13 @@
     gap: 1rem;
   }
 }
+
+.repeat-map code {
+  overflow-wrap: anywhere;
+}
+.repeat-map pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0.75rem;
+  background: var(--surface-subtle);
+}

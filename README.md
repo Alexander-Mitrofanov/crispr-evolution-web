@@ -120,7 +120,7 @@ Build the deployable Pages artifact with an exact HTTPS API origin and project
 base path:
 
 ```bash
-VITE_API_BASE_URL=https://crispr-evor-web-server.tail58d78e.ts.net \
+VITE_API_BASE_URL=https://analysis.example.org \
 VITE_BASE_PATH=/YOUR-FRONTEND-REPOSITORY/ \
 npm run build
 ```
@@ -140,4 +140,4 @@ The build also runs scripts/scan-public-example.mjs. The scanner validates the s
 
 Production origin is chosen at deployment; no production site is changed by this migration.
 
-API origin: <https://crispr-evor-web-server.tail58d78e.ts.net>
+API origin: configured by the operator at build time.

@@ -122,7 +122,7 @@ const {
             v-model:sequence="sequence"
             v-model:filename="filename"
             :inspection="inspection"
-            :repeat-input="mode === 'repeats'"
+            :repeat-input="['repeats', 'repeat_map'].includes(mode)"
             :spacer-input="mode === 'viral_search'"
             :molecule="molecule"
             :loading-example="loadingExample"
@@ -141,7 +141,7 @@ const {
         </div>
       </section>
       <section
-        v-if="!['repeats', 'protospacer', 'viral_search'].includes(mode)"
+        v-if="!['repeat_map', 'repeats', 'protospacer', 'viral_search'].includes(mode)"
         class="policy-section"
         aria-labelledby="policy-step-heading"
       >
