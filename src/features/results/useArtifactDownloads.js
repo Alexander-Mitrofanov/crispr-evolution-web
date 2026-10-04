@@ -53,7 +53,18 @@ export function useArtifactDownloads(job, credential, client = api, save = saveB
     downloading.value = "";
   }
 
-  watch([job, credential], abortDownload, { flush: "sync" });
+  // Completion and expiry refreshes replace these objects without changing the
+  // job capability. Only leaving that job should interrupt its download.
+  watch(
+    [
+      () => job.value?.job_id,
+      () => Boolean(job.value),
+      () => credential.value?.jobId,
+      () => credential.value?.accessToken,
+    ],
+    abortDownload,
+    { flush: "sync" },
+  );
   onScopeDispose(abortDownload);
 
   async function download(artifact = null) {

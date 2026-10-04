@@ -173,7 +173,7 @@ describe("result request composables", () => {
     expect(result.artifactGroups.value[0].name).toBe("new-group");
   });
 
-  it("does not save a download after its job credential changes", async () => {
+  it("finishes a download while the same job and capability refresh their metadata", async () => {
     let resolveDownload;
     const client = {
       downloadArtifact: vi.fn(
@@ -184,20 +184,64 @@ describe("result request composables", () => {
       ),
     };
     const save = vi.fn();
-    const job = ref({ artifacts: [{ artifact_id: "tree-1", filename: "tree.nwk" }] });
+    const job = ref({
+      job_id: credential.jobId,
+      artifacts: [{ artifact_id: "compact", filename: "result.json" }],
+    });
     const currentCredential = ref(credential);
     const result = inScope(() => useArtifactDownloads(job, currentCredential, client, save));
-
     const pending = result.download(result.individual.value[0]);
-    await vi.waitFor(() => expect(client.downloadArtifact).toHaveBeenCalledTimes(1));
     const requestOptions = client.downloadArtifact.mock.calls[0][3];
-    currentCredential.value = { ...credential, jobId: "fedcba9876543210fedcba9876543210" };
-    expect(requestOptions.signal.aborted).toBe(true);
-    resolveDownload(new Blob(["tree"]));
-    await pending;
 
-    expect(save).not.toHaveBeenCalled();
-    expect(result.error.value).toBe("");
-    expect(result.downloading.value).toBe("");
+    currentCredential.value = { ...credential, expiresAt: "2099-01-01T00:00:00Z" };
+    job.value = { ...job.value, status: "completed", artifacts: [...job.value.artifacts] };
+    expect(requestOptions.signal.aborted).toBe(false);
+    expect(result.downloading.value).toBe("compact");
+    const blob = new Blob(["{}"]);
+    resolveDownload(blob);
+    await pending;
+    expect(save).toHaveBeenCalledWith(blob, "result.json");
   });
+
+  it.each(["jobId", "accessToken", "job", "clear"])(
+    "does not save a download after %s changes",
+    async (change) => {
+      let resolveDownload;
+      const client = {
+        downloadArtifact: vi.fn(
+          () =>
+            new Promise((resolve) => {
+              resolveDownload = resolve;
+            }),
+        ),
+      };
+      const save = vi.fn();
+      const job = ref({
+        job_id: credential.jobId,
+        artifacts: [{ artifact_id: "tree-1", filename: "tree.nwk" }],
+      });
+      const currentCredential = ref(credential);
+      const result = inScope(() => useArtifactDownloads(job, currentCredential, client, save));
+
+      const pending = result.download(result.individual.value[0]);
+      await vi.waitFor(() => expect(client.downloadArtifact).toHaveBeenCalledTimes(1));
+      const requestOptions = client.downloadArtifact.mock.calls[0][3];
+      if (change === "jobId") {
+        currentCredential.value = { ...credential, jobId: "fedcba9876543210fedcba9876543210" };
+      } else if (change === "accessToken") {
+        currentCredential.value = { ...credential, accessToken: "b".repeat(43) };
+      } else if (change === "job") {
+        job.value = { ...job.value, job_id: "fedcba9876543210fedcba9876543210" };
+      } else {
+        job.value = null;
+      }
+      expect(requestOptions.signal.aborted).toBe(true);
+      resolveDownload(new Blob(["tree"]));
+      await pending;
+
+      expect(save).not.toHaveBeenCalled();
+      expect(result.error.value).toBe("");
+      expect(result.downloading.value).toBe("");
+    },
+  );
 });
