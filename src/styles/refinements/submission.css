@@ -84,7 +84,7 @@ textarea::placeholder {
 .muted {
   color: var(--muted);
 }
-.advanced summary {
+.advanced > summary {
   min-height: 52px;
 }
 .number-control,

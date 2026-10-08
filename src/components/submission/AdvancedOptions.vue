@@ -1,6 +1,9 @@
 <script setup>
 import { CATEGORY_POLICIES } from "../../science.js";
+import { computed } from "vue";
+import { toolOptionCount } from "../../toolOptions.js";
 import AppIcon from "../common/AppIcon.vue";
+import ToolOptions from "./ToolOptions.vue";
 
 const props = defineProps({
   mode: { type: String, required: true },
@@ -10,12 +13,19 @@ const emit = defineEmits(["update:modelValue"]);
 const update = (values) => emit("update:modelValue", { ...props.modelValue, ...values });
 const inclusivePolicy = CATEGORY_POLICIES[0];
 const strictPolicy = CATEGORY_POLICIES[1];
+const changedCount = computed(() => toolOptionCount(props.mode, props.modelValue.toolOptions));
 </script>
 
 <template>
   <details class="advanced">
     <summary>
-      <span class="advanced-summary-copy"><strong>Analysis options</strong></span
+      <span class="advanced-summary-copy"
+        ><strong>Analysis options</strong
+        ><small
+          v-if="changedCount"
+          class="advanced-changed-count"
+          >{{ changedCount }} tool {{ changedCount === 1 ? "flag" : "flags" }} changed</small
+        ></span
       ><span
         class="advanced-summary-action"
         aria-hidden="true"
@@ -23,13 +33,22 @@ const strictPolicy = CATEGORY_POLICIES[1];
         ><span class="advanced-action-open">Hide options</span></span
       >
     </summary>
-    <div class="advanced-body">
+    <ToolOptions
+      :mode="mode"
+      :model-value="modelValue.toolOptions || {}"
+      @update:model-value="update({ toolOptions: $event })"
+    />
+    <div
+      v-if="!['repeat_map', 'repeats', 'protospacer', 'viral_search', 'cas'].includes(mode)"
+      class="advanced-body"
+    >
+      <h4 class="workflow-options-title">Workflow settings</h4>
       <div
         v-if="['leader', 'loci'].includes(mode)"
         class="option-column"
       >
         <label for="leader-flank-length"
-          ><strong>Leader context window (nt per side)</strong></label
+          ><strong>Leader context window (nt per side)</strong><code>--flank-length</code></label
         >
         <input
           id="leader-flank-length"
@@ -47,7 +66,7 @@ const strictPolicy = CATEGORY_POLICIES[1];
         >
       </div>
       <fieldset v-if="['loci', 'tracrrna'].includes(mode)">
-        <legend>tracrRNA covariance models</legend>
+        <legend>tracrRNA covariance models <code>--model-type</code></legend>
         <label class="radio-line"
           ><input
             type="radio"
@@ -105,7 +124,7 @@ const strictPolicy = CATEGORY_POLICIES[1];
         class="option-column"
       >
         <label for="edit-distance"
-          ><strong>Spacer edit distance</strong
+          ><strong>Spacer edit distance</strong><code>--cluster_spacers_max_distance</code
           ><small>Maximum sequence edits when matching homologous spacers</small></label
         >
         <div class="number-control">

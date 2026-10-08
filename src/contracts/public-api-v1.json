@@ -183,6 +183,7 @@
     "models": {
       "JobSubmission": {
         "properties": [
+          "tool_options",
           "molecule",
           "sequence",
           "filename",
@@ -197,6 +198,7 @@
         "required": ["sequence", "mode"],
         "additional_properties": false,
         "types": {
+          "tool_options": "map:object",
           "molecule": "string",
           "sequence": "string",
           "filename": "null|string",
@@ -358,6 +360,7 @@
       },
       "JobOptions": {
         "properties": [
+          "tool_options",
           "molecule",
           "viral_max_mismatches",
           "leader_flank_length",
@@ -378,6 +381,7 @@
         ],
         "additional_properties": null,
         "types": {
+          "tool_options": "map:object",
           "molecule": "string",
           "leader_flank_length": "integer",
           "tracr_model_type": "string",

@@ -119,7 +119,10 @@
   .advanced-summary-copy small {
     display: none;
   }
-  .advanced summary {
+  .advanced-summary-copy .advanced-changed-count {
+    display: block;
+  }
+  .advanced > summary {
     gap: 12px;
     padding-left: 15px;
   }

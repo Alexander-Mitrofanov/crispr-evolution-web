@@ -2,7 +2,7 @@
   border: 1px solid var(--line);
   background: white;
 }
-.advanced summary {
+.advanced > summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -14,13 +14,13 @@
   list-style: none;
   transition: background 0.16s ease;
 }
-.advanced summary::-webkit-details-marker {
+.advanced > summary::-webkit-details-marker {
   display: none;
 }
-.advanced summary:hover {
+.advanced > summary:hover {
   background: var(--action-soft-hover);
 }
-.advanced[open] summary {
+.advanced[open] > summary {
   background: var(--action-soft);
 }
 .advanced-summary-copy {

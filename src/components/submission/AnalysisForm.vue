@@ -141,7 +141,6 @@ const {
         </div>
       </section>
       <section
-        v-if="!['repeat_map', 'repeats', 'protospacer', 'viral_search'].includes(mode)"
         class="policy-section"
         aria-labelledby="policy-step-heading"
       >

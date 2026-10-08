@@ -1,8 +1,12 @@
+import { selectedToolOptions } from "./toolOptions.js";
+
 export function buildSubmission({ sequence, filename, mode, options }) {
+  const toolOptions = selectedToolOptions(mode, options.toolOptions);
   return {
     sequence,
     filename,
     mode,
+    ...(Object.keys(toolOptions).length ? { tool_options: toolOptions } : {}),
     ...(mode === "viral_search" ? { viral_max_mismatches: options.viralMaxMismatches ?? 2 } : {}),
     ...(mode === "repeats" ? { molecule: options.molecule || "DNA" } : {}),
     ...(["loci", "tracrrna"].includes(mode)

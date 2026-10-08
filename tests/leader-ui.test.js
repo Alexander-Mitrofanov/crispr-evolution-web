@@ -60,7 +60,7 @@ describe("CRISPRleader context", () => {
     const { emitted } = render(AdvancedOptions, {
       props: { mode, modelValue: { leaderFlankLength: 500 } },
     });
-    await fireEvent.update(screen.getByLabelText("Leader context window (nt per side)"), "37");
+    await fireEvent.update(screen.getByLabelText(/Leader context window \(nt per side\)/), "37");
     expect(emitted()["update:modelValue"][0][0].leaderFlankLength).toBe(37);
     expect(screen.getByText(/Leader prediction is unavailable/)).toBeInTheDocument();
     expect(stagesForMode(mode).some((stage) => stage.id === "extract_leader_context")).toBe(true);

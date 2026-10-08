@@ -6,6 +6,7 @@ import { inspectSequenceInput } from "./sequenceInput.js";
 import { normalizeJobCredential } from "../../jobStore.js";
 import { ANALYSIS_MODES, DEFAULT_CATEGORY_POLICY, analysisModeAvailable } from "../../science.js";
 import { buildSubmission } from "../../submission.js";
+import { toolOptionCount, validToolOptions } from "../../toolOptions.js";
 
 const INITIAL_OPTIONS = Object.freeze({
   categoryPolicy: DEFAULT_CATEGORY_POLICY,
@@ -15,6 +16,7 @@ const INITIAL_OPTIONS = Object.freeze({
   leaderFlankLength: 500,
   molecule: "DNA",
   viralMaxMismatches: 2,
+  toolOptions: {},
 });
 
 export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.fetch) {
@@ -71,6 +73,7 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
       preparedExample.value &&
       sequence.value === preparedExampleSequence.value &&
       mode.value === preparedExample.value.job?.mode &&
+      toolOptionCount(mode.value, options.value.toolOptions) === 0 &&
       submission.value.category_policy === recorded?.category_policy &&
       submission.value.spacer_distance === recorded?.spacer_distance &&
       submission.value.bias_corrections === recorded?.bias_corrections_requested,
@@ -95,6 +98,7 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
       inspection.value.recordCount >= selectedMode.value.minimumRecords &&
       withinLimits.value &&
       withinRequest.value &&
+      validToolOptions(mode.value, options.value.toolOptions) &&
       (!["loci", "leader"].includes(mode.value) ||
         (Number.isInteger(options.value.leaderFlankLength) &&
           options.value.leaderFlankLength >= 1 &&

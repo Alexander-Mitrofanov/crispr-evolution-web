@@ -50,7 +50,13 @@ describe("advertised protospacer analysis", () => {
       .spyOn(api, "submit")
       .mockResolvedValue({ job_id: "a".repeat(32), access_token: "a".repeat(43) });
     render(AnalysisForm, { props: { initialMode: "protospacer", service, limits } });
-    expect(screen.queryByText("Analysis options", { exact: true })).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Analysis options", { exact: true }).closest("details"),
+    ).not.toHaveAttribute("open");
+    expect(
+      screen.getByText("CRISPRspacer", { selector: ".tool-options-tool strong" }),
+    ).toBeInTheDocument();
+    expect(document.querySelector(".tool-option-field")).not.toBeInTheDocument();
     expect(screen.queryByRole("radio")).not.toBeInTheDocument();
     await fireEvent.update(screen.getByLabelText("Contigs or small genomes"), fasta);
     await fireEvent.click(screen.getByRole("button", { name: "Search references", exact: true }));
