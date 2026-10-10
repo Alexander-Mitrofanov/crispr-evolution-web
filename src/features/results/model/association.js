@@ -2,9 +2,16 @@ import { asList, asRecord } from "./values.js";
 const text = (v) => (typeof v === "string" ? v : null);
 const number = (v) => (typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null);
 const count = (v) => (Number.isSafeInteger(v) && v >= 0 ? v : null);
+const sourceText = (v) => (typeof v === "string" && v.trim() ? v : null);
 export function normalizeAssociation(value) {
   const doc = asRecord(value) || {};
   const ref = asRecord(doc.reference) || {};
+  const source = asRecord(ref.source) || {};
+  const legacyGenomes = Array.isArray(ref.genomes) && ref.genomes.length ? ref.genomes : null;
+  const legacyBases =
+    legacyGenomes && legacyGenomes.every((g) => asRecord(g) && count(g.length) !== null)
+      ? count(legacyGenomes.reduce((total, g) => total + g.length, 0))
+      : null;
   return {
     available: doc.available === true && doc.execution_completed === true,
     calibrationStatus: ["estimated", "unavailable", "not_run"].includes(doc.calibration_status)
@@ -20,6 +27,15 @@ export function normalizeAssociation(value) {
       digest: text(ref.manifest_sha256),
       version: text(ref.engine_version),
       control: text(ref.control_method),
+      genomeCount: count(ref.genome_count) ?? legacyGenomes?.length ?? null,
+      totalBases: count(ref.total_bases) ?? legacyBases,
+      scope: ["broad_phage_reference", "targeted_panel"].includes(ref.scope) ? ref.scope : null,
+      source: {
+        collection: sourceText(source.collection),
+        release: sourceText(source.release),
+        retrievedAt: sourceText(source.retrieved_at),
+        selectionPolicy: sourceText(source.selection_policy),
+      },
       genomes: asList(ref.genomes)
         .filter(asRecord)
         .slice(0, 100)

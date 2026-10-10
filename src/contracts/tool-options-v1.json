@@ -692,9 +692,9 @@
       "id": "spacepharer",
       "name": "SpacePHARER",
       "modes": ["spacer_association"],
-      "description": "Combine translated and nucleotide spacer evidence within explicit groups against an immutable targeted panel.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/SpacePHARER/blob/3121a8eb3fd5b79996c7175552a19aa465486458/README.md",
-      "revision": "3121a8eb3fd5b79996c7175552a19aa465486458",
+      "description": "Combine translated and nucleotide spacer evidence within explicit groups against an immutable phage reference database.",
+      "documentation": "https://github.com/Alexander-Mitrofanov/SpacePHARER/blob/a3da55320665bac0a9a6fb4b6868feb70dab56eb/README.md",
+      "revision": "a3da55320665bac0a9a6fb4b6868feb70dab56eb",
       "cli_modes": [
         {
           "name": "spacepharer associate",
@@ -715,7 +715,7 @@
       ],
       "managed": [
         {
-          "label": "Worker-managed input, panel and resource budget",
+          "label": "Worker-managed input, reference and resource budget",
           "flags": ["--input", "--groups", "--reference", "--output", "--threads", "--memory-mb"]
         }
       ]

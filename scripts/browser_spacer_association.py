@@ -81,13 +81,44 @@ def check(origin,output):
             panel.get_by_text('Reference provenance',exact=True).click()
             assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth+1')
             page.screenshot(path=output/'mobile.png',full_page=True)
+            # Synthetic reference metadata exercises catalogue-scale presentation;
+            # association evidence above remains the actual native HTTP fixture.
+            state['job']=copy.deepcopy(fixture)
+            original_reference=state['job']['summary']['spacer_association']['reference']
+            state['job']['summary']['spacer_association']['reference']={
+                'name':'browser-layout-catalogue','engine_version':original_reference['engine_version'],
+                'control_method':'reversed_translated_orfs','manifest_sha256':'b'*64,
+                'genome_count':32510,'total_bases':2147483648,'scope':'broad_phage_reference',
+                'source':{'collection':'NCBI GenBank and RefSeq','release':'Synthetic layout snapshot',
+                          'retrieved_at':'2026-10-10T12:00:00Z',
+                          'selection_policy':'Synthetic display check; not a biological reference.'},
+            }
+            page.reload();page.wait_for_load_state('networkidle')
+            page.get_by_role('tab',name='Associations',exact=True).click()
+            expect(panel.get_by_text(re.compile('32,510 genomes.*2,147,483,648 bases.*Broad phage reference'))).to_be_visible()
+            panel.get_by_text('Reference provenance',exact=True).click()
+            expect(panel.get_by_text('Collection: NCBI GenBank and RefSeq',exact=True)).to_be_visible()
+            expect(panel.get_by_text('Release: Synthetic layout snapshot',exact=True)).to_be_visible()
+            assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth+1')
+            page.screenshot(path=output/'broad-reference-mobile.png',full_page=True)
+            state['job']['summary']['spacer_association']['reference']={
+                'name':'historical-panel','engine_version':'2.0.2',
+                'control_method':'reversed_translated_orfs','manifest_sha256':'c'*64,
+                'genomes':[{'id':'historical-target','length':1234,'sha256':'d'*64}],
+            }
+            page.reload();page.wait_for_load_state('networkidle')
+            page.get_by_role('tab',name='Associations',exact=True).click()
+            expect(panel.get_by_text(re.compile('1 genome.*1,234 bases'))).to_be_visible()
+            panel.get_by_text('Reference provenance',exact=True).click()
+            expect(panel.get_by_text('Collection: Not reported',exact=True)).to_be_visible()
+            expect(panel.get_by_text(re.compile('historical-target.*1,234 bases'))).to_be_visible()
             state['job']=copy.deepcopy(fixture);state['job']['summary']['spacer_association']=None
             page.reload();page.wait_for_load_state('networkidle')
             expect(page.get_by_role('tabpanel',name='Overview',exact=True).get_by_text('A completed association analysis was not reported.')).to_be_visible()
             assert not errors,errors
             assert not page.evaluate('window.cspViolations')
             assert len(state['submissions'])==1
-            (output/'acceptance.json').write_text(json.dumps({'status':'passed','api':'intercepted actual native HTTP result and input fixture','checks':['advertisement','explicit grouping required','per-source metadata required','origin-preserving submission','uncalibrated candidate support','duplicate occurrences','reload recovery','protected download','390px alignment/provenance layout','missing evidence','no JS/CSP errors']},indent=2)+'\n')
+            (output/'acceptance.json').write_text(json.dumps({'status':'passed','api':'intercepted actual native HTTP result and input fixture; synthetic metadata for broad and historical reference display','checks':['advertisement','explicit grouping required','per-source metadata required','origin-preserving submission','uncalibrated candidate support','duplicate occurrences','reload recovery','protected download','390px alignment/provenance layout','broad reference counts and provenance','historical reference inventory and absent provenance','missing evidence','no JS/CSP errors']},indent=2)+'\n')
             print('SpacePHARER browser acceptance passed')
         finally: browser.close()
 

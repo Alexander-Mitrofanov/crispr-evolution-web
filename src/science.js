@@ -20,7 +20,7 @@ export const ANALYSIS_MODES = [
     title: "Associate spacer groups with phages",
     short: "SpacePHARER · translated and nucleotide evidence",
     description:
-      "Compare explicitly grouped spacers with an installed targeted panel of up to 100 genomes. " +
+      "Compare explicitly grouped spacers with an installed phage reference database. " +
       "Combine translated and nucleotide matches; inspect native calibration and occurrence support.",
     minimumRecords: 1,
     tools: ["SpacePHARER"],

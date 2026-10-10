@@ -12,6 +12,12 @@ defineProps({
   compact: Boolean,
 });
 const show = (v) => v ?? "Not reported";
+const showCount = (v) => (v == null ? "Not reported" : v.toLocaleString("en-US"));
+const scope = (v) =>
+  ({
+    broad_phage_reference: "Broad phage reference",
+    targeted_panel: "Targeted phage panel",
+  })[v] || "Scope not reported";
 const status = (v) =>
   ({
     association: "Accepted association",
@@ -48,9 +54,14 @@ const status = (v) =>
         {{ show(calibrationCounts.control) }} control scores. A combined score is not a probability.
       </p>
       <p>
-        Reference panel: <strong>{{ show(reference.name) }}</strong> ·
-        {{ reference.genomes.length }} genomes. This targeted panel covers at most 100 genomes and
-        50 Mb; absence of a match says nothing about genomes outside the panel.
+        Reference database: <strong>{{ show(reference.name) }}</strong> ·
+        {{ showCount(reference.genomeCount) }}
+        {{ reference.genomeCount === 1 ? "genome" : "genomes" }} ·
+        {{ showCount(reference.totalBases) }} bases · {{ scope(reference.scope) }}.
+      </p>
+      <p>
+        Searches cover only this database's recorded scope. Phages absent from it cannot be
+        detected; no match does not rule out a biological interaction.
       </p>
       <p v-if="compact">
         Open Associations to inspect group membership, support and reference provenance.
@@ -121,13 +132,20 @@ const status = (v) =>
         <details>
           <summary>Reference provenance</summary>
           <p>SpacePHARER {{ show(reference.version) }} · Control: {{ show(reference.control) }}</p>
-          <p class="sequence-text">Panel SHA-256: {{ show(reference.digest) }}</p>
+          <p class="sequence-text">Reference SHA-256: {{ show(reference.digest) }}</p>
+          <p class="sequence-text">Collection: {{ show(reference.source.collection) }}</p>
+          <p class="sequence-text">Release: {{ show(reference.source.release) }}</p>
+          <p>Retrieved: {{ show(reference.source.retrievedAt) }}</p>
+          <p class="sequence-text">
+            Selection policy: {{ show(reference.source.selectionPolicy) }}
+          </p>
           <p
             v-for="genome in reference.genomes"
             :key="genome.id"
             class="sequence-text"
           >
-            {{ genome.id }} · {{ genome.length }} bases · SHA-256 {{ genome.sha256 }}
+            {{ show(genome.id) }} · {{ showCount(genome.length) }} bases · SHA-256
+            {{ show(genome.sha256) }}
           </p>
           <p>
             <a
