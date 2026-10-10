@@ -7,7 +7,10 @@ import { mergeAdapterMembership } from "../../utils/results.js";
 import AppIcon from "../common/AppIcon.vue";
 import LeaderResults from "./annotations/LeaderResults.vue";
 import RepeatResults from "./repeats/RepeatResults.vue";
+import RepeatTypeResults from "./repeats/RepeatTypeResults.vue";
 import RepeatMapResults from "./repeats/RepeatMapResults.vue";
+import ArrayCompareResults from "./comparison/ArrayCompareResults.vue";
+import AssociationResults from "./protospacer/AssociationResults.vue";
 import ViralResults from "./protospacer/ViralResults.vue";
 import ProtospacerResults from "./protospacer/ProtospacerResults.vue";
 import AnnotationResults from "./annotations/AnnotationResults.vue";
@@ -48,14 +51,25 @@ const annotationMode = computed(() =>
   ["cas", "tracrrna", "loci", "leader"].includes(props.job?.mode),
 );
 const repeatMode = computed(() => ["repeats", "repeat_context"].includes(props.job?.mode));
+const comparisonMode = computed(() => props.job?.mode === "array_compare");
+const associationMode = computed(() => props.job?.mode === "spacer_association");
+const typeMode = computed(() => props.job?.mode === "repeat_type");
 const mapMode = computed(() => props.job?.mode === "repeat_map");
 const viralMode = computed(() => props.job?.mode === "viral_search");
 const protospacerMode = computed(() => props.job?.mode === "protospacer");
 const hasDetection = computed(
   () =>
-    !["cas", "tracrrna", "repeats", "protospacer", "viral_search", "repeat_map"].includes(
-      props.job?.mode,
-    ),
+    ![
+      "cas",
+      "tracrrna",
+      "repeats",
+      "protospacer",
+      "viral_search",
+      "repeat_map",
+      "repeat_type",
+      "spacer_association",
+      "array_compare",
+    ].includes(props.job?.mode),
 );
 const hasEvolution = computed(() => ["reconstruction", "orientation"].includes(props.job?.mode));
 const cas = computed(() => summary.value.casandra || { status: "not_requested" });
@@ -75,6 +89,9 @@ const tabs = computed(() => [
     : []),
   ...(hasDetection.value ? [{ id: "arrays", label: "Arrays" }] : []),
   ...(repeatMode.value ? [{ id: "repeats", label: "Repeat evidence" }] : []),
+  ...(comparisonMode.value ? [{ id: "array_compare", label: "Array comparison" }] : []),
+  ...(associationMode.value ? [{ id: "associations", label: "Associations" }] : []),
+  ...(typeMode.value ? [{ id: "repeat_type", label: "Repeat subtypes" }] : []),
   ...(mapMode.value ? [{ id: "repeat_map", label: "Repeat matches" }] : []),
   ...(viralMode.value ? [{ id: "viral", label: "Viral matches" }] : []),
   ...(protospacerMode.value ? [{ id: "protospacer", label: "Protospacer matches" }] : []),
@@ -196,7 +213,10 @@ async function navigateTabs(event, index) {
           !repeatMode &&
           !protospacerMode &&
           !viralMode &&
-          !mapMode
+          !mapMode &&
+          !typeMode &&
+          !associationMode &&
+          !comparisonMode
         "
         :summary="summary"
         :example-snapshot="exampleSnapshot"
@@ -232,6 +252,21 @@ async function navigateTabs(event, index) {
         :key="job.job_id"
         :summary="detection"
         :arrays="arrays"
+      />
+      <ArrayCompareResults
+        v-if="comparisonMode && ['overview', 'array_compare'].includes(tab.id)"
+        v-bind="summary.array_compare"
+        :compact="tab.id === 'overview'"
+      />
+      <AssociationResults
+        v-if="associationMode && ['overview', 'associations'].includes(tab.id)"
+        v-bind="summary.spacer_association"
+        :compact="tab.id === 'overview'"
+      />
+      <RepeatTypeResults
+        v-if="typeMode && ['overview', 'repeat_type'].includes(tab.id)"
+        v-bind="summary.repeat_type"
+        :compact="tab.id === 'overview'"
       />
       <RepeatMapResults
         v-if="mapMode && ['overview', 'repeat_map'].includes(tab.id)"

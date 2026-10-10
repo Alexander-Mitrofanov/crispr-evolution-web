@@ -39,7 +39,18 @@ const changedCount = computed(() => toolOptionCount(props.mode, props.modelValue
       @update:model-value="update({ toolOptions: $event })"
     />
     <div
-      v-if="!['repeat_map', 'repeats', 'protospacer', 'viral_search', 'cas'].includes(mode)"
+      v-if="
+        ![
+          'spacer_association',
+          'array_compare',
+          'repeat_type',
+          'repeat_map',
+          'repeats',
+          'protospacer',
+          'viral_search',
+          'cas',
+        ].includes(mode)
+      "
       class="advanced-body"
     >
       <h4 class="workflow-options-title">Workflow settings</h4>

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/vue";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import arrayPacket from "./fixtures/array-compare-input.json";
 import { api } from "../src/api.js";
 import AnalysisForm from "../src/components/submission/AnalysisForm.vue";
 import { ANALYSIS_MODES } from "../src/science.js";
@@ -25,7 +26,15 @@ describe("Vue submission policy", () => {
       status: "queued",
     });
     renderForm({ initialMode: id });
-    await fireEvent.update(screen.getByRole("textbox"), ">a\nACGT\n>b\nACGT\n");
+    await fireEvent.update(
+      screen.getByRole("textbox"),
+      id === "array_compare" ? JSON.stringify(arrayPacket) : ">a\nACGT\n>b\nACGT\n",
+    );
+    if (id === "spacer_association") {
+      const compute = screen.getByRole("button", { name: "Compute", exact: true });
+      expect(compute).toBeDisabled();
+      await fireEvent.update(screen.getByLabelText("Spacer grouping"), "per_record");
+    }
     await fireEvent.click(
       screen.getByRole("button", {
         name: ["protospacer", "viral_search"].includes(id) ? "Search references" : "Compute",

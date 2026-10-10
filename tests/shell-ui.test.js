@@ -83,9 +83,16 @@ describe("method-first navigation", () => {
       screen.getByRole("heading", { level: 1, name: spacer ? "Spacer searches" : method.title }),
     ).toHaveFocus();
     expect(
-      screen.getByRole("button", { name: "Upload FASTA or JSON", exact: true }),
+      screen.getByRole("button", {
+        name: method.id === "array_compare" ? "Upload arrays.json" : "Upload FASTA or JSON",
+        exact: true,
+      }),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText("Upload FASTA file")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(
+        method.id === "array_compare" ? "Upload array JSON file" : "Upload FASTA file",
+      ),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Choose a method" })).not.toBeInTheDocument();
     expect(window.location.search).toBe(`?method=${method.id}`);
     expect(Boolean(screen.queryByRole("button", { name: "Load example", exact: true }))).toBe(

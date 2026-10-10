@@ -8,6 +8,9 @@ export function buildSubmission({ sequence, filename, mode, options }) {
     mode,
     ...(Object.keys(toolOptions).length ? { tool_options: toolOptions } : {}),
     ...(mode === "viral_search" ? { viral_max_mismatches: options.viralMaxMismatches ?? 2 } : {}),
+    ...(mode === "spacer_association"
+      ? { association_grouping: options.associationGrouping || null }
+      : {}),
     ...(mode === "repeats" ? { molecule: options.molecule || "DNA" } : {}),
     ...(["loci", "tracrrna"].includes(mode)
       ? { tracr_model_type: options.tracrModelType || "II" }

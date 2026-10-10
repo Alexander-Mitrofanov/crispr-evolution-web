@@ -1,6 +1,9 @@
+import { normalizeArrayCompare } from "./arrayCompare.js";
+import { normalizeAssociation } from "./association.js";
 import { normalizeAdapter } from "./adapter.js";
 import { normalizeLeader } from "./leader.js";
 import { normalizeRepeats } from "./repeats.js";
+import { normalizeRepeatType } from "./repeatType.js";
 import { normalizeRepeatMap } from "./repeatMap.js";
 import { normalizeViral } from "./viral.js";
 import { normalizeProtospacer } from "./protospacer.js";
@@ -22,6 +25,9 @@ export function normalizePublicResult(value, context = {}) {
     detection: normalizeDetection(summary),
     crisprleader: normalizeLeader(summary.crisprleader),
     repeats: normalizeRepeats(summary.repeats),
+    array_compare: normalizeArrayCompare(summary.array_compare),
+    spacer_association: normalizeAssociation(summary.spacer_association),
+    repeat_type: normalizeRepeatType(summary.repeat_type),
     repeat_map: normalizeRepeatMap(summary.repeat_map),
     viral_search: normalizeViral(summary.viral_search),
     protospacer: normalizeProtospacer(summary.protospacer),

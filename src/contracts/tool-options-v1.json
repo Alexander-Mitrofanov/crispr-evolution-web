@@ -510,7 +510,7 @@
       "flags": [
         {
           "flag": "--temperature",
-          "label": "Folding temperature (°C)",
+          "label": "Folding temperature (\u00b0C)",
           "type": "number",
           "default": 37,
           "description": "Changes the ViennaRNA thermodynamic model temperature for all folds.",
@@ -629,7 +629,7 @@
       "managed": [
         {
           "flags": ["--max-mismatches"],
-          "description": "Viral search allows 0–2 substitutions, selected beside search direction. This flag does not exist in database-search."
+          "description": "Viral search allows 0\u20132 substitutions, selected beside search direction. This flag does not exist in database-search."
         },
         {
           "flags": [
@@ -653,6 +653,110 @@
             "--max-hsps"
           ],
           "description": "Paths, executable choice and bounded work limits are owned by the worker."
+        }
+      ]
+    },
+    {
+      "id": "repeattyper",
+      "name": "RepeatTyper",
+      "modes": ["repeat_type"],
+      "description": "Predict repeat-derived subtype evidence using the preserved 37-class model.",
+      "documentation": "https://github.com/Alexander-Mitrofanov/RepeatTyper/blob/7a153a08ae31682c99b5a255d01e5408ae267d66/README.md",
+      "revision": "7a153a08ae31682c99b5a255d01e5408ae267d66",
+      "cli_modes": [
+        {
+          "name": "repeattyper classify",
+          "description": "Classify supplied repeat occurrences offline."
+        }
+      ],
+      "flags": [
+        {
+          "flag": "--threshold",
+          "label": "Minimum model score",
+          "type": "number",
+          "default": 0.75,
+          "min": 0,
+          "max": 1,
+          "step": 0.01,
+          "description": "Below this score, retain the winner but leave the prediction unknown. Scores are not calibrated confidence."
+        }
+      ],
+      "managed": [
+        {
+          "label": "Worker-managed inputs and outputs",
+          "flags": ["--input", "--output"]
+        }
+      ]
+    },
+    {
+      "id": "spacepharer",
+      "name": "SpacePHARER",
+      "modes": ["spacer_association"],
+      "description": "Combine translated and nucleotide spacer evidence within explicit groups against an immutable targeted panel.",
+      "documentation": "https://github.com/Alexander-Mitrofanov/SpacePHARER/blob/3121a8eb3fd5b79996c7175552a19aa465486458/README.md",
+      "revision": "3121a8eb3fd5b79996c7175552a19aa465486458",
+      "cli_modes": [
+        {
+          "name": "spacepharer associate",
+          "description": "Evaluate explicit spacer group associations offline."
+        }
+      ],
+      "flags": [
+        {
+          "flag": "--fdr",
+          "label": "Maximum empirical FDR",
+          "type": "number",
+          "default": 0.05,
+          "min": 0.001,
+          "max": 0.5,
+          "step": 0.001,
+          "description": "Applied only when the native target/control distribution supports calibration. Uncalibrated candidates remain unaccepted."
+        }
+      ],
+      "managed": [
+        {
+          "label": "Worker-managed input, panel and resource budget",
+          "flags": ["--input", "--groups", "--reference", "--output", "--threads", "--memory-mb"]
+        }
+      ]
+    },
+    {
+      "id": "cctk",
+      "name": "CCTK",
+      "modes": ["array_compare"],
+      "description": "Compare observed ordered spacer occurrences and exact sharing networks.",
+      "documentation": "https://github.com/Alexander-Mitrofanov/CCTK/blob/6fb81fec60f4951bf23259199ea3d9bc8f8a3d22/README.md",
+      "revision": "6fb81fec60f4951bf23259199ea3d9bc8f8a3d22",
+      "cli_modes": [
+        {
+          "name": "cctk compare",
+          "description": "Compare complete observed spacer lists; no evolutionary inference."
+        }
+      ],
+      "flags": [
+        {
+          "flag": "--identity",
+          "label": "DNA equality",
+          "type": "enum",
+          "default": "exact",
+          "description": "Reverse-complement equality changes matching only; it never infers strand or acquisition order.",
+          "choices": ["exact", "reverse-complement"]
+        },
+        {
+          "flag": "--min-shared",
+          "label": "Minimum shared spacers",
+          "type": "integer",
+          "default": 1,
+          "min": 1,
+          "max": 500,
+          "step": 1,
+          "description": "Apply this distinct-spacer threshold to both edges and connected components."
+        }
+      ],
+      "managed": [
+        {
+          "label": "Worker-managed inputs, order, plot and output",
+          "flags": ["--input", "--outdir", "--order", "--plot", "--seed"]
         }
       ]
     }

@@ -12,6 +12,7 @@ const props = defineProps({
   molecule: { type: String, default: "DNA" },
   repeatInput: Boolean,
   spacerInput: Boolean,
+  arrayInput: Boolean,
   loadingExample: Boolean,
   showExample: { type: Boolean, default: true },
   exampleDisabled: Boolean,
@@ -57,13 +58,19 @@ async function onFile(event) {
     >
       <div>
         <label for="fasta-input">{{
-          spacerInput
-            ? "Spacer sequences"
-            : repeatInput
-              ? "Repeat sequences"
-              : "Contigs or small genomes"
+          arrayInput
+            ? "Observed array JSON"
+            : spacerInput
+              ? "Spacer sequences"
+              : repeatInput
+                ? "Repeat sequences"
+                : "Contigs or small genomes"
         }}</label>
-        <p>{{ molecule }} FASTA or a compatible sequence JSON from a previous analysis.</p>
+        <p v-if="arrayInput">
+          Upload arrays.json from detection. Each observed spacer counts toward the service record
+          limit. Unknown orientation and uncertain boundaries are accepted.
+        </p>
+        <p v-else>{{ molecule }} FASTA or a compatible sequence JSON from a previous analysis.</p>
       </div>
       <button
         v-if="showExample"
@@ -93,14 +100,14 @@ async function onFile(event) {
           name="upload"
           :size="18"
         />
-        Upload FASTA or JSON
+        {{ arrayInput ? "Upload arrays.json" : "Upload FASTA or JSON" }}
       </button>
       <input
         ref="fileInput"
         type="file"
         tabindex="-1"
         accept=".fa,.fasta,.fna,.ffn,.fas,.txt,.json,text/plain,application/json"
-        aria-label="Upload FASTA file"
+        :aria-label="arrayInput ? 'Upload array JSON file' : 'Upload FASTA file'"
         @change="onFile"
       />
       <span class="filename">{{ sequence ? filename : "No file selected" }}</span>
@@ -118,9 +125,11 @@ async function onFile(event) {
       spellcheck="false"
       :value="sequence"
       :placeholder="
-        repeatInput
-          ? `>repeat_A\n${molecule === 'RNA' ? 'ACGU…' : 'ACGT…'}`
-          : '>isolate_A\nACGT…\n>isolate_B\nACGT…'
+        arrayInput
+          ? 'Paste detection arrays.json here'
+          : repeatInput
+            ? `>repeat_A\n${molecule === 'RNA' ? 'ACGU…' : 'ACGT…'}`
+            : '>isolate_A\nACGT…\n>isolate_B\nACGT…'
       "
       aria-describedby="fasta-help fasta-errors"
       @input="updateSequence($event.target.value)"
@@ -129,7 +138,11 @@ async function onFile(event) {
       id="fasta-help"
       class="input-foot"
     >
-      <span
+      <span v-if="arrayInput"
+        >Observed spacers require unambiguous A/C/G/T; explicit deletions retain their slots. Input
+        stays local until submission.</span
+      >
+      <span v-else
         >IUPAC {{ molecule }} accepted. Input stays local until submission.<template
           v-if="repeatInput"
         >

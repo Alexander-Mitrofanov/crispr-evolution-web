@@ -193,7 +193,8 @@
           "tracr_model_type",
           "category_policy",
           "spacer_distance",
-          "bias_corrections"
+          "bias_corrections",
+          "association_grouping"
         ],
         "required": ["sequence", "mode"],
         "additional_properties": false,
@@ -208,9 +209,10 @@
           "category_policy": "ref:CategoryPolicy",
           "spacer_distance": "integer",
           "bias_corrections": "boolean",
-          "viral_max_mismatches": "integer"
+          "viral_max_mismatches": "integer",
+          "association_grouping": "null|string"
         },
-        "nullable": ["filename"]
+        "nullable": ["filename", "association_grouping"]
       },
       "JobCreated": {
         "properties": ["access_token", "token_type", "job"],
@@ -370,7 +372,8 @@
           "spacer_distance",
           "bias_corrections_requested",
           "bias_corrections_effective",
-          "warnings"
+          "warnings",
+          "association_grouping"
         ],
         "required": [
           "category_policy",
@@ -391,9 +394,10 @@
           "bias_corrections_requested": "boolean",
           "bias_corrections_effective": "boolean",
           "warnings": "array:string",
-          "viral_max_mismatches": "integer"
+          "viral_max_mismatches": "integer",
+          "association_grouping": "null|string"
         },
-        "nullable": []
+        "nullable": ["association_grouping"]
       },
       "PublicConfig": {
         "properties": [
@@ -1014,7 +1018,10 @@
       "repeat_context",
       "protospacer",
       "viral_search",
-      "repeat_map"
+      "repeat_map",
+      "repeat_type",
+      "spacer_association",
+      "array_compare"
     ],
     "category_policies": ["bona_fide_possible", "bona_fide_only"],
     "job_statuses": [

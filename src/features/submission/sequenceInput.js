@@ -1,9 +1,11 @@
+import { inspectArrayInput } from "./arrayInput.js";
 import ports from "../../contracts/module-ports-v1.json";
 import { inspectFasta } from "../../fasta.js";
 
 // The server independently validates the entire contract. Preview only the
 // compatible sequence port, keeping the original JSON in the submitted request.
 export function inspectSequenceInput(text, { mode, molecule = "DNA", ...limits }) {
+  if (mode === "array_compare") return inspectArrayInput(text, limits);
   if (!text.trimStart().startsWith("{")) return inspectFasta(text, { molecule, ...limits });
   const invalid = (message) => ({
     valid: false,

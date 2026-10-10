@@ -4,6 +4,7 @@ import AppIcon from "../common/AppIcon.vue";
 import AdvancedOptions from "./AdvancedOptions.vue";
 import FastaInput from "./FastaInput.vue";
 import { ANALYSIS_MODES } from "../../science.js";
+import AssociationGrouping from "./AssociationGrouping.vue";
 import SpacerSearchControls from "./SpacerSearchControls.vue";
 import ReadinessPanel from "./ReadinessPanel.vue";
 
@@ -117,13 +118,18 @@ const {
             for RNA; mixed T/U input is rejected.
           </p>
         </fieldset>
+        <AssociationGrouping
+          v-if="mode === 'spacer_association'"
+          v-model="options.associationGrouping"
+        />
         <div class="input-layout">
           <FastaInput
             v-model:sequence="sequence"
             v-model:filename="filename"
             :inspection="inspection"
-            :repeat-input="['repeats', 'repeat_map'].includes(mode)"
-            :spacer-input="mode === 'viral_search'"
+            :array-input="mode === 'array_compare'"
+            :repeat-input="['repeats', 'repeat_map', 'repeat_type'].includes(mode)"
+            :spacer-input="['viral_search', 'spacer_association'].includes(mode)"
             :molecule="molecule"
             :loading-example="loadingExample"
             :show-example="mode === 'orientation'"

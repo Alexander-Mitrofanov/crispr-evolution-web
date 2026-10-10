@@ -10,5 +10,8 @@
   "protospacer": "target",
   "repeats": "repeat",
   "repeat_map": "repeat",
-  "viral_search": "spacer"
+  "repeat_type": "repeat",
+  "viral_search": "spacer",
+  "spacer_association": "spacer",
+  "array_compare": "array"
 }

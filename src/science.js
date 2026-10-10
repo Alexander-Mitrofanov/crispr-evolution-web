@@ -5,6 +5,38 @@ export const DEFAULT_CATEGORY_POLICY = CATEGORY_POLICIES[0];
 
 export const ANALYSIS_MODES = [
   {
+    id: "array_compare",
+    title: "Compare observed arrays",
+    short: "CCTK · ordered spacers and sharing networks",
+    description:
+      "Reuse detection arrays.json to compare observed spacer order and shared DNA identities. " +
+      "Preserve duplicates, deletion slots and unknown orientation. The service record limit counts observed spacer occurrences.",
+    minimumRecords: 1,
+    tools: ["CCTK"],
+    requiresAdvertisement: true,
+  },
+  {
+    id: "spacer_association",
+    title: "Associate spacer groups with phages",
+    short: "SpacePHARER · translated and nucleotide evidence",
+    description:
+      "Compare explicitly grouped spacers with an installed targeted panel of up to 100 genomes. " +
+      "Combine translated and nucleotide matches; inspect native calibration and occurrence support.",
+    minimumRecords: 1,
+    tools: ["SpacePHARER"],
+    requiresAdvertisement: true,
+  },
+  {
+    id: "repeat_type",
+    title: "Predict repeat subtypes",
+    short: "RepeatTyper · repeat-derived subtype evidence",
+    description:
+      "Classify up to 1000 DNA repeats, at most 200 bases each, with a frozen 37-class model. Inspect uncertain and unsupported sequences alongside native model scores.",
+    minimumRecords: 1,
+    tools: ["RepeatTyper"],
+    requiresAdvertisement: true,
+  },
+  {
     id: "repeat_map",
     title: "Map repeats to reference families",
     short: "CRISPRmap v2 · annotated reference evidence",
@@ -132,6 +164,7 @@ export const ANALYSIS_MODES = [
 ];
 
 export const STAGES = [
+  { id: "cctk", label: "Compare observed arrays", detail: "CCTK · ordered spacer sharing" },
   { id: "queued", label: "Queued", detail: "Waiting for an analysis worker" },
   { id: "validate_input", label: "Validate input", detail: "Checking records and analysis policy" },
   { id: "detect_arrays", label: "Detect arrays", detail: "CRISPRidentify v2" },
@@ -146,12 +179,22 @@ export const STAGES = [
     label: "Extract leader context",
     detail: "CRISPRleader v2 · both sides, no prediction",
   },
+  {
+    id: "repeattyper",
+    label: "Classify repeat subtypes",
+    detail: "RepeatTyper · preserved model evidence",
+  },
   { id: "crisprmap", label: "Map repeat references", detail: "CRISPRmap v2" },
   { id: "crisprrepeat", label: "Analyze repeat evidence", detail: "CRISPRrepeat · ViennaRNA" },
   {
     id: "crisprspacer",
     label: "Search spacer references",
     detail: "CRISPRspacer · validated sequence matches",
+  },
+  {
+    id: "spacepharer",
+    label: "Associate spacer groups",
+    detail: "SpacePHARER · calibrated target/control evidence",
   },
   { id: "package_results", label: "Package results", detail: "Reports, provenance, and archive" },
 ];
@@ -160,6 +203,9 @@ export const TERMINAL_STATUSES = new Set(publicApiContract.enums.terminal_status
 
 export function stagesForMode(mode) {
   const annotationStages = {
+    array_compare: ["queued", "validate_input", "cctk", "package_results"],
+    spacer_association: ["queued", "validate_input", "spacepharer", "package_results"],
+    repeat_type: ["queued", "validate_input", "repeattyper", "package_results"],
     repeat_map: ["queued", "validate_input", "crisprmap", "package_results"],
     viral_search: ["queued", "validate_input", "crisprspacer", "package_results"],
     protospacer: ["queued", "validate_input", "crisprspacer", "package_results"],
@@ -209,6 +255,8 @@ export function stagesForMode(mode) {
         "annotate_cas",
         "predict_tracrrna",
         "extract_leader_context",
+        "spacepharer",
+        "repeattyper",
         "crisprmap",
         "crisprrepeat",
         "crisprspacer",

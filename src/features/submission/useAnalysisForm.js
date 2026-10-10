@@ -1,3 +1,4 @@
+import { validAssociationGrouping } from "./association.js";
 import { computed, ref } from "vue";
 
 import { ApiError, api } from "../../api.js";
@@ -15,6 +16,7 @@ const INITIAL_OPTIONS = Object.freeze({
   tracrModelType: "II",
   leaderFlankLength: 500,
   molecule: "DNA",
+  associationGrouping: "",
   viralMaxMismatches: 2,
   toolOptions: {},
 });
@@ -36,7 +38,7 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
   const inputLimits = computed(() =>
     mode.value === "viral_search"
       ? { ...props.limits, maxRecordBases: Math.min(props.limits.maxRecordBases || 80, 80) }
-      : ["repeats", "repeat_map"].includes(mode.value)
+      : ["repeats", "repeat_map", "repeat_type", "spacer_association"].includes(mode.value)
         ? {
             ...props.limits,
             maxRecords: Math.min(
@@ -99,6 +101,10 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
       withinLimits.value &&
       withinRequest.value &&
       validToolOptions(mode.value, options.value.toolOptions) &&
+      (mode.value !== "spacer_association" ||
+        (validAssociationGrouping(sequence.value, options.value.associationGrouping) &&
+          (options.value.associationGrouping !== "per_record" ||
+            inspection.value.recordCount <= 100))) &&
       (!["loci", "leader"].includes(mode.value) ||
         (Number.isInteger(options.value.leaderFlankLength) &&
           options.value.leaderFlankLength >= 1 &&
