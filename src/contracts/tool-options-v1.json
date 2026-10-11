@@ -148,8 +148,8 @@
       "name": "CRISPRtracrRNA",
       "modes": ["tracrrna", "loci"],
       "description": "Screen covariance models or run the complete locus workflow.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/CRISPRtracrRNA-v3/blob/1e173bcd4e7d59b86412dac17a0f6ebcb4353eef/README.md",
-      "revision": "1e173bcd4e7d59b86412dac17a0f6ebcb4353eef",
+      "documentation": "https://github.com/Alexander-Mitrofanov/CRISPRtracrRNA-v3/blob/ca225a2a3be38e7dee917b483d2d4e2732be4318/README.md",
+      "revision": "ca225a2a3be38e7dee917b483d2d4e2732be4318",
       "cli_modes": [
         {
           "name": "run --mode model",
@@ -278,8 +278,8 @@
       "name": "SpacerPlacer",
       "modes": ["reconstruction"],
       "description": "Reconstruct ancestral spacer arrays and compare deletion models.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/SpacerPlacer/blob/2742b6ec5336fcbc40add772e1128441807ae239/README.md",
-      "revision": "2742b6ec5336fcbc40add772e1128441807ae239",
+      "documentation": "https://github.com/Alexander-Mitrofanov/SpacerPlacer/blob/87993c9f928fc7893cbc4c9f98df9341e39ffe56/README.md",
+      "revision": "87993c9f928fc7893cbc4c9f98df9341e39ffe56",
       "cli_modes": [
         {
           "name": "--input_type ccdb",
@@ -365,8 +365,8 @@
       "name": "evOr",
       "modes": ["orientation"],
       "description": "Compare array orientations and reconstruct the selected orientation.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/evOr/blob/5310ba9e75836717c58d037606de17f98fc5d7b1/README.md",
-      "revision": "5310ba9e75836717c58d037606de17f98fc5d7b1",
+      "documentation": "https://github.com/Alexander-Mitrofanov/evOr/blob/369241d16a724eca487a65fd791340cb13122bde/README.md",
+      "revision": "369241d16a724eca487a65fd791340cb13122bde",
       "cli_modes": [
         {
           "name": "crispr-evor --input_type ccdb",
@@ -466,8 +466,8 @@
       "name": "CRISPRleader",
       "modes": ["leader", "loci"],
       "description": "Extract both flanks of detected arrays, with source coordinates.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/CRISPRleader-v2/blob/da7b4d659afaa8b0eb8873ebc2ccec00aad1000f/README.md",
-      "revision": "da7b4d659afaa8b0eb8873ebc2ccec00aad1000f",
+      "documentation": "https://github.com/Alexander-Mitrofanov/CRISPRleader-v2/blob/5051d07ab827356792d6a954308ddc5157bd623e/README.md",
+      "revision": "5051d07ab827356792d6a954308ddc5157bd623e",
       "cli_modes": [
         {
           "name": "extract",
@@ -495,8 +495,8 @@
       "name": "CRISPRrepeat",
       "modes": ["repeats", "repeat_context"],
       "description": "Fold supplied repeats or compare isolated repeat folds with local array context.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/CRISPRrepeat/blob/4a98cc465656c4db3ed0faccaafe476707d20ddf/README.md",
-      "revision": "4a98cc465656c4db3ed0faccaafe476707d20ddf",
+      "documentation": "https://github.com/Alexander-Mitrofanov/CRISPRrepeat/blob/eb26716becfc6c991039aac0db5a7c16d41d1332/README.md",
+      "revision": "eb26716becfc6c991039aac0db5a7c16d41d1332",
       "cli_modes": [
         {
           "name": "crisprrepeat (without --reports)",
@@ -565,8 +565,8 @@
       "name": "CRISPRmap",
       "modes": ["repeat_map"],
       "description": "Map repeats against a frozen annotated reference.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/CRISPRmap-v2/blob/b35c245e1103598fb418ebd8126f713126cda08c/README.md",
-      "revision": "b35c245e1103598fb418ebd8126f713126cda08c",
+      "documentation": "https://github.com/Alexander-Mitrofanov/CRISPRmap-v2/blob/b1990e3fa08b435d12539419387599d9f08fe375/README.md",
+      "revision": "b1990e3fa08b435d12539419387599d9f08fe375",
       "cli_modes": [
         {
           "name": "classify",
@@ -613,8 +613,8 @@
       "name": "CRISPRspacer",
       "modes": ["protospacer", "viral_search"],
       "description": "Search an immutable observed-spacer collection or a viral reference.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/CRISPRspacer/blob/c331f8b3b26bb4cea968d288f024c0e3aadd3a77/README.md",
-      "revision": "c331f8b3b26bb4cea968d288f024c0e3aadd3a77",
+      "documentation": "https://github.com/Alexander-Mitrofanov/CRISPRspacer/blob/0e495166486273c9a130556ee640c713497de5bd/README.md",
+      "revision": "0e495166486273c9a130556ee640c713497de5bd",
       "cli_modes": [
         {
           "name": "database-search",
@@ -661,8 +661,8 @@
       "name": "RepeatTyper",
       "modes": ["repeat_type"],
       "description": "Predict repeat-derived subtype evidence using the preserved 37-class model.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/RepeatTyper/blob/7a153a08ae31682c99b5a255d01e5408ae267d66/README.md",
-      "revision": "7a153a08ae31682c99b5a255d01e5408ae267d66",
+      "documentation": "https://github.com/Alexander-Mitrofanov/RepeatTyper/blob/29727e2456d3d71ffda96ee27f54d13cf50a3023/README.md",
+      "revision": "29727e2456d3d71ffda96ee27f54d13cf50a3023",
       "cli_modes": [
         {
           "name": "repeattyper classify",
@@ -693,8 +693,8 @@
       "name": "SpacePHARER",
       "modes": ["spacer_association"],
       "description": "Combine translated and nucleotide spacer evidence within explicit groups against an immutable phage reference database.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/SpacePHARER/blob/a3da55320665bac0a9a6fb4b6868feb70dab56eb/README.md",
-      "revision": "a3da55320665bac0a9a6fb4b6868feb70dab56eb",
+      "documentation": "https://github.com/Alexander-Mitrofanov/SpacePHARER/blob/f11ee0d85c706237c3d215bf21703933cd1f8037/README.md",
+      "revision": "f11ee0d85c706237c3d215bf21703933cd1f8037",
       "cli_modes": [
         {
           "name": "spacepharer associate",
@@ -725,8 +725,8 @@
       "name": "CCTK",
       "modes": ["array_compare"],
       "description": "Compare observed ordered spacer occurrences and exact sharing networks.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/CCTK/blob/6fb81fec60f4951bf23259199ea3d9bc8f8a3d22/README.md",
-      "revision": "6fb81fec60f4951bf23259199ea3d9bc8f8a3d22",
+      "documentation": "https://github.com/Alexander-Mitrofanov/CCTK/blob/ae7e97b210421224f9e15f84fac8db2f3b7ffd84/README.md",
+      "revision": "ae7e97b210421224f9e15f84fac8db2f3b7ffd84",
       "cli_modes": [
         {
           "name": "cctk compare",
