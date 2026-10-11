@@ -25,6 +25,8 @@ const {
 } = useJobSession();
 const hasSession = computed(() => Boolean(exampleSnapshot.value || credential.value));
 const references = ref(null);
+const handoff = ref(null);
+let handoffRevision = 0;
 const { method, page, chooseMethod, showMethods, showResults, showDatabase } =
   useAnalysisNavigation(hasSession);
 
@@ -39,9 +41,28 @@ function exampleLoaded(snapshot) {
 }
 
 function leaveJob() {
+  handoff.value = null;
   forget();
   showMethods();
 }
+
+function continueAnalysis(input) {
+  handoff.value = { ...input, revision: ++handoffRevision };
+  chooseMethod(input.mode);
+}
+const activeHandoff = computed(() =>
+  handoff.value?.mode === method.value && handoff.value.sourceJobId === job.value?.job_id
+    ? handoff.value
+    : null,
+);
+const blocksSubmission = computed(
+  () =>
+    Boolean(credential.value) &&
+    !(
+      activeHandoff.value &&
+      ["completed", "completed_no_eligible_groups"].includes(job.value?.status)
+    ),
+);
 </script>
 
 <template>
@@ -74,14 +95,15 @@ function leaveJob() {
       <KeepAlive>
         <CatalogView v-if="page === 'database'" />
       </KeepAlive>
-      <KeepAlive>
+      <KeepAlive :max="16">
         <AnalysisForm
           v-if="page === 'input' && method"
-          :key="method"
+          :key="activeHandoff ? `${method}:${activeHandoff.revision}` : method"
           :initial-mode="method"
+          :initial-input="activeHandoff"
           :service="service"
           :limits="limits"
-          :has-active-job="Boolean(credential)"
+          :has-active-job="blocksSubmission"
           @back="showMethods"
           @change-mode="chooseMethod"
           @submitted="submitted"
@@ -119,6 +141,9 @@ function leaveJob() {
           :job="job"
           :credential="credential"
           :max-archive-bytes="limits.maxArchiveBytes"
+          :service="service"
+          :limits="limits"
+          @continue-analysis="continueAnalysis"
         />
       </div>
       <p

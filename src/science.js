@@ -164,9 +164,9 @@ export const ANALYSIS_MODES = [
 ];
 
 export const STAGES = [
-  { id: "cctk", label: "Compare observed arrays", detail: "CCTK · ordered spacer sharing" },
   { id: "queued", label: "Queued", detail: "Waiting for an analysis worker" },
   { id: "validate_input", label: "Validate input", detail: "Checking records and analysis policy" },
+  { id: "cctk", label: "Compare observed arrays", detail: "CCTK · ordered spacer sharing" },
   { id: "detect_arrays", label: "Detect arrays", detail: "CRISPRidentify v2" },
   { id: "adapt_arrays", label: "Prepare arrays", detail: "Normalizing accepted calls" },
   { id: "preflight_groups", label: "Preflight groups", detail: "Testing evolutionary eligibility" },
@@ -252,6 +252,7 @@ export function stagesForMode(mode) {
     (stage) =>
       !excluded.has(stage.id) &&
       ![
+        "cctk",
         "annotate_cas",
         "predict_tracrrna",
         "extract_leader_context",

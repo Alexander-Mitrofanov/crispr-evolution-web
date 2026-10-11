@@ -17,6 +17,13 @@ const LINE_BOUNDARIES = [
 ];
 
 describe("FASTA inspection", () => {
+  it.each(["repeat_", "repeat-", `${"x".repeat(63)}_suffix`])(
+    "preserves canonical identifiers on repeated normalization: %s",
+    (id) => {
+      const first = inspectFasta(`>${id}\nACGT\n`).records[0].normalizedIdentifier;
+      expect(inspectFasta(`>${first}\nACGT\n`).records[0].normalizedIdentifier).toBe(first);
+    },
+  );
   it("accepts multiple records with unique identifiers and IUPAC DNA", () => {
     const result = inspectFasta(">isolate_A note\nACGTRYSW\n>isolate_B\nNNACGT\n");
     expect(result.valid).toBe(true);

@@ -23,9 +23,9 @@ const INITIAL_OPTIONS = Object.freeze({
 
 export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.fetch) {
   const mode = ref(props.initialMode || "loci");
-  const sequence = ref("");
-  const filename = ref("input.fasta");
-  const options = ref({ ...INITIAL_OPTIONS });
+  const sequence = ref(props.initialInput?.sequence || "");
+  const filename = ref(props.initialInput?.filename || "input.fasta");
+  const options = ref({ ...INITIAL_OPTIONS, molecule: props.initialInput?.molecule || "DNA" });
   const submitting = ref(false);
   const loadingExample = ref(false);
   const error = ref("");
@@ -47,7 +47,15 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
             ),
             maxRecordBases: Math.min(props.limits.maxRecordBases || 200, 200),
           }
-        : props.limits,
+        : mode.value === "protospacer"
+          ? {
+              ...props.limits,
+              maxBases: Math.min(props.limits.maxBases || 5_000_000, 5_000_000),
+              maxRecordBases: Math.min(props.limits.maxRecordBases || 5_000_000, 5_000_000),
+            }
+          : mode.value === "repeat_context"
+            ? { ...props.limits, maxRecords: Math.min(props.limits.maxRecords || 1000, 1000) }
+            : props.limits,
   );
 
   const inspection = computed(() =>

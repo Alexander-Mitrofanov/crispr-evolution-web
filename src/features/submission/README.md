@@ -14,3 +14,8 @@ query-based method pages and browser history; it preserves the recovery hash.
 `AnalysisForm` receives a fixed `initialMode`, and its cached draft belongs to
 that method. Only the orientation page offers the verified precomputed example;
 loading it never switches the chosen method.
+
+An explicit result handoff supplies `initialInput` to a fresh form instance. It
+preserves the exact JSON and molecule, resets analysis options, and keeps the
+previous completed job accessible until submission succeeds. `App` bounds the
+form cache and only relaxes the open-job lock for that completed source job.

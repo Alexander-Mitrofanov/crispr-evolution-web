@@ -35,9 +35,10 @@ const { bundle, individual, downloading, error, download } = useArtifactDownload
         )
       "
     >
-      Continue an analysis: upload repeats.json to repeat analysis or repeat mapping, spacers.json
-      to viral search, or input-sequences.json to a mode accepting the same input type. arrays.json
-      contains compact array evidence; full tool details are in the bundle.
+      Continue an analysis: upload repeats.json to repeat structure, reference mapping or subtype
+      analysis; spacers.json to viral search or spacer-group association; arrays.json to observed
+      array comparison; or input-sequences.json to a mode accepting the same input type. Full tool
+      details are in the bundle.
     </p>
     <p class="download-memory-note">
       <AppIcon

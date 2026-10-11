@@ -20,6 +20,7 @@ import PreflightSummary from "./overview/PreflightSummary.vue";
 import ResultSynopsis from "./overview/ResultSynopsis.vue";
 import OrientationResults from "./orientation/OrientationResults.vue";
 import DownloadsPanel from "./publication/DownloadsPanel.vue";
+import SequenceHandoff from "./publication/SequenceHandoff.vue";
 import ProvenancePanel from "./publication/ProvenancePanel.vue";
 import ReconstructionResults from "./reconstruction/ReconstructionResults.vue";
 
@@ -28,7 +29,10 @@ const props = defineProps({
   credential: { type: Object, default: null },
   maxArchiveBytes: { type: Number, default: 0 },
   exampleSnapshot: { type: Object, default: null },
+  service: { type: Object, default: () => ({}) },
+  limits: { type: Object, default: () => ({}) },
 });
+defineEmits(["continue-analysis"]);
 const sourceSummary = computed(() =>
   normalizePublicResult(props.job?.summary || props.job?.result || {}, props.job || {}),
 );
@@ -309,6 +313,14 @@ async function navigateTabs(event, index) {
       <ReconstructionResults
         v-if="tab.id === 'history'"
         :summary="summary"
+      />
+      <SequenceHandoff
+        v-if="tab.id === 'files' && credential && !exampleSnapshot"
+        :job="job"
+        :credential="credential"
+        :service="service"
+        :limits="limits"
+        @continue-analysis="$emit('continue-analysis', $event)"
       />
       <DownloadsPanel
         v-if="tab.id === 'files' && credential && !exampleSnapshot"

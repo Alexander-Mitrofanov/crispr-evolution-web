@@ -3,7 +3,7 @@ export function validAssociationGrouping(text, grouping) {
   if (["single_set", "per_record"].includes(grouping)) return true;
   if (grouping !== "per_source") return false;
   try {
-    const packet = JSON.parse(text);
+    const packet = JSON.parse(text.replace(/^\uFEFF/, ""));
     const rows = packet.records;
     return (
       Array.isArray(rows) &&

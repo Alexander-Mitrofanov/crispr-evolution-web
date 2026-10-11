@@ -84,6 +84,33 @@ async function parseJsonResponse(response) {
   return payload;
 }
 
+async function boundedText(response, maxBytes) {
+  const tooLarge = () => new ApiError("This sequence file exceeds the input byte limit.");
+  if (Number(response.headers.get("content-length")) > maxBytes) {
+    await response.body?.cancel();
+    throw tooLarge();
+  }
+  if (!response.body) throw new ApiError("The sequence file is empty.");
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  const parts = [];
+  let bytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > maxBytes) throw tooLarge();
+      parts.push(decoder.decode(value, { stream: true }));
+    }
+    parts.push(decoder.decode());
+    return parts.join("");
+  } finally {
+    await reader.cancel();
+    reader.releaseLock();
+  }
+}
+
 export function createApiClient(baseUrl = DEFAULT_API_BASE, fetchImpl = globalThis.fetch) {
   const endpoint = (path) => createUrl(baseUrl, path);
   const jobHeaders = (accessToken, extra = {}) => ({
@@ -218,6 +245,24 @@ export function createApiClient(baseUrl = DEFAULT_API_BASE, fetchImpl = globalTh
       );
       if (!response.ok) return parseJsonResponse(response);
       return response.blob();
+    },
+
+    async readSequenceArtifact(
+      jobId,
+      artifactId,
+      accessToken,
+      { signal, maxBytes = 20_000_000 } = {},
+    ) {
+      const response = await fetchImpl(
+        endpoint(contractPath("artifact", { job_id: jobId, artifact_id: artifactId })),
+        {
+          ...PRIVATE_REQUEST_POLICY,
+          headers: jobHeaders(accessToken),
+          signal,
+        },
+      );
+      if (!response.ok) return parseJsonResponse(response);
+      return boundedText(response, Math.min(maxBytes, 20_000_000));
     },
   };
 }

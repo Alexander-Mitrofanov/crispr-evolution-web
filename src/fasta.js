@@ -54,6 +54,7 @@ export function* fastaLines(value) {
 }
 
 function safeIdentifier(value, fallback, maxLength = 64) {
+  if (value.length <= maxLength && /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(value)) return value;
   const ascii = String(value)
     .normalize("NFKD")
     .replace(/[^\x00-\x7F]/g, "");

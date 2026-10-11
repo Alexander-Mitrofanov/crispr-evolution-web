@@ -10,6 +10,36 @@ function jsonResponse(payload, status = 200) {
 }
 
 describe("API client", () => {
+  it("reads sequence artifacts with bounded bytes and header-only authentication", async () => {
+    const fetchMock = vi.fn(async () => new Response('{"records":[]}'));
+    const client = createApiClient("https://analysis.example.org", fetchMock);
+    expect(
+      await client.readSequenceArtifact("job", "port", "private-token", { maxBytes: 100 }),
+    ).toBe('{"records":[]}');
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).not.toContain("private-token");
+    expect(options).toMatchObject({
+      cache: "no-store",
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+      headers: { Authorization: "Bearer private-token" },
+    });
+    await expect(
+      client.readSequenceArtifact("job", "port", "private-token", { maxBytes: 3 }),
+    ).rejects.toThrow(/byte limit/);
+  });
+
+  it("rejects a declared oversized sequence file before reading it", async () => {
+    const cancel = vi.fn();
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      headers: new Headers({ "content-length": "20000001" }),
+      body: { cancel },
+    }));
+    const client = createApiClient("https://analysis.example.org", fetchMock);
+    await expect(client.readSequenceArtifact("job", "port", "token")).rejects.toThrow(/byte limit/);
+    expect(cancel).toHaveBeenCalledOnce();
+  });
   it("requires HTTPS except on a local development host", () => {
     expect(normalizeApiBase("https://analysis.example.org/")).toBe("https://analysis.example.org");
     expect(normalizeApiBase("http://localhost:8080")).toBe("http://localhost:8080");

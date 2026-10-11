@@ -12,6 +12,7 @@ const props = defineProps({
   service: { type: Object, required: true },
   limits: { type: Object, required: true },
   hasActiveJob: Boolean,
+  initialInput: { type: Object, default: null },
   initialMode: {
     type: String,
     default: "loci",
@@ -68,6 +69,14 @@ const {
         {{ selectedMode.description }}
       </p>
     </div>
+    <p
+      v-if="initialInput"
+      role="note"
+    >
+      Loaded {{ initialInput.filename }} from a completed analysis. Review the input and options.
+      Save the previous job's recovery link before submitting; the new job has its own recovery
+      link.
+    </p>
     <SpacerSearchControls
       v-if="['protospacer', 'viral_search'].includes(mode)"
       :mode="mode"
