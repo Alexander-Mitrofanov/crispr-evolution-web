@@ -8,7 +8,7 @@ import snapshot from "../public/example-result.json";
 import { api } from "../src/api.js";
 import AnalysisForm from "../src/components/submission/AnalysisForm.vue";
 import ResultsView from "../src/components/results/ResultsView.vue";
-import { EXAMPLE_FASTA_PATH, EXAMPLE_RESULT_PATH } from "../src/example.js";
+import { EXAMPLE_FASTA_PATH, exampleAssetsFor } from "../src/example.js";
 import { inspectFasta } from "../src/fasta.js";
 
 const exampleFasta = readFileSync(resolve(process.cwd(), "public", EXAMPLE_FASTA_PATH), "utf8");
@@ -29,10 +29,10 @@ afterEach(() => {
 describe("verified local example", () => {
   it("loads bound assets and reveals the result only after explicit viewing", async () => {
     const fetchMock = vi.fn(async (url) =>
-      String(url).endsWith(EXAMPLE_FASTA_PATH)
+      String(url).endsWith(exampleAssetsFor("orientation").input)
         ? { ok: true, text: async () => exampleFasta }
-        : String(url).endsWith(EXAMPLE_RESULT_PATH)
-          ? { ok: true, json: async () => snapshot }
+        : String(url).endsWith(exampleAssetsFor("orientation").result)
+          ? { ok: true, text: async () => JSON.stringify(snapshot) }
           : Promise.reject(new Error("Unexpected URL")),
     );
     vi.stubGlobal("fetch", fetchMock);
@@ -63,9 +63,9 @@ describe("verified local example", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url) =>
-        String(url).endsWith(EXAMPLE_FASTA_PATH)
+        String(url).endsWith(exampleAssetsFor("orientation").input)
           ? { ok: true, text: async () => exampleFasta }
-          : { ok: true, json: async () => snapshot },
+          : { ok: true, text: async () => JSON.stringify(snapshot) },
       ),
     );
     const submitSpy = vi.spyOn(api, "submit").mockResolvedValue({
@@ -88,9 +88,9 @@ describe("verified local example", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url) =>
-        String(url).endsWith(EXAMPLE_FASTA_PATH)
+        String(url).endsWith(exampleAssetsFor("orientation").input)
           ? { ok: true, text: async () => `${exampleFasta}\n` }
-          : { ok: true, json: async () => snapshot },
+          : { ok: true, text: async () => JSON.stringify(snapshot) },
       ),
     );
     render(AnalysisForm, { props: { service, limits, initialMode: "orientation" } });
@@ -113,7 +113,7 @@ describe("verified local example", () => {
       screen.getByRole("heading", { name: /How detections became evolutionary evidence/i }),
     ).toBeInTheDocument();
     await fireEvent.click(screen.getByRole("tab", { name: "Overview", exact: true }));
-    expect(screen.getByRole("heading", { name: "Five related CRISPR arrays" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Run summary" })).toBeInTheDocument();
     expect(screen.getAllByText("Input order supported").length).toBeGreaterThan(0);
     expect(
       screen.queryByRole("button", { name: /Download complete result bundle/i }),

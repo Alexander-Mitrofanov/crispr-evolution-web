@@ -12,10 +12,21 @@ const props = defineProps({
   service: { type: Object, required: true },
   requestBytes: { type: Number, required: true },
   molecule: { type: String, default: "DNA" },
+  precomputed: Boolean,
 });
 
 const checks = computed(() => {
   const { inspection, selectedMode, limits, service, requestBytes } = props;
+  if (props.precomputed)
+    return [
+      { ok: true, label: "Input and options match the stored example" },
+      {
+        ok: true,
+        label: "No service submission",
+        detail:
+          "View the result locally. Live-service limits apply if you edit the input or options.",
+      },
+    ];
   const unique =
     inspection.records.length ===
     new Set(inspection.records.map((record) => record.identifier)).size;
@@ -98,13 +109,16 @@ const checks = computed(() => {
   <details class="readiness">
     <summary>
       <span>{{
-        !inspection.recordCount
-          ? "Input requirements"
-          : checks.every((item) => item.ok || item.recommended)
-            ? "Ready to analyze"
-            : "Review input requirements"
+        precomputed
+          ? "Ready to view example"
+          : !inspection.recordCount
+            ? "Input requirements"
+            : checks.every((item) => item.ok || item.recommended)
+              ? "Ready to analyze"
+              : "Review input requirements"
       }}</span>
-      <small
+      <small v-if="precomputed">Verified stored input</small>
+      <small v-else
         >{{ selectedMode.minimumRecords }}+
         {{ selectedMode.minimumRecords === 1 ? "record" : "related records"
         }}<template v-if="limits.maxBases">

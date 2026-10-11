@@ -21,6 +21,7 @@ export function useJobSession(client = api, browser = window) {
   let cancellingCredential;
   let pollTimer;
   let pollController;
+  let revealTimer;
 
   function stopPolling() {
     window.clearTimeout(pollTimer);
@@ -98,12 +99,18 @@ export function useJobSession(client = api, browser = window) {
     credential.value = nextCredential;
     job.value = initialJob;
     pollError.value = "";
-    window.setTimeout(() => revealSection("job-status", "#job-heading"), 50);
+    window.clearTimeout(revealTimer);
+    revealTimer = window.setTimeout(() => revealSection("job-status", "#job-heading"), 50);
   }
 
   function onExampleLoaded(snapshot) {
     exampleSnapshot.value = snapshot;
-    if (snapshot) window.setTimeout(() => revealSection("example-result", "#results-heading"), 50);
+    window.clearTimeout(revealTimer);
+    if (snapshot)
+      revealTimer = window.setTimeout(
+        () => revealSection("example-result", "#results-heading"),
+        50,
+      );
   }
 
   async function cancel() {
@@ -128,12 +135,14 @@ export function useJobSession(client = api, browser = window) {
   }
 
   function forget() {
+    window.clearTimeout(revealTimer);
     credential.value = null;
     job.value = null;
     pollError.value = "";
   }
 
   onBeforeUnmount(() => {
+    window.clearTimeout(revealTimer);
     stopPolling();
     browser.removeEventListener("hashchange", onHashChange);
     removeRecoveryNavigation();

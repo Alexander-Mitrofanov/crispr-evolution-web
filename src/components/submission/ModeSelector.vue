@@ -1,18 +1,21 @@
 <script setup>
 import { computed } from "vue";
 import { ANALYSIS_MODES, analysisModeAvailable } from "../../science.js";
+import { exampleAssetsFor } from "../../example.js";
 
 const props = defineProps({ service: { type: Object, default: () => ({}) } });
 const modes = computed(() =>
   ANALYSIS_MODES.filter(
     (item) =>
       !["protospacer", "viral_search"].includes(item.id) &&
-      analysisModeAvailable(item.id, props.service),
+      (analysisModeAvailable(item.id, props.service) || exampleAssetsFor(item.id)),
   ),
 );
 
 const spacerMode = computed(() =>
-  ["protospacer", "viral_search"].find((mode) => analysisModeAvailable(mode, props.service)),
+  ["protospacer", "viral_search"].find(
+    (mode) => analysisModeAvailable(mode, props.service) || exampleAssetsFor(mode),
+  ),
 );
 
 const emit = defineEmits(["select", "database"]);

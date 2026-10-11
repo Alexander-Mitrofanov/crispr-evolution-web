@@ -2,7 +2,12 @@ import { validAssociationGrouping } from "./association.js";
 import { computed, ref } from "vue";
 
 import { ApiError, api } from "../../api.js";
-import { EXAMPLE_FASTA_PATH, EXAMPLE_RESULT_PATH, validateExampleInput } from "../../example.js";
+import {
+  exampleAssetsFor,
+  exampleSubmissionMatches,
+  readExampleResponse,
+  validateExampleInput,
+} from "../../example.js";
 import { inspectSequenceInput } from "./sequenceInput.js";
 import { normalizeJobCredential } from "../../jobStore.js";
 import { ANALYSIS_MODES, DEFAULT_CATEGORY_POLICY, analysisModeAvailable } from "../../science.js";
@@ -83,10 +88,12 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
       preparedExample.value &&
       sequence.value === preparedExampleSequence.value &&
       mode.value === preparedExample.value.job?.mode &&
-      toolOptionCount(mode.value, options.value.toolOptions) === 0 &&
-      submission.value.category_policy === recorded?.category_policy &&
-      submission.value.spacer_distance === recorded?.spacer_distance &&
-      submission.value.bias_corrections === recorded?.bias_corrections_requested,
+      (preparedExample.value.schema.name === "crisprloci.web-example"
+        ? exampleSubmissionMatches(preparedExample.value, submission.value)
+        : toolOptionCount(mode.value, options.value.toolOptions) === 0 &&
+          submission.value.category_policy === recorded?.category_policy &&
+          submission.value.spacer_distance === recorded?.spacer_distance &&
+          submission.value.bias_corrections === recorded?.bias_corrections_requested),
     );
   });
   const withinLimits = computed(
@@ -106,8 +113,8 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
     () =>
       inspection.value.valid &&
       inspection.value.recordCount >= selectedMode.value.minimumRecords &&
-      withinLimits.value &&
-      withinRequest.value &&
+      (precomputedPolicyMatches.value || withinLimits.value) &&
+      (precomputedPolicyMatches.value || withinRequest.value) &&
       validToolOptions(mode.value, options.value.toolOptions) &&
       (mode.value !== "spacer_association" ||
         (validAssociationGrouping(sequence.value, options.value.associationGrouping) &&
@@ -118,23 +125,24 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
           options.value.leaderFlankLength >= 1 &&
           options.value.leaderFlankLength <= 5000)) &&
       (props.service.state === "online" || precomputedPolicyMatches.value) &&
-      analysisModeAvailable(mode.value, props.service) &&
+      (precomputedPolicyMatches.value || analysisModeAvailable(mode.value, props.service)) &&
       !props.hasActiveJob,
   );
 
   async function loadExample() {
-    if (exampleLatch || mode.value !== "orientation") return;
+    const assets = exampleAssetsFor(mode.value, options.value);
+    if (exampleLatch || !assets || props.hasActiveJob) return;
     exampleLatch = true;
     loadingExample.value = true;
     error.value = "";
     try {
       const [inputResponse, resultResponse] = await Promise.all([
-        fetcher(`${import.meta.env.BASE_URL}${EXAMPLE_FASTA_PATH}`, {
+        fetcher(`${import.meta.env.BASE_URL}${assets.input}`, {
           cache: "no-store",
           credentials: "omit",
           referrerPolicy: "no-referrer",
         }),
-        fetcher(`${import.meta.env.BASE_URL}${EXAMPLE_RESULT_PATH}`, {
+        fetcher(`${import.meta.env.BASE_URL}${assets.result}`, {
           cache: "no-store",
           credentials: "omit",
           referrerPolicy: "no-referrer",
@@ -143,14 +151,29 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
       if (!inputResponse.ok || !resultResponse.ok) {
         throw new Error("The example demonstration could not be loaded.");
       }
-      const [exampleSequence, rawSnapshot] = await Promise.all([
-        inputResponse.text(),
-        resultResponse.json(),
+      const [exampleSequence, snapshotText] = await Promise.all([
+        readExampleResponse(inputResponse),
+        readExampleResponse(resultResponse),
       ]);
+      const rawSnapshot = JSON.parse(snapshotText);
       const { snapshot } = await validateExampleInput(rawSnapshot, exampleSequence, {
         maxHeaderCharacters: props.limits.maxHeaderCharacters || 200,
       });
-      options.value = { ...INITIAL_OPTIONS };
+      if (snapshot.job.mode !== mode.value)
+        throw new Error("The example result belongs to a different method.");
+      const recorded = snapshot.example.submission_options || {};
+      options.value = {
+        ...INITIAL_OPTIONS,
+        categoryPolicy: recorded.category_policy || INITIAL_OPTIONS.categoryPolicy,
+        spacerEditDistance: recorded.spacer_distance ?? INITIAL_OPTIONS.spacerEditDistance,
+        biasCorrection: recorded.bias_corrections ?? INITIAL_OPTIONS.biasCorrection,
+        molecule: recorded.molecule || "DNA",
+        tracrModelType: recorded.tracr_model_type || "II",
+        leaderFlankLength: recorded.leader_flank_length ?? 500,
+        viralMaxMismatches: recorded.viral_max_mismatches ?? 2,
+        associationGrouping: recorded.association_grouping || "",
+        toolOptions: recorded.tool_options || {},
+      };
       sequence.value = exampleSequence;
       filename.value = snapshot.example.input.filename;
       preparedExample.value = snapshot;
@@ -171,10 +194,19 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
     error.value = "";
     try {
       if (precomputedPolicyMatches.value) {
-        await validateExampleInput(preparedExample.value, sequence.value, {
+        const snapshot = preparedExample.value;
+        const exampleSequence = sequence.value;
+        await validateExampleInput(snapshot, exampleSequence, {
           maxHeaderCharacters: props.limits.maxHeaderCharacters || 200,
         });
-        emit("example-loaded", preparedExample.value);
+        if (
+          !precomputedPolicyMatches.value ||
+          preparedExample.value !== snapshot ||
+          sequence.value !== exampleSequence ||
+          props.hasActiveJob
+        )
+          throw new Error("The example input or options changed. Review them before continuing.");
+        emit("example-loaded", snapshot);
         return;
       }
       const response = await client.submit(submission.value);

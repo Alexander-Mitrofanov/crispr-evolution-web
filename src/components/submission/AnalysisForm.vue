@@ -141,7 +141,6 @@ const {
             :spacer-input="['viral_search', 'spacer_association'].includes(mode)"
             :molecule="molecule"
             :loading-example="loadingExample"
-            :show-example="mode === 'orientation'"
             :example-disabled="hasActiveJob"
             :max-request-bytes="limits.maxRequestBytes"
             @load-example="loadExample"
@@ -152,6 +151,7 @@ const {
             :molecule="molecule"
             :service="service"
             :request-bytes="requestBytes"
+            :precomputed="precomputedPolicyMatches"
           />
         </div>
       </section>
@@ -208,7 +208,7 @@ const {
             The job token protects retrieval; it is not end-to-end encryption from the operator. Do
             not submit personal, clinical, controlled, or unpublished sensitive sequences; use an
             institutionally approved private route. The bundled example is matched locally and is
-            never submitted.
+            never submitted while its input and options match the stored result.
           </p>
         </details>
       </div>

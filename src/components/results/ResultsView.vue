@@ -142,7 +142,7 @@ async function navigateTabs(event, index) {
           id="results-heading"
           tabindex="-1"
         >
-          {{ exampleSnapshot ? "Example results" : "Analysis results" }}
+          Analysis results
         </h2>
       </div>
       <span class="complete-stamp"><AppIcon name="check" /> Completed</span>
@@ -223,7 +223,6 @@ async function navigateTabs(event, index) {
           !comparisonMode
         "
         :summary="summary"
-        :example-snapshot="exampleSnapshot"
         :no-eligible="noEligible"
         :has-evolution="hasEvolution"
         :has-orientation="job.mode === 'orientation'"

@@ -81,20 +81,25 @@ with its exact-search index. It checks the empty initial screen, explicit search
 genome context, details, downloads, browser history and mobile layout, saving screenshots under
 `output/playwright/catalog/`. It starts no services and submits no analysis jobs.
 
-## Bundled example
+## Bundled examples
 
-The “Run example” button loads two versioned static assets together:
+Every analysis method has an exact input and real precomputed output in
+`public/examples/<method>/`. RNA repeats and Type V tracrRNA have separate
+examples selected by their molecule/model option. Load example fills the input
+and restores the recorded options. View precomputed result displays the normal
+result components without submitting sequences, including when the API is offline.
 
-- public/example-input.fasta: 5 spacer-rich records with neutral sequential headers, 8,380 bases total.
-- public/example-result.json: the corresponding precomputed orientation-mode result from the four-stage pipeline, with source identity metadata removed.
+All examples are generated with the pinned tools and reproduced by a second
+independent worker job with the same input, options and references. Only execution
+durations may vary. Input bytes, normalized sequences, counts and all submitted
+options are checked before a stored result is used. Edited inputs or options use
+the normal live submission path, which still requires the advertised capability.
+The result includes input/output downloads and exact tool provenance.
 
-The button verifies both FASTA SHA-256 bindings, checks record order, count, and base count, resets the form to the recorded analysis policy, and only copies the masked FASTA into the input textarea. No result is displayed yet. When the user presses “Compute,” the exact input and options are matched locally and the precomputed result is displayed without an API submission or analysis-worker compute. Edited input or changed options use the normal server submission path.
-
-The precomputed result is a versioned demonstration bound to the exact masked input and recorded policy. It is used only for that exact request. A future tool update can change fresh-run output, so modified requests continue through the normal server workflow.
-
-The snapshot demonstrates CRISPRidentify detection, integration/group eligibility, SpacerPlacer ancestral reconstruction, and CRISPR-evOr input-versus-reverse likelihood comparison. Its input-order call crosses the configured evidence threshold by ΔlnL +15.50. Both hypotheses require 42 first acquisitions, but the supported history needs 4 deletions and places 1 acquisition at the root; the reversed history needs 45 deletions and places all 42 acquisitions at the root.
-
-The result view renders both hypotheses as responsive SVG rather than embedding the native PDF: rooted model topology, aligned leaf spacer states, branch gain/loss badges, and selectable inferred node states. Canonical numeric spacer IDs are stable across the two views; raw spacer identities are not included in the public summary. These trees and ancestral events are array-derived model estimates, not an independent organismal phylogeny or observed mutations.
+Reference-dependent examples use small, explicitly labeled demonstration panels;
+a fresh run using larger or different references can produce different matches.
+Scientific uncertainty and missing values remain explicit. The older masked
+orientation teaching assets remain validated for compatibility.
 
 ## Independent users
 
@@ -136,7 +141,7 @@ frontend-only checkout; it is not the private monorepo workflow. Export through
 `../deploy/export-pages-frontend.sh` so dotfiles are included and private
 backend/scientific directories cannot cross the publication boundary.
 
-The build also runs scripts/scan-public-example.mjs. The scanner validates the snapshot and both SHA-256 bindings in public and dist, permits the intended FASTA asset, rejects unexpected sequence assets, and rejects superseded example material.
+The build also runs scripts/scan-public-example.mjs. The scanner validates every example and its exact input binding in public and dist, permits only the declared sequence assets, and rejects source identities, capabilities and private paths. Synthetic viral identifiers and null reference accessions are allowed only within validated example contracts.
 
 Production origin is chosen at deployment; no production site is changed by this migration.
 

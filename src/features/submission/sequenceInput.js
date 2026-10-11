@@ -1,5 +1,5 @@
 import { inspectArrayInput } from "./arrayInput.js";
-import ports from "../../contracts/module-ports-v1.json";
+import ports from "../../contracts/module-ports-v1.json" with { type: "json" };
 import { inspectFasta } from "../../fasta.js";
 
 // The server independently validates the entire contract. Preview only the

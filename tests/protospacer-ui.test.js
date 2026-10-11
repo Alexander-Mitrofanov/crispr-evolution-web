@@ -15,11 +15,11 @@ const job = () => structuredClone(fixture);
 afterEach(() => vi.restoreAllMocks());
 
 describe("advertised protospacer analysis", () => {
-  it("offers the method only when the online service advertises it", async () => {
+  it("keeps example access available when the live reference is absent", async () => {
     const view = render(ModeSelector);
     expect(
       screen.queryByRole("link", { name: "Spacer searches", exact: true }),
-    ).not.toBeInTheDocument();
+    ).toBeInTheDocument();
     await view.rerender({ service });
     expect(screen.getByRole("link", { name: "Spacer searches", exact: true })).toHaveAttribute(
       "href",
@@ -28,7 +28,7 @@ describe("advertised protospacer analysis", () => {
     await view.rerender({ service: { ...service, state: "offline" } });
     expect(
       screen.queryByRole("link", { name: "Spacer searches", exact: true }),
-    ).not.toBeInTheDocument();
+    ).toBeInTheDocument();
   });
 
   it("blocks direct-link submission without the configured capability", async () => {

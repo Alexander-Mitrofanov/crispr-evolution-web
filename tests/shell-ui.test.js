@@ -95,9 +95,7 @@ describe("method-first navigation", () => {
     ).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Choose a method" })).not.toBeInTheDocument();
     expect(window.location.search).toBe(`?method=${method.id}`);
-    expect(Boolean(screen.queryByRole("button", { name: "Load example", exact: true }))).toBe(
-      method.id === "orientation",
-    );
+    expect(Boolean(screen.queryByRole("button", { name: "Load example", exact: true }))).toBe(true);
   });
 
   it("restores a direct method link and falls back safely for an unknown method", () => {

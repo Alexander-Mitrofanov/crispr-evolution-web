@@ -10,6 +10,7 @@ import ReferencesSection from "./components/shell/ReferencesSection.vue";
 import { useJobSession } from "./composables/useJobSession.js";
 import { useServiceConfig } from "./composables/useServiceConfig.js";
 import CatalogView from "./components/catalog/CatalogView.vue";
+import { exampleAssetsFor } from "./example.js";
 
 const { service, limits } = useServiceConfig();
 const {
@@ -24,6 +25,15 @@ const {
   forget,
 } = useJobSession();
 const hasSession = computed(() => Boolean(exampleSnapshot.value || credential.value));
+const publicBase = import.meta.env.BASE_URL;
+const exampleAssets = computed(
+  () =>
+    exampleSnapshot.value &&
+    exampleAssetsFor(
+      exampleSnapshot.value.job.mode,
+      exampleSnapshot.value.example.submission_options,
+    ),
+);
 const references = ref(null);
 const handoff = ref(null);
 let handoffRevision = 0;
@@ -112,10 +122,24 @@ const blocksSubmission = computed(
       </KeepAlive>
       <template v-if="exampleSnapshot && page === 'results'"
         ><p
-          class="sr-only"
+          class="example-context"
           role="status"
         >
           Precomputed example result ready.
+          {{ exampleSnapshot.example.source_note }}
+          <a
+            v-if="exampleAssets"
+            :href="`${publicBase}${exampleAssets.input}`"
+            download
+            >Download example input</a
+          >
+          ·
+          <a
+            v-if="exampleAssets"
+            :href="`${publicBase}${exampleAssets.result}`"
+            download
+            >Download precomputed output</a
+          >
         </p>
         <div
           id="example-result"

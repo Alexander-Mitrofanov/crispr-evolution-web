@@ -2,7 +2,12 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 
-import { EXAMPLE_FASTA_PATH, EXAMPLE_RESULT_PATH, validateExampleInput } from "../src/example.js";
+import {
+  EXAMPLE_FASTA_PATH,
+  EXAMPLE_RESULT_PATH,
+  EXAMPLE_ASSETS,
+  validateExampleInput,
+} from "../src/example.js";
 import { hasForbiddenPublicIdentity } from "./public-identity-policy.mjs";
 
 const roots = ["public", "dist"].filter((root) => existsSync(root));
@@ -30,7 +35,16 @@ for (const root of roots) {
     fail(`bound example assets are missing from ${root}`);
   }
   const sequenceAssets = walk(root).filter((path) => sequenceExtension.test(path));
-  if (sequenceAssets.length !== 1 || resolve(sequenceAssets[0]) !== fastaPath) {
+  const expectedSequences = new Set([
+    fastaPath,
+    ...Object.values(EXAMPLE_ASSETS)
+      .filter((asset) => sequenceExtension.test(asset.input))
+      .map((asset) => resolve(root, asset.input)),
+  ]);
+  if (
+    sequenceAssets.length !== expectedSequences.size ||
+    sequenceAssets.some((path) => !expectedSequences.has(resolve(path)))
+  ) {
     fail(
       `unexpected public sequence asset set in ${root}: ${sequenceAssets.map((path) => relative(root, path)).join(", ")}`,
     );
@@ -49,11 +63,22 @@ for (const root of roots) {
   if (hasForbiddenPublicIdentity(fasta) || hasForbiddenPublicIdentity(JSON.stringify(snapshot))) {
     fail(`source identity metadata is present in ${root}`);
   }
+  const validatedModules = new Set();
+  for (const asset of Object.values(EXAMPLE_ASSETS)) {
+    const input = resolve(root, asset.input);
+    const result = resolve(root, asset.result);
+    const packet = JSON.parse(readFileSync(result, "utf8"));
+    if (packet.job.mode !== asset.key.split("-")[0]) fail(`wrong example method: ${asset.key}`);
+    await validateExampleInput(packet, readFileSync(input, "utf8"));
+    validatedModules.add(input);
+    validatedModules.add(result);
+  }
   for (const file of walk(root)) {
     if (!/\.(?:html|js|json|txt|css)$/i.test(file)) continue;
     const text = readFileSync(file, "utf8");
     const name = relative(root, file);
-    const compiledBundle = root === "dist" && /^assets\/[^/]+\.js$/i.test(name);
+    const compiledBundle =
+      (root === "dist" && /^assets\/[^/]+\.js$/i.test(name)) || validatedModules.has(resolve(file));
     if (hasForbiddenPublicIdentity(text, { compiledBundle }) || hasForbiddenPublicIdentity(name)) {
       fail(`source identity metadata is present: ${relative(root, file)}`);
     }

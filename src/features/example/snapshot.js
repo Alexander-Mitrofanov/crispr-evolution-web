@@ -11,6 +11,7 @@ import {
   positiveInteger,
 } from "./contract.js";
 import { validateEvolutionaryReconstructions } from "./reconstruction.js";
+import { validateModuleSnapshot } from "./moduleSnapshot.js";
 
 function scanPublicSnapshot(value) {
   if (typeof value === "string") {
@@ -143,6 +144,7 @@ function validateTeachingClaims(example, job) {
 }
 
 export function validateExampleSnapshot(value) {
+  if (value?.schema?.name === "crisprloci.web-example") return validateModuleSnapshot(value);
   scanPublicSnapshot(value);
   const example = value?.example;
   const source = example?.source;

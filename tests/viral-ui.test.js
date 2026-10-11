@@ -42,7 +42,9 @@ describe("bidirectional spacer search", () => {
     await fireEvent.update(screen.getByLabelText("Spacer sequences"), fasta);
     expect(screen.getByRole("button", { name: "Search references", exact: true })).toBeEnabled();
     await view.rerender({ service: { state: "online", modes: ["protospacer"] } });
-    expect(screen.getByRole("button", { name: "Find viruses for my spacers" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Find viruses for my spacers" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Search references", exact: true })).toBeDisabled();
+    expect(screen.getByText(/precomputed example available/)).toBeInTheDocument();
     await fireEvent.submit(document.getElementById("analysis-form"));
     expect(submit).not.toHaveBeenCalled();
   });

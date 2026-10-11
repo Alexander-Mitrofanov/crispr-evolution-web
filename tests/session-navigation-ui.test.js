@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../src/App.vue";
 import { api } from "../src/api.js";
 import snapshot from "../public/example-result.json";
-import { EXAMPLE_FASTA_PATH } from "../src/example.js";
+import { EXAMPLE_FASTA_PATH, exampleAssetsFor } from "../src/example.js";
 
 const exampleFasta = readFileSync(resolve("public", EXAMPLE_FASTA_PATH), "utf8");
 const job = { job_id: "0123456789abcdef0123456789abcdef", status: "queued", mode: "detection" };
@@ -23,9 +23,9 @@ beforeEach(() => {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url) =>
-      String(url).endsWith(EXAMPLE_FASTA_PATH)
+      String(url).endsWith(exampleAssetsFor("orientation").input)
         ? { ok: true, text: async () => exampleFasta }
-        : { ok: true, json: async () => snapshot },
+        : { ok: true, text: async () => JSON.stringify(snapshot) },
     ),
   );
   Object.defineProperty(Element.prototype, "scrollIntoView", {
@@ -46,7 +46,7 @@ async function openExample() {
   await fireEvent.click(screen.getByRole("link", { name: "Orientation-aware evolution" }));
   await fireEvent.click(screen.getByRole("button", { name: "Load example" }));
   await fireEvent.click(await screen.findByRole("button", { name: "View precomputed result" }));
-  await screen.findByRole("heading", { name: "Example results" });
+  await screen.findByRole("heading", { name: "Analysis results" });
 }
 
 describe("navigation from an existing example session", () => {
@@ -60,7 +60,7 @@ describe("navigation from an existing example session", () => {
 
     expect(await screen.findByRole("heading", { name: "Queued" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cancel job" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Example results" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Analysis results" })).not.toBeInTheDocument();
     expect(screen.queryByRole("textbox", { name: /contigs/i })).not.toBeInTheDocument();
     expect(window.location.hash).toBe(`#job=${job.job_id}.${token}`);
     expect(window.history.length).toBe(historyLength);
@@ -74,7 +74,7 @@ describe("navigation from an existing example session", () => {
     const historyLength = window.history.length;
     await fireEvent.click(screen.getByRole("button", { name: "View precomputed result" }));
 
-    expect(await screen.findByRole("heading", { name: "Example results" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Analysis results" })).toBeInTheDocument();
     expect(api.submit).not.toHaveBeenCalled();
     expect(window.history.length).toBe(historyLength);
   });

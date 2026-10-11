@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { hasForbiddenPublicIdentity } from "../scripts/public-identity-policy.mjs";
 
 describe("public export identity boundary", () => {
+  it("preserves CCTK deletion-slot identifiers without confusing them with AP accessions", () => {
+    expect(hasForbiddenPublicIdentity('{"id":"gap000003"}')).toBe(false);
+    expect(hasForbiddenPublicIdentity('{"id":"source_AP009389.1"}')).toBe(true);
+  });
   it("allows catalog schema vocabulary only in compiled transport code", () => {
     const schema = '{"properties":["id","accession"],"types":{"accession":"string"}}';
     expect(hasForbiddenPublicIdentity(schema)).toBe(true);

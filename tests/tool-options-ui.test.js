@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 import { api } from "../src/api.js";
 import AnalysisForm from "../src/components/submission/AnalysisForm.vue";
 import snapshot from "../public/example-result.json";
-import { EXAMPLE_FASTA_PATH } from "../src/example.js";
+import { EXAMPLE_FASTA_PATH, exampleAssetsFor } from "../src/example.js";
 import { ANALYSIS_MODES } from "../src/science.js";
 
 const service = { state: "online", expiresHours: 72, modes: ANALYSIS_MODES.map((mode) => mode.id) };
@@ -120,9 +120,9 @@ describe("compact per-tool CLI settings", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url) =>
-        String(url).endsWith(EXAMPLE_FASTA_PATH)
+        String(url).endsWith(exampleAssetsFor("orientation").input)
           ? { ok: true, text: async () => example }
-          : { ok: true, json: async () => snapshot },
+          : { ok: true, text: async () => JSON.stringify(snapshot) },
       ),
     );
     const submit = mockSubmit();

@@ -35,7 +35,6 @@ const directions = [
         type="button"
         :aria-pressed="mode === item.id"
         :aria-label="item.title"
-        :disabled="!analysisModeAvailable(item.id, service)"
         @click="$emit('direction', item.id)"
       >
         <strong>{{ item.title }}</strong>
@@ -45,7 +44,7 @@ const directions = [
         >
         <span>{{ item.detail }}</span>
         <small v-if="!analysisModeAvailable(item.id, service)"
-          >Reference unavailable on this server</small
+          >Reference unavailable on this server; precomputed example available</small
         >
       </button>
     </div>

@@ -11,3 +11,9 @@ export {
 } from "./features/example/contract.js";
 export { validateExampleSnapshot } from "./features/example/snapshot.js";
 export { validateExampleInput } from "./features/example/input.js";
+export {
+  EXAMPLE_ASSETS,
+  exampleAssetsFor,
+  exampleSubmissionMatches,
+} from "./features/example/catalogue.js";
+export { readExampleResponse } from "./features/example/response.js";
