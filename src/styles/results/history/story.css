@@ -21,7 +21,7 @@
   display: block;
   color: var(--muted);
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -40,7 +40,7 @@
   color: var(--ink);
   background: white;
   font-size: 0.75rem;
-  font-weight: 900;
+  font-weight: 600;
   white-space: nowrap;
 }
 .spacerplacer-verdict {
@@ -56,7 +56,7 @@
   display: block;
   color: var(--muted);
   font-size: 0.72rem;
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
 }

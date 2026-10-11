@@ -33,7 +33,7 @@
   border: 1px solid #c6cec7;
   color: #586b64;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .job-badge i {
   width: 7px;
@@ -95,7 +95,7 @@
   color: var(--action-text);
   background: var(--action-soft);
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   transition:
     color 0.16s ease,
@@ -215,7 +215,7 @@
   color: #823c31;
   background: #fcf4f0;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .cancel-button:not(:disabled):hover {
   color: white;
@@ -228,7 +228,7 @@
   color: var(--action-text);
   background: var(--action-soft);
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .leave-job-button:hover {
   color: var(--on-action);

@@ -49,7 +49,7 @@
 .tool-options-count {
   flex-shrink: 0;
   color: var(--action-text);
-  font-weight: 700;
+  font-weight: 600;
 }
 .tool-options-body {
   padding-bottom: 18px;
@@ -78,7 +78,7 @@
 .tool-cli-modes dt,
 .tool-managed dt {
   color: var(--ink);
-  font-weight: 700;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .tool-cli-modes dd,

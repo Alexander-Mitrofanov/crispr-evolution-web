@@ -43,7 +43,7 @@
 .group-bridge-heading small {
   color: var(--group-dark);
   font-size: 0.72rem;
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -73,7 +73,7 @@
 .repeat-band > span:first-child {
   color: var(--on-night-muted);
   font-size: 0.72rem;
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -276,7 +276,7 @@
 .outcome-card small {
   color: var(--group-dark);
   font-size: 0.72rem;
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
 }

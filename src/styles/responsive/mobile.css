@@ -14,14 +14,14 @@
   }
   .nav-shell nav {
     width: 100%;
-    gap: 16px;
+    gap: 14px;
   }
   .nav-shell .service-status {
     margin-left: auto;
   }
   .service-status {
     min-width: 0;
-    padding-inline: 11px;
+    padding-inline: 0;
   }
   .status-label-full {
     display: none;
@@ -40,7 +40,7 @@
   }
   .hero h1 {
     font-size: 1.85rem;
-    letter-spacing: -0.035em;
+    letter-spacing: 0;
   }
   .hero-suite {
     flex-wrap: wrap;
@@ -54,11 +54,9 @@
     justify-content: space-between;
   }
   .workflow {
-    margin-inline: -14px;
-    border-radius: var(--radius-md);
-  }
-  .workflow {
-    padding: 28px 20px;
+    margin-inline: 0;
+    border-radius: 0;
+    padding: 0 0 24px;
   }
   .section-intro {
     display: block;
@@ -457,7 +455,7 @@
   }
   .method-link {
     min-height: 90px;
-    padding-block: 20px;
+    padding: 18px 10px;
   }
   .history-settings > summary,
   .history-inspector > summary {

@@ -13,11 +13,11 @@
     transform-origin: left center;
   }
   .brand-copy strong {
-    font-size: 0.84rem;
+    font-size: 1.375rem;
   }
   .brand-copy small {
-    font-size: 0.68rem;
-    letter-spacing: 0.1em;
+    font-size: 0.75rem;
+    letter-spacing: 0;
   }
   .hero h1 {
     font-size: 1.7rem;
@@ -29,7 +29,7 @@
   .workflow,
   .job-panel,
   .results {
-    margin-inline: -12px;
+    margin-inline: 0;
   }
   .category-grid,
   .metric-grid,

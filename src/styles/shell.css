@@ -3,8 +3,9 @@
 }
 .hero {
   position: relative;
-  color: var(--ink);
-  background: var(--paper-deep);
+  color: var(--on-night);
+  background: var(--night-950);
+  --focus: var(--focus-dark);
 }
 .nav-shell,
 main {
@@ -12,43 +13,40 @@ main {
   margin-inline: auto;
 }
 .nav-shell {
-  min-height: 80px;
+  min-height: 88px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  border-bottom: 1px solid var(--line);
 }
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   color: inherit;
   text-decoration: none;
 }
 .brand-symbol {
-  width: 36px;
-  height: 32px;
+  position: relative;
+  width: 42px;
+  height: 28px;
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
+}
+.brand-symbol::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: #e0abbc;
 }
 .brand-symbol span {
-  width: 6px;
-  border-radius: 2px;
-  background: var(--action);
-}
-.brand-symbol span:nth-child(1) {
-  height: 16px;
-}
-.brand-symbol span:nth-child(2) {
-  height: 28px;
-}
-.brand-symbol span:nth-child(3) {
-  height: 21px;
-}
-.brand-symbol span:nth-child(4) {
-  height: 32px;
+  position: relative;
+  width: 7px;
+  height: 22px;
+  border-radius: 1px;
+  background: #e0abbc;
 }
 .brand-copy {
   display: flex;
@@ -56,48 +54,51 @@ main {
   gap: 6px;
 }
 .brand-copy strong {
-  font-size: 1.12rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
+  font-size: 1.55rem;
+  font-weight: 500;
+  letter-spacing: 0;
 }
 .brand-copy small {
-  color: var(--muted);
-  font-size: 0.75rem;
+  color: var(--on-night-muted);
+  font-size: 0.8rem;
 }
 .nav-shell nav {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 28px;
 }
 .nav-shell nav > a {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
-  color: var(--ink-soft);
-  font-size: 0.82rem;
+  color: var(--on-night-soft);
+  font-size: 0.9rem;
   text-decoration: none;
 }
 .nav-shell nav > a:hover {
-  color: var(--action);
+  color: var(--on-night);
+  text-decoration: underline;
+  text-underline-offset: 6px;
 }
 .service-status {
   display: flex;
   align-items: center;
   gap: 9px;
-  color: var(--muted);
-  font-size: 0.78rem;
+  color: var(--on-night-muted);
+  font-size: 0.8rem;
 }
 .status-pulse {
+  flex-shrink: 0;
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--gold);
 }
 .service-online .status-pulse {
-  background: var(--action);
+  background: #9bc3a8;
 }
 .service-offline .status-pulse {
-  background: var(--danger);
+  background: #efa38c;
 }
 .session-return {
   margin-top: 24px;

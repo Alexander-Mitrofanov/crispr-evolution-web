@@ -1,12 +1,12 @@
 .workflow {
   overflow: clip;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-xl);
+  border: 0;
+  border-radius: 0;
   box-shadow: none;
 }
 .job-panel,
 .results {
-  border-radius: var(--radius-lg);
+  border-radius: 0;
 }
 .mode-card {
   border-radius: var(--radius-md);
@@ -21,7 +21,7 @@
 .complete-stamp,
 .job-badge,
 .orientation-chip {
-  border-radius: 999px;
+  border-radius: var(--radius-xs);
 }
 .input-panel,
 .readiness,
@@ -36,16 +36,16 @@
 .text-button {
   min-height: 44px;
   padding: 9px 12px;
-  border: 1px solid var(--action);
+  border: 1px solid var(--line-dark);
   border-radius: var(--radius-sm);
   color: var(--action-text);
-  background: var(--action-soft);
+  background: var(--paper);
   text-decoration: none;
 }
 .text-button:hover {
-  color: var(--on-action);
+  color: var(--action-text);
   border-color: var(--action);
-  background: var(--action);
+  background: var(--action-soft);
 }
 .example-button {
   display: inline-flex;
@@ -74,7 +74,7 @@ textarea {
   font-size: 0.86rem;
 }
 textarea::placeholder {
-  color: #5d7169;
+  color: var(--muted);
   opacity: 1;
 }
 .input-heading p,
@@ -116,15 +116,11 @@ textarea::placeholder {
 .primary-button {
   min-height: 50px;
   border-radius: var(--radius-sm);
-  transition:
-    transform 0.16s ease,
-    box-shadow 0.16s ease,
-    background 0.16s ease;
+  transition: background 0.16s ease;
 }
 .primary-button:not(:disabled):hover {
   background: var(--action-hover);
-  box-shadow: 0 12px 24px rgba(9, 20, 51, 0.24);
-  transform: translateY(-1px);
+  box-shadow: none;
 }
 .hero-action:active,
 .primary-button:not(:disabled):active,

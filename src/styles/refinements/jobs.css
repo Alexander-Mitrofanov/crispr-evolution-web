@@ -8,6 +8,7 @@
 }
 .job-panel,
 .results {
-  border: 1px solid var(--line);
+  border: 0;
+  border-top: 1px solid var(--line);
   box-shadow: none;
 }

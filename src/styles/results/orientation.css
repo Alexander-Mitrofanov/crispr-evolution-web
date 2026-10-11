@@ -16,7 +16,7 @@
   color: #52645e;
   background: #eff1ec;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 }
 .orientation-input-order-supported {
@@ -40,7 +40,7 @@
   grid-template-columns: 1fr 1fr 1fr;
   color: var(--muted);
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -165,7 +165,7 @@
 .hypothesis-heading small {
   color: var(--muted);
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -197,7 +197,7 @@
 .hypothesis-card > span {
   color: #65756f;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: none;
 }
 .hypothesis-card > strong {
@@ -265,7 +265,7 @@
   font-size: 0.75rem;
 }
 .decision-distance > span {
-  font-weight: 800;
+  font-weight: 600;
   text-transform: none;
 }
 .decision-distance > strong {

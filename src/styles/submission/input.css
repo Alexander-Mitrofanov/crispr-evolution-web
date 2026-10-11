@@ -22,8 +22,8 @@
 }
 .input-heading label {
   color: var(--ink);
-  font-size: 0.84rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
 }
 .input-heading p {
   margin: 5px 0 0;
@@ -38,7 +38,7 @@
   color: var(--action-text);
   background: none;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .upload-strip {
   display: grid;
@@ -59,23 +59,22 @@
   align-items: center;
   gap: 8px;
   padding: 9px 11px;
-  border: 0;
-  color: var(--on-action);
-  background: var(--action);
+  border: 1px solid var(--line-dark);
+  color: var(--ink);
+  background: var(--paper);
   font-size: 0.82rem;
-  font-weight: 800;
-  transition:
-    background 0.16s ease,
-    transform 0.16s ease;
+  font-weight: 600;
+  transition: background 0.16s ease;
 }
 .upload-button:hover {
-  background: var(--action-hover);
-  transform: translateY(-1px);
+  background: var(--action-soft);
+  border-color: var(--action);
+  color: var(--action-text);
 }
 .filename {
   min-width: 0;
   overflow: hidden;
-  color: #52655e;
+  color: var(--ink-soft);
   font:
     500 0.82rem ui-monospace,
     "SFMono-Regular",
@@ -89,7 +88,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #65766f;
+  color: var(--muted);
   font-size: 0.78rem;
 }
 .input-stats b {
@@ -117,8 +116,8 @@ textarea {
   line-height: 1.65;
 }
 textarea:focus {
-  border-color: #467e6d;
-  box-shadow: inset 0 0 0 1px #467e6d;
+  border-color: var(--action);
+  box-shadow: inset 0 0 0 1px var(--action);
 }
 textarea::placeholder {
   color: var(--muted);

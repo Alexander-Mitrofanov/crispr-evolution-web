@@ -4,6 +4,13 @@
     color: #000;
     background: #fff;
   }
+  .brand-copy small {
+    color: #000;
+  }
+  .brand-symbol::before,
+  .brand-symbol span {
+    background: #000;
+  }
   .hero::before,
   .hero::after,
   .hero-visual,
@@ -69,7 +76,7 @@
   border-radius: 4px;
   color: var(--on-action);
   background: var(--action);
-  font-weight: 800;
+  font-weight: 600;
   text-decoration: none;
 }
 .frame-blocked-message a:hover {

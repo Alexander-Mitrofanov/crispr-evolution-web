@@ -23,7 +23,7 @@
   border: 1px solid #87ae7b;
   background: #eef7e9;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .no-eligible {
   margin: 0 0 18px;
@@ -48,7 +48,7 @@
   color: var(--muted);
   background: transparent;
   font-size: 0.86rem;
-  font-weight: 550;
+  font-weight: 500;
 }
 .result-tabs button:hover {
   color: var(--ink);
@@ -114,7 +114,7 @@
 .synopsis-cards strong {
   color: var(--ink);
   font-size: 1.3rem;
-  font-weight: 550;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 .example-context {
@@ -146,7 +146,7 @@
   color: var(--ink);
   font-size: 1.2rem;
   font-weight: 500;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 .result-heading > p {
   margin: 0;
@@ -179,7 +179,7 @@
 }
 .category-card span {
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .category-card strong {
   grid-row: 2;
@@ -269,7 +269,7 @@ td small {
   color: #355044;
   background: #e6ece5;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 }
 .category-pill.category-bona-fide {
@@ -328,7 +328,7 @@ td small {
 .metric-grid span {
   color: var(--muted);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: none;
 }
 .metric-grid strong {
