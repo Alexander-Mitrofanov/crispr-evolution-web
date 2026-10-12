@@ -13,5 +13,10 @@
   "repeat_type": "repeat",
   "viral_search": "spacer",
   "spacer_association": "spacer",
-  "array_compare": "array"
+  "array_compare": "array",
+  "locus_compare": "target",
+  "prophage_context": "target",
+  "insertion_context": "target",
+  "defense_context": "target",
+  "rna_family": "rna"
 }

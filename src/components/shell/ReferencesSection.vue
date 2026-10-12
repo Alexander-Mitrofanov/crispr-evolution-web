@@ -13,6 +13,74 @@ defineExpose({
 
 const citations = [
   {
+    tool: "clinker",
+    authors: "Gilchrist and Chooi",
+    venue: "Bioinformatics · 2021",
+    title: "clinker & clustermap.js: automatic generation of gene cluster comparison figures",
+    doi: "https://doi.org/10.1093/bioinformatics/btab007",
+    source: "https://github.com/gamcil/clinker",
+    note: "Protein similarity and gene order support neighborhood comparison; neither establishes orthology or organism phylogeny.",
+  },
+  {
+    tool: "Phigaro",
+    authors: "Starikova et al.",
+    venue: "Bioinformatics · 2020",
+    title: "Phigaro: high-throughput prophage sequence annotation",
+    doi: "https://doi.org/10.1093/bioinformatics/btaa250",
+    source: "https://github.com/bobeobibo/phigaro",
+    note: "Candidate prophage intervals provide context for source-spacer matches. They do not establish viral activity or CRISPR targeting.",
+  },
+  {
+    tool: "ISEScan",
+    authors: "Xie and Tang",
+    venue: "Bioinformatics · 2017",
+    title:
+      "ISEScan: automated identification of insertion sequence elements in prokaryotic genomes",
+    doi: "https://doi.org/10.1093/bioinformatics/btx433",
+    source: "https://github.com/xiezhq/ISEScan",
+    note: "Insertion-element and boundary evidence support locus inspection; predicted overlaps do not prove gene inactivation.",
+  },
+  {
+    tool: "DefenseFinder",
+    authors: "Tesson et al.",
+    venue: "Nature Communications · 2022",
+    title: "Systematic and quantitative view of the antiviral arsenal of prokaryotes",
+    doi: "https://doi.org/10.1038/s41467-022-30269-9",
+    source: "https://github.com/mdmparis/defense-finder",
+    note: "The web workflow uses HMM/system rules and historical model release 1.2.3. It does not assess the complete known defensome.",
+  },
+  {
+    tool: "MacSyFinder",
+    authors: "Néron et al.",
+    venue: "Peer Community Journal · 2023",
+    title:
+      "MacSyFinder v2: Improved modelling and search engine to identify molecular systems in genomes",
+    doi: "https://doi.org/10.24072/pcjournal.250",
+    source: "https://github.com/gem-pasteur/macsyfinder",
+    note: "System-rule engine used by DefenseFinder.",
+  },
+  {
+    tool: "RNAalifold",
+    authors: "Bernhart et al.",
+    venue: "BMC Bioinformatics · 2008",
+    title: "RNAalifold: improved consensus structure prediction for RNA alignments",
+    doi: "https://doi.org/10.1186/1471-2105-9-474",
+    source: "https://github.com/ViennaRNA/ViennaRNA",
+    note:
+      "Credit: ViennaRNA authors and the Institute for Theoretical Chemistry, University of Vienna. " +
+      "Comparative folding of a researcher-defined homologous family; descriptive covariation is not a statistical significance test.",
+  },
+  {
+    tool: "MAFFT",
+    authors: "Katoh and Standley",
+    venue: "Molecular Biology and Evolution · 2013",
+    title:
+      "MAFFT multiple sequence alignment software version 7: improvements in performance and usability",
+    doi: "https://doi.org/10.1093/molbev/mst010",
+    source: "https://mafft.cbrc.jp/alignment/software/",
+    note: "Alignment method used before RNA-family consensus folding.",
+  },
+  {
     tool: "CCTK",
     authors: "Collins et al.",
     venue: "The CRISPR Journal · 2023",
@@ -71,7 +139,7 @@ const citations = [
     doi: "https://doi.org/10.1186/1748-7188-6-26",
     source: "https://github.com/ViennaRNA/ViennaRNA",
     sourceLabel: "ViennaRNA source",
-    note: "Folding method used by CRISPRrepeat.",
+    note: "Folding engine used by CRISPRrepeat and the RNAalifold family workflow.",
   },
   {
     tool: "RepeatTyper / CRISPRCasTyper",

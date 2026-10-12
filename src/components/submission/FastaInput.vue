@@ -13,6 +13,8 @@ const props = defineProps({
   repeatInput: Boolean,
   spacerInput: Boolean,
   arrayInput: Boolean,
+  familyInput: Boolean,
+  locusInput: Boolean,
   loadingExample: Boolean,
   showExample: { type: Boolean, default: true },
   exampleDisabled: Boolean,
@@ -64,7 +66,11 @@ async function onFile(event) {
               ? "Spacer sequences"
               : repeatInput
                 ? "Repeat sequences"
-                : "Contigs or small genomes"
+                : familyInput
+                  ? "Homologous RNA-family sequences"
+                  : locusInput
+                    ? "Genomic neighborhoods"
+                    : "Contigs or small genomes"
         }}</label>
         <p v-if="arrayInput">
           Upload arrays.json from detection. Each observed spacer counts toward the service record
@@ -143,9 +149,8 @@ async function onFile(event) {
         stays local until submission.</span
       >
       <span v-else
-        >IUPAC {{ molecule }} accepted. Input stays local until submission.<template
-          v-if="repeatInput"
-        >
+        >{{ familyInput ? "Unambiguous" : "IUPAC" }} {{ molecule }} accepted. Input stays local
+        until submission.<template v-if="repeatInput">
           Ambiguous bases remain visible; affected analyses may be unsupported.</template
         ></span
       >

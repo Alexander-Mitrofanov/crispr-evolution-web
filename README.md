@@ -1,7 +1,23 @@
 # CRISPRloci v2 frontend
 
 Static Vue 3 frontend for CRISPRidentify v2, CasAndra, CRISPRtracrRNA v3,
-SpacerPlacer and evOr workflows. It is built with Vite and contains no server-side runtime or secrets.
+SpacerPlacer, evOr and connected context workflows. It is built with Vite and contains no server-side runtime or secrets.
+
+## Version 2.12.0 context workflows
+
+Five additional methods appear when advertised by the analysis service:
+
+- **Compare gene neighborhoods:** clinker compares source-verified proteins from 2–8 related genomic windows, up to 50,000 nt each.
+- **Inspect prophage and spacer context:** Phigaro candidate regions are joined to exact source-spacer matches.
+- **Inspect insertion-sequence context:** ISEScan predictions retain partial elements, boundary evidence and Cas-cassette proximity.
+- **Survey the defense repertoire:** DefenseFinder preserves system calls, component assignments and profile hits with historical model release 1.2.3.
+- **Compare an RNA family:** 2–50 homologous, consistently oriented DNA or RNA records, each 30–500 nt, are aligned with MAFFT and folded with RNAalifold. At least two distinct sequences are required.
+
+RNAalifold and the ViennaRNA folding engine are credited to the ViennaRNA authors and the Institute for Theoretical Chemistry of the University of Vienna. The Methods section links the original RNAalifold and ViennaRNA publications.
+
+Results retain missing evidence, scope limitations and source coordinates. These methods have fixed scientific policies and no public tool options in this release. RNA-family homology and transcript boundaries remain researcher supplied. Comparisons, model predictions and proximity do not establish function or activity.
+
+With a build configured for `VITE_API_BASE_URL=https://analysis.example.org` served locally, run `python scripts/browser-context-modes.py --origin http://127.0.0.1:8491 --output /tmp/context-browser` for Chromium acceptance checks. The script uses intercepted synthetic API fixtures and submits no live jobs.
 
 ## Structure
 
@@ -83,11 +99,12 @@ genome context, details, downloads, browser history and mobile layout, saving sc
 
 ## Bundled examples
 
-Every analysis method has an exact input and real precomputed output in
+The 15 previously released methods have exact inputs and real precomputed outputs in
 `public/examples/<method>/`. RNA repeats and Type V tracrRNA have separate
 examples selected by their molecule/model option. Load example fills the input
 and restores the recorded options. View precomputed result displays the normal
 result components without submitting sequences, including when the API is offline.
+The five context methods do not offer example buttons until validated native examples are published.
 
 All examples are generated with the pinned tools and reproduced by a second
 independent worker job with the same input, options and references. Only execution

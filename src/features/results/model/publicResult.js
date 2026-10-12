@@ -1,4 +1,9 @@
 import { normalizeArrayCompare } from "./arrayCompare.js";
+import { normalizeLocusCompare } from "./locusCompare.js";
+import { normalizeProphageContext } from "./prophageContext.js";
+import { normalizeInsertionContext } from "./insertionContext.js";
+import { normalizeDefenseContext } from "./defenseContext.js";
+import { normalizeRnaFamily } from "./rnaFamily.js";
 import { normalizeAssociation } from "./association.js";
 import { normalizeAdapter } from "./adapter.js";
 import { normalizeLeader } from "./leader.js";
@@ -26,6 +31,11 @@ export function normalizePublicResult(value, context = {}) {
     crisprleader: normalizeLeader(summary.crisprleader),
     repeats: normalizeRepeats(summary.repeats),
     array_compare: normalizeArrayCompare(summary.array_compare),
+    locus_compare: normalizeLocusCompare(summary.locus_compare),
+    prophage_context: normalizeProphageContext(summary.prophage_context),
+    insertion_context: normalizeInsertionContext(summary.insertion_context),
+    defense_context: normalizeDefenseContext(summary.defense_context),
+    rna_family: normalizeRnaFamily(summary.rna_family),
     spacer_association: normalizeAssociation(summary.spacer_association),
     repeat_type: normalizeRepeatType(summary.repeat_type),
     repeat_map: normalizeRepeatMap(summary.repeat_map),

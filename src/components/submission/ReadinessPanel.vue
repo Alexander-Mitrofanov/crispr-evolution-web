@@ -49,8 +49,27 @@ const checks = computed(() => {
       detail:
         selectedMode.minimumRecords === 1
           ? "This analysis accepts one or more records."
-          : `This public-service cohort policy requires ${selectedMode.minimumRecords} records; model eligibility still requires at least two comparable detected arrays.`,
+          : selectedMode.id === "locus_compare"
+            ? "Supply related genomic neighborhoods; each FASTA record is one independently scaled locus."
+            : selectedMode.id === "rna_family"
+              ? "Supply an oriented homologous family with at least two distinct sequences. Exact duplicates do not add folding weight."
+              : `This public-service cohort policy requires ${selectedMode.minimumRecords} records; model eligibility still requires at least two comparable detected arrays.`,
     },
+    ...(selectedMode.id === "rna_family"
+      ? [
+          {
+            ok:
+              inspection.records.length >= 2 &&
+              inspection.records.every(
+                (record) => record.sequence.length >= 30 && /^[ACGTU]+$/.test(record.sequence),
+              ) &&
+              new Set(inspection.records.map((record) => record.sequence.replaceAll("T", "U")))
+                .size >= 2,
+            label: "At least two distinct, unambiguous family sequences",
+            detail: "Each sequence must be 30–500 nt and supplied in matching 5′→3′ orientation.",
+          },
+        ]
+      : []),
     ...(selectedMode.id === "orientation"
       ? [
           {
@@ -94,10 +113,9 @@ const checks = computed(() => {
           {
             ok: analysisModeAvailable(selectedMode.id, service),
             label: analysisModeAvailable(selectedMode.id, service)
-              ? "Reference spacer search available"
-              : "Reference spacer search unavailable on this service",
-            detail:
-              "The service must advertise an installed reference collection before submission.",
+              ? "Selected analysis available"
+              : "Selected analysis unavailable on this service",
+            detail: "The service must advertise this installed analysis before submission.",
           },
         ]
       : []),

@@ -64,8 +64,8 @@ export function useSequenceHandoff(props, emit, client = api) {
       if (request.signal.aborted) return;
       const packet = JSON.parse(text.replace(/^\uFEFF/, ""));
       const molecule = packet.molecule || "DNA";
-      if (molecule === "RNA" && choice.mode !== "repeats")
-        throw new Error("RNA repeats can only be reused in repeat structure analysis.");
+      if (molecule === "RNA" && !["repeats", "rna_family"].includes(choice.mode))
+        throw new Error("This analysis does not accept RNA input.");
       const inspection = inspectSequenceInput(text, { mode: choice.mode, molecule });
       if (!inspection.valid) throw new Error(inspection.errors.join(" "));
       emit("continue-analysis", {

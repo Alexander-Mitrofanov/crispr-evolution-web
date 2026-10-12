@@ -759,6 +759,127 @@
           "flags": ["--input", "--outdir", "--order", "--plot", "--seed"]
         }
       ]
+    },
+    {
+      "id": "clinker",
+      "name": "clinker-v2",
+      "modes": ["locus_compare"],
+      "description": "Compare source-verified CDS translations and local gene organization.",
+      "documentation": "https://github.com/Alexander-Mitrofanov/clinker-v2/blob/94f829d118c0a164fb316f499468a905b6acdcc2/README.md",
+      "revision": "94f829d118c0a164fb316f499468a905b6acdcc2",
+      "cli_modes": [
+        {
+          "name": "clinker-v2 compare",
+          "description": "Compare source-verified CDS translations and local gene organization."
+        }
+      ],
+      "flags": [],
+      "managed": [
+        {
+          "flags": ["--input", "--features", "--outdir", "--identity"],
+          "description": "Inputs, outputs, pinned scientific policy and bounded execution are assigned by the isolated worker."
+        }
+      ]
+    },
+    {
+      "id": "phigaro",
+      "name": "Phigaro-v2",
+      "modes": ["prophage_context"],
+      "description": "Predict source-bound prophage regions with the pinned pVOG reference.",
+      "documentation": "https://github.com/Alexander-Mitrofanov/Phigaro-v2/blob/53fbc5e9b5a214318a2e22669e93e0feaa150df8/README.md",
+      "revision": "53fbc5e9b5a214318a2e22669e93e0feaa150df8",
+      "cli_modes": [
+        {
+          "name": "phigaro-v2 predict",
+          "description": "Predict source-bound prophage regions with the pinned pVOG reference."
+        }
+      ],
+      "flags": [],
+      "managed": [
+        {
+          "flags": [
+            "--input",
+            "--output",
+            "--models-hmm",
+            "--models-sha256",
+            "--prodigal",
+            "--hmmsearch",
+            "--threads",
+            "--timeout-seconds"
+          ],
+          "description": "Inputs, outputs, pinned scientific policy and bounded execution are assigned by the isolated worker."
+        }
+      ]
+    },
+    {
+      "id": "isescan",
+      "name": "ISEScan-v2",
+      "modes": ["insertion_context"],
+      "description": "Predict insertion-sequence context with pinned native models.",
+      "documentation": "https://github.com/Alexander-Mitrofanov/ISEScan-v2/blob/174a9e384464676f27f73aae527cbba96feff660/README.md",
+      "revision": "174a9e384464676f27f73aae527cbba96feff660",
+      "cli_modes": [
+        {
+          "name": "isescan-v2",
+          "description": "Predict insertion-sequence context with pinned native models."
+        }
+      ],
+      "flags": [],
+      "managed": [
+        {
+          "flags": ["--input", "--output", "--threads", "--timeout-seconds"],
+          "description": "Inputs, outputs, pinned scientific policy and bounded execution are assigned by the isolated worker."
+        }
+      ]
+    },
+    {
+      "id": "defensefinder",
+      "name": "DefenseFinder-v2",
+      "modes": ["defense_context"],
+      "description": "Assess known defense systems using frozen HMM and system-rule models.",
+      "documentation": "https://github.com/Alexander-Mitrofanov/DefenseFinder-v2/blob/b2459ef6affa0ac604093331b9a09b7e1eb44358/README.md",
+      "revision": "b2459ef6affa0ac604093331b9a09b7e1eb44358",
+      "cli_modes": [
+        {
+          "name": "defense-context",
+          "description": "Assess known defense systems using frozen HMM and system-rule models."
+        }
+      ],
+      "flags": [],
+      "managed": [
+        {
+          "flags": ["--input", "--output", "--models-dir", "--hmmer", "--workers"],
+          "description": "Inputs, outputs, pinned scientific policy and bounded execution are assigned by the isolated worker."
+        }
+      ]
+    },
+    {
+      "id": "rnaalifold",
+      "name": "RNAalifold-v2",
+      "modes": ["rna_family"],
+      "description": "Align an oriented homologous RNA family and predict comparative pairing evidence.",
+      "documentation": "https://github.com/Alexander-Mitrofanov/RNAalifold-v2/blob/523510d5974b368cbddf741224447302debc32c0/README.md",
+      "revision": "523510d5974b368cbddf741224447302debc32c0",
+      "cli_modes": [
+        {
+          "name": "rnaalifold-v2",
+          "description": "Align an oriented homologous RNA family and predict comparative pairing evidence."
+        }
+      ],
+      "flags": [],
+      "managed": [
+        {
+          "flags": [
+            "--input",
+            "--output",
+            "--molecule",
+            "--mafft",
+            "--threads",
+            "--timeout-seconds"
+          ],
+          "description": "Inputs, outputs, pinned scientific policy and bounded execution are assigned by the isolated worker."
+        }
+      ]
     }
   ]
 }

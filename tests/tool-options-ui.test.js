@@ -39,6 +39,18 @@ afterEach(() => {
 describe("compact per-tool CLI settings", () => {
   it.each(ANALYSIS_MODES)("offers a collapsed menu for the $id workflow", ({ id }) => {
     renderForm(id);
+    if (
+      [
+        "locus_compare",
+        "prophage_context",
+        "insertion_context",
+        "defense_context",
+        "rna_family",
+      ].includes(id)
+    ) {
+      expect(screen.queryByText("Analysis options")).not.toBeInTheDocument();
+      return;
+    }
     const root = screen.getByText("Analysis options").closest("details");
     expect(root).not.toHaveAttribute("open");
     expect(root.querySelectorAll(".tool-options-tool").length).toBeGreaterThan(0);

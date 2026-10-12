@@ -1,4 +1,22 @@
-import contract from "../../contracts/public-api-v1.json" with { type: "json" };
+// Only modes with committed, source-verified example assets are offered.
+// New live workflows must not create links to nonexistent example files.
+const exampleModes = [
+  "array_compare",
+  "spacer_association",
+  "repeat_type",
+  "repeat_map",
+  "viral_search",
+  "loci",
+  "leader",
+  "cas",
+  "tracrrna",
+  "detection",
+  "repeat_context",
+  "repeats",
+  "protospacer",
+  "reconstruction",
+  "orientation",
+];
 
 const asset = (key, json = false) =>
   Object.freeze({
@@ -9,7 +27,7 @@ const asset = (key, json = false) =>
 
 export const EXAMPLE_ASSETS = Object.freeze(
   Object.fromEntries([
-    ...contract.enums.analysis_modes.map((mode) => [
+    ...exampleModes.map((mode) => [
       mode,
       asset(mode, ["array_compare", "spacer_association"].includes(mode)),
     ]),

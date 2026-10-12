@@ -38,9 +38,7 @@ describe("advertised protospacer analysis", () => {
     });
     await fireEvent.update(screen.getByLabelText("Contigs or small genomes"), fasta);
     expect(screen.getByRole("button", { name: "Search references", exact: true })).toBeDisabled();
-    expect(
-      screen.getByText("Reference spacer search unavailable on this service"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Selected analysis unavailable on this service")).toBeInTheDocument();
     await fireEvent.submit(document.getElementById("analysis-form"));
     expect(submit).not.toHaveBeenCalled();
   });

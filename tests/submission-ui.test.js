@@ -28,7 +28,11 @@ describe("Vue submission policy", () => {
     renderForm({ initialMode: id });
     await fireEvent.update(
       screen.getByRole("textbox"),
-      id === "array_compare" ? JSON.stringify(arrayPacket) : ">a\nACGT\n>b\nACGT\n",
+      id === "array_compare"
+        ? JSON.stringify(arrayPacket)
+        : id === "rna_family"
+          ? `>a\n${"ACGT".repeat(8)}\n>b\n${"GCGT".repeat(8)}\n`
+          : ">a\nACGT\n>b\nACGT\n",
     );
     if (id === "spacer_association") {
       const compute = screen.getByRole("button", { name: "Compute", exact: true });

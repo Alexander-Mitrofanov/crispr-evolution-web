@@ -29,6 +29,7 @@ const {
   options,
   submitting,
   loadingExample,
+  hasExample,
   error,
   inspection,
   selectedMode,
@@ -100,7 +101,7 @@ const {
           Sequences
         </h3>
         <fieldset
-          v-if="mode === 'repeats'"
+          v-if="['repeats', 'rna_family'].includes(mode)"
           class="repeat-molecule"
         >
           <legend>Input molecule</legend>
@@ -111,7 +112,11 @@ const {
               value="DNA"
               name="repeat-molecule"
             />
-            DNA repeats — both orientation hypotheses</label
+            {{
+              mode === "rna_family"
+                ? "DNA — family members in matching orientation"
+                : "DNA repeats — both orientation hypotheses"
+            }}</label
           >
           <label
             ><input
@@ -120,11 +125,20 @@ const {
               value="RNA"
               name="repeat-molecule"
             />
-            RNA repeats — transcribed 5′→3′ sequence</label
+            {{
+              mode === "rna_family"
+                ? "RNA — family members in transcribed 5′→3′ order"
+                : "RNA repeats — transcribed 5′→3′ sequence"
+            }}</label
           >
-          <p>
+          <p v-if="mode === 'repeats'">
             Up to 1,000 repeats, 200 nt per record, within the service limits. Use T for DNA and U
             for RNA; mixed T/U input is rejected.
+          </p>
+          <p v-else>
+            2–50 unambiguous sequences, 30–500 nt each, within service limits. At least two distinct
+            sequences are required. Exact duplicates receive one folding weight. Supply comparable
+            boundaries; homology and orientation are not inferred.
           </p>
         </fieldset>
         <AssociationGrouping
@@ -138,9 +152,12 @@ const {
             :inspection="inspection"
             :array-input="mode === 'array_compare'"
             :repeat-input="['repeats', 'repeat_map', 'repeat_type'].includes(mode)"
+            :family-input="mode === 'rna_family'"
+            :locus-input="mode === 'locus_compare'"
             :spacer-input="['viral_search', 'spacer_association'].includes(mode)"
             :molecule="molecule"
             :loading-example="loadingExample"
+            :show-example="hasExample"
             :example-disabled="hasActiveJob"
             :max-request-bytes="limits.maxRequestBytes"
             @load-example="loadExample"
@@ -156,6 +173,15 @@ const {
         </div>
       </section>
       <section
+        v-if="
+          ![
+            'locus_compare',
+            'prophage_context',
+            'insertion_context',
+            'defense_context',
+            'rna_family',
+          ].includes(mode)
+        "
         class="policy-section"
         aria-labelledby="policy-step-heading"
       >

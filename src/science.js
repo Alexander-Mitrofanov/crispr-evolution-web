@@ -5,6 +5,62 @@ export const DEFAULT_CATEGORY_POLICY = CATEGORY_POLICIES[0];
 
 export const ANALYSIS_MODES = [
   {
+    id: "locus_compare",
+    title: "Compare gene neighborhoods",
+    short: "clinker · source-verified proteins and gene order",
+    description:
+      "Compare 2–8 related genomic neighborhoods, up to 50,000 nt each. " +
+      "Inspect all called genes, verified translations and protein similarity alongside Cas evidence. " +
+      "Similarity does not establish orthology or evolutionary history.",
+    minimumRecords: 2,
+    tools: ["CasAndra", "clinker"],
+    requiresAdvertisement: true,
+  },
+  {
+    id: "prophage_context",
+    title: "Inspect prophage and spacer context",
+    short: "Phigaro · candidate regions and source-spacer matches",
+    description:
+      "Locate candidate prophage regions and inspect exact matches from detected spacers within the submitted sequences. " +
+      "Sequence matches and region overlap do not establish active targeting.",
+    minimumRecords: 1,
+    tools: ["Phigaro", "CRISPRidentify v2"],
+    requiresAdvertisement: true,
+  },
+  {
+    id: "insertion_context",
+    title: "Inspect insertion-sequence context",
+    short: "ISEScan · mobile-element boundary evidence",
+    description:
+      "Locate insertion-sequence candidates and inspect their relationship to locus organization. " +
+      "Partial elements and missing boundary evidence remain explicit; a predicted overlap does not establish gene inactivation.",
+    minimumRecords: 1,
+    tools: ["ISEScan", "CasAndra"],
+    requiresAdvertisement: true,
+  },
+  {
+    id: "defense_context",
+    title: "Survey the defense repertoire",
+    short: "DefenseFinder · system rules and component evidence",
+    description:
+      "Inspect modeled defense systems and individual profile hits on the submitted sequences. " +
+      "Model release 1.2.3 provides a defined reference scope; predictions do not establish activity or a complete genome-wide repertoire.",
+    minimumRecords: 1,
+    tools: ["DefenseFinder", "CasAndra"],
+    requiresAdvertisement: true,
+  },
+  {
+    id: "rna_family",
+    title: "Compare an RNA family",
+    short: "MAFFT · RNAalifold consensus structure",
+    description:
+      "Supply 2–50 homologous RNA or DNA sequences, 30–500 nt each, in matching 5′→3′ orientation. " +
+      "Align the family and inspect its predicted consensus fold and descriptive covariation. Homology and transcript boundaries are user supplied.",
+    minimumRecords: 2,
+    tools: ["MAFFT", "RNAalifold", "ViennaRNA"],
+    requiresAdvertisement: true,
+  },
+  {
     id: "array_compare",
     title: "Compare observed arrays",
     short: "CCTK · ordered spacers and sharing networks",
@@ -167,6 +223,27 @@ export const STAGES = [
   { id: "queued", label: "Queued", detail: "Waiting for an analysis worker" },
   { id: "validate_input", label: "Validate input", detail: "Checking records and analysis policy" },
   { id: "cctk", label: "Compare observed arrays", detail: "CCTK · ordered spacer sharing" },
+  {
+    id: "clinker",
+    label: "Compare gene neighborhoods",
+    detail: "clinker · verified protein alignments",
+  },
+  {
+    id: "phigaro",
+    label: "Inspect prophage context",
+    detail: "Phigaro · candidate regions and source matches",
+  },
+  {
+    id: "isescan",
+    label: "Find insertion sequences",
+    detail: "ISEScan · boundary and transposase evidence",
+  },
+  {
+    id: "defensefinder",
+    label: "Survey defense systems",
+    detail: "DefenseFinder · pinned model rules",
+  },
+  { id: "rnaalifold", label: "Compare RNA family", detail: "MAFFT · ViennaRNA consensus folding" },
   { id: "detect_arrays", label: "Detect arrays", detail: "CRISPRidentify v2" },
   { id: "adapt_arrays", label: "Prepare arrays", detail: "Normalizing accepted calls" },
   { id: "preflight_groups", label: "Preflight groups", detail: "Testing evolutionary eligibility" },
@@ -203,6 +280,17 @@ export const TERMINAL_STATUSES = new Set(publicApiContract.enums.terminal_status
 
 export function stagesForMode(mode) {
   const annotationStages = {
+    locus_compare: ["queued", "validate_input", "annotate_cas", "clinker", "package_results"],
+    prophage_context: ["queued", "validate_input", "detect_arrays", "phigaro", "package_results"],
+    insertion_context: ["queued", "validate_input", "annotate_cas", "isescan", "package_results"],
+    defense_context: [
+      "queued",
+      "validate_input",
+      "annotate_cas",
+      "defensefinder",
+      "package_results",
+    ],
+    rna_family: ["queued", "validate_input", "rnaalifold", "package_results"],
     array_compare: ["queued", "validate_input", "cctk", "package_results"],
     spacer_association: ["queued", "validate_input", "spacepharer", "package_results"],
     repeat_type: ["queued", "validate_input", "repeattyper", "package_results"],
@@ -252,6 +340,11 @@ export function stagesForMode(mode) {
     (stage) =>
       !excluded.has(stage.id) &&
       ![
+        "clinker",
+        "phigaro",
+        "isescan",
+        "defensefinder",
+        "rnaalifold",
         "cctk",
         "annotate_cas",
         "predict_tracrrna",

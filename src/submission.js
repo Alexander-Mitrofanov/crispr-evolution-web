@@ -11,7 +11,7 @@ export function buildSubmission({ sequence, filename, mode, options }) {
     ...(mode === "spacer_association"
       ? { association_grouping: options.associationGrouping || null }
       : {}),
-    ...(mode === "repeats" ? { molecule: options.molecule || "DNA" } : {}),
+    ...(["repeats", "rna_family"].includes(mode) ? { molecule: options.molecule || "DNA" } : {}),
     ...(["loci", "tracrrna"].includes(mode)
       ? { tracr_model_type: options.tracrModelType || "II" }
       : {}),

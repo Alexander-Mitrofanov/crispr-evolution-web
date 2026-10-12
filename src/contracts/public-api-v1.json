@@ -1021,7 +1021,12 @@
       "repeat_map",
       "repeat_type",
       "spacer_association",
-      "array_compare"
+      "array_compare",
+      "locus_compare",
+      "prophage_context",
+      "insertion_context",
+      "defense_context",
+      "rna_family"
     ],
     "category_policies": ["bona_fide_possible", "bona_fide_only"],
     "job_statuses": [

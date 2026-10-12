@@ -33,11 +33,24 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("real examples for every scientific component", () => {
-  it("covers every public method and both alternate input families", () => {
+describe("source-verified shipped examples", () => {
+  it("offers the existing fifteen methods and both alternate input families only", () => {
+    const newModes = new Set([
+      "locus_compare",
+      "prophage_context",
+      "insertion_context",
+      "defense_context",
+      "rna_family",
+    ]);
     expect(Object.keys(EXAMPLE_ASSETS).sort()).toEqual(
-      [...ANALYSIS_MODES.map((mode) => mode.id), "repeats-rna", "tracrrna-v"].sort(),
+      [
+        ...ANALYSIS_MODES.map((mode) => mode.id).filter((id) => !newModes.has(id)),
+        "repeats-rna",
+        "tracrrna-v",
+      ].sort(),
     );
+    expect(Object.keys(EXAMPLE_ASSETS)).toHaveLength(17);
+    for (const mode of newModes) expect(exampleAssetsFor(mode)).toBeNull();
     expect(exampleAssetsFor("repeats", { molecule: "RNA" }).key).toBe("repeats-rna");
     expect(exampleAssetsFor("tracrrna", { tracrModelType: "V" }).key).toBe("tracrrna-v");
     expect(exampleAssetsFor("unknown")).toBeNull();

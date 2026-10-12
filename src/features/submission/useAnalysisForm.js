@@ -39,28 +39,50 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
   let submittingLatch = false;
   let exampleLatch = false;
 
-  const molecule = computed(() => (mode.value === "repeats" ? options.value.molecule : "DNA"));
+  const molecule = computed(() =>
+    ["repeats", "rna_family"].includes(mode.value) ? options.value.molecule : "DNA",
+  );
+  const hasExample = computed(() => Boolean(exampleAssetsFor(mode.value, options.value)));
   const inputLimits = computed(() =>
-    mode.value === "viral_search"
-      ? { ...props.limits, maxRecordBases: Math.min(props.limits.maxRecordBases || 80, 80) }
-      : ["repeats", "repeat_map", "repeat_type", "spacer_association"].includes(mode.value)
+    ["locus_compare", "rna_family"].includes(mode.value)
+      ? {
+          ...props.limits,
+          maxRecords: Math.min(
+            props.limits.maxRecords || 50,
+            mode.value === "locus_compare" ? 8 : 50,
+          ),
+          maxRecordBases: Math.min(
+            props.limits.maxRecordBases || 50000,
+            mode.value === "locus_compare" ? 50000 : 500,
+          ),
+        }
+      : ["prophage_context", "insertion_context", "defense_context"].includes(mode.value)
         ? {
             ...props.limits,
-            maxRecords: Math.min(
-              props.limits.maxRecords || 1000,
-              mode.value === "repeat_map" ? 100 : 1000,
-            ),
-            maxRecordBases: Math.min(props.limits.maxRecordBases || 200, 200),
+            maxRecords: Math.min(props.limits.maxRecords || 20, 20),
+            maxBases: Math.min(props.limits.maxBases || 2_000_000, 2_000_000),
+            maxRecordBases: Math.min(props.limits.maxRecordBases || 2_000_000, 2_000_000),
           }
-        : mode.value === "protospacer"
-          ? {
-              ...props.limits,
-              maxBases: Math.min(props.limits.maxBases || 5_000_000, 5_000_000),
-              maxRecordBases: Math.min(props.limits.maxRecordBases || 5_000_000, 5_000_000),
-            }
-          : mode.value === "repeat_context"
-            ? { ...props.limits, maxRecords: Math.min(props.limits.maxRecords || 1000, 1000) }
-            : props.limits,
+        : mode.value === "viral_search"
+          ? { ...props.limits, maxRecordBases: Math.min(props.limits.maxRecordBases || 80, 80) }
+          : ["repeats", "repeat_map", "repeat_type", "spacer_association"].includes(mode.value)
+            ? {
+                ...props.limits,
+                maxRecords: Math.min(
+                  props.limits.maxRecords || 1000,
+                  mode.value === "repeat_map" ? 100 : 1000,
+                ),
+                maxRecordBases: Math.min(props.limits.maxRecordBases || 200, 200),
+              }
+            : mode.value === "protospacer"
+              ? {
+                  ...props.limits,
+                  maxBases: Math.min(props.limits.maxBases || 5_000_000, 5_000_000),
+                  maxRecordBases: Math.min(props.limits.maxRecordBases || 5_000_000, 5_000_000),
+                }
+              : mode.value === "repeat_context"
+                ? { ...props.limits, maxRecords: Math.min(props.limits.maxRecords || 1000, 1000) }
+                : props.limits,
   );
 
   const inspection = computed(() =>
@@ -113,6 +135,12 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
     () =>
       inspection.value.valid &&
       inspection.value.recordCount >= selectedMode.value.minimumRecords &&
+      (mode.value !== "rna_family" ||
+        (inspection.value.records.every(
+          (record) => record.sequence.length >= 30 && /^[ACGTU]+$/.test(record.sequence),
+        ) &&
+          new Set(inspection.value.records.map((record) => record.sequence.replaceAll("T", "U")))
+            .size >= 2)) &&
       (precomputedPolicyMatches.value || withinLimits.value) &&
       (precomputedPolicyMatches.value || withinRequest.value) &&
       validToolOptions(mode.value, options.value.toolOptions) &&
@@ -238,6 +266,7 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
     options,
     submitting,
     loadingExample,
+    hasExample,
     error,
     inspection,
     selectedMode,
