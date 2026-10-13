@@ -50,6 +50,18 @@ describe("Observed array comparison", () => {
     doc.arrays[0].spacers[0].sequence = null;
     expect(inspect(doc).valid).toBe(false);
   });
+  it.each(["array", "spacer"])("rejects a null %s and keeps the form usable", async (kind) => {
+    const doc = structuredClone(packet);
+    if (kind === "array") doc.arrays[0] = null;
+    else doc.arrays[0].spacers[0] = null;
+    render(AnalysisForm, { props: { initialMode: "array_compare", service, limits } });
+    const input = screen.getByLabelText("Observed array JSON");
+    const button = screen.getByRole("button", { name: "Compute", exact: true });
+    await fireEvent.update(input, JSON.stringify(doc));
+    expect(button).toBeDisabled();
+    await fireEvent.update(input, JSON.stringify(packet));
+    expect(button).toBeEnabled();
+  });
   it("shows distinct gaps, duplicates, unknown strand, original IDs and a sharing graph", async () => {
     render(ResultsView, { props: { job: structuredClone(fixture) } });
     expect(screen.queryByRole("tab", { name: "Arrays", exact: true })).not.toBeInTheDocument();

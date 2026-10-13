@@ -30,6 +30,8 @@ export function inspectArrayInput(text, limits = {}) {
   const scopes = new Set();
   let slots = 0;
   for (const [index, array] of packet.arrays.entries()) {
+    if (!array || typeof array !== "object" || Array.isArray(array))
+      return invalid("Each array must contain observed array evidence.");
     const scope = JSON.stringify([array.source_id, array.id]);
     if (
       scopes.has(scope) ||
@@ -42,6 +44,8 @@ export function inspectArrayInput(text, limits = {}) {
     scopes.add(scope);
     slots += array.spacers.length;
     for (const [n, spacer] of array.spacers.entries()) {
+      if (!spacer || typeof spacer !== "object" || Array.isArray(spacer))
+        return invalid("Each spacer slot must contain observed DNA or an explicit deletion.");
       if (spacer.ordinal !== n + 1)
         return invalid("Spacer slots must preserve their supplied order.");
       if (spacer.status === "deletion" && spacer.sequence === null) continue;
