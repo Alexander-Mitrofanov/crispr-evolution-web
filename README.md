@@ -3,6 +3,47 @@
 Static Vue 3 frontend for CRISPRidentify v2, CasAndra, CRISPRtracrRNA v3,
 SpacerPlacer, evOr and connected context workflows. It is built with Vite and contains no server-side runtime or secrets.
 
+## Genome exploration
+
+Completed genomic jobs with `result.json` and `input-sequences.json` offer a
+**Genome & locus** tab. A single, lazy-loaded igv.js 3.8.10 integration provides
+sequence zoom, coordinate navigation, strand-aware tracks and SVG figures.
+Feature selection opens the existing scientific evidence alongside the tracks.
+The original tables, array comparisons and evolutionary views remain the owners
+of detailed interpretation; no second genome-browser library is installed.
+
+Supported modes are detection, complete loci, Cas, tracrRNA, leader context,
+protospacer search, prophage context, insertion context and defense context.
+After the viewer starts successfully, it replaces the static annotation overview
+strip. Precomputed examples, older results and jobs outside the viewer's limits
+retain their existing views.
+
+`src/features/genome/` verifies complete artifacts, binds source hashes to actual
+target DNA, and converts inclusive annotations and half-open flanks once. Inputs
+are bounded to 10 million bases, 50,000 placed features and 1,000 overlapping
+features per track. The feature chooser lists at most 100 search matches; it
+does not truncate the scientific tracks. Empty or unlocated windows are counted
+explicitly. Unknown topology never implies circular adjacency. See the existing
+evidence tables for module scope, raw scores and unassessed records.
+
+Only the API client receives the job capability. IGV receives local `File` data
+and in-memory features, with external genome defaults, remote searches and URL
+session loading disabled. Context menus that offer external BLAT searches are
+disabled. No new endpoints, scientific environments or production changes are
+required. The MIT license is distributed in `public/licenses/igv.txt`.
+
+The production CSP permits two exact static stylesheet hashes from the pinned
+IGV distribution; arbitrary inline styles/scripts, workers and frames remain
+blocked. `scripts/igv-vendor.mjs` verifies the upstream source checksum and an
+isolated output chunk before the public scan exempts its built-in public genome
+identifiers. Application chunks and example data retain the strict identity scan.
+Dependency updates require reviewing both this checksum and the CSP hashes.
+
+Run `npm test` and the production build. In the private monorepo, run
+`scripts/check.sh frontend` and `scripts/browser_genome.py` against a locally
+served build configured with `VITE_API_BASE_URL=https://analysis.example.org`.
+The browser test uses synthetic intercepted artifacts and creates no live jobs.
+
 ## Version 2.12.0 context workflows
 
 Five additional methods appear when advertised by the analysis service:

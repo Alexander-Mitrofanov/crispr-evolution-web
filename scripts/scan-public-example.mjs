@@ -9,6 +9,7 @@ import {
   validateExampleInput,
 } from "../src/example.js";
 import { hasForbiddenPublicIdentity } from "./public-identity-policy.mjs";
+import { verifiedIgvBundle } from "./igv-vendor.mjs";
 
 const roots = ["public", "dist"].filter((root) => existsSync(root));
 const sequenceExtension = /\.(?:fa|fasta|fna|ffn|fas)$/i;
@@ -29,6 +30,7 @@ function walk(root) {
 }
 
 for (const root of roots) {
+  const vendorBundle = root === "dist" ? verifiedIgvBundle(root) : null;
   const fastaPath = resolve(root, EXAMPLE_FASTA_PATH);
   const resultPath = resolve(root, EXAMPLE_RESULT_PATH);
   if (!existsSync(fastaPath) || !existsSync(resultPath)) {
@@ -79,7 +81,10 @@ for (const root of roots) {
     const name = relative(root, file);
     const compiledBundle =
       (root === "dist" && /^assets\/[^/]+\.js$/i.test(name)) || validatedModules.has(resolve(file));
-    if (hasForbiddenPublicIdentity(text, { compiledBundle }) || hasForbiddenPublicIdentity(name)) {
+    if (
+      (resolve(file) !== vendorBundle && hasForbiddenPublicIdentity(text, { compiledBundle })) ||
+      hasForbiddenPublicIdentity(name)
+    ) {
       fail(`source identity metadata is present: ${relative(root, file)}`);
     }
   }

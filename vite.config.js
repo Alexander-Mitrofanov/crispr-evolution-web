@@ -1,5 +1,7 @@
 import { defineConfig, loadEnv } from "vite";
 import vue from "@vitejs/plugin-vue";
+import { igvStyleHashes } from "./scripts/igv-csp.mjs";
+import { auditIgvVendor } from "./scripts/igv-vendor.mjs";
 
 function normalizeBase(value) {
   const trimmed = String(value || "/").trim();
@@ -37,7 +39,7 @@ function productionCsp(command, value) {
     "object-src 'none'",
     "script-src 'self'",
     "script-src-attr 'none'",
-    "style-src 'self'",
+    `style-src 'self' ${igvStyleHashes.join(" ")}`,
     "style-src-attr 'none'",
     "img-src 'self' data:",
     "font-src 'self'",
@@ -78,7 +80,7 @@ export default defineConfig(({ command, mode }) => {
       !process.env.VITE_API_BASE_URL
         ? { "import.meta.env.VITE_API_BASE_URL": JSON.stringify("http://127.0.0.1:8000") }
         : {},
-    plugins: [vue(), ...(csp ? [csp] : [])],
+    plugins: [vue(), auditIgvVendor(), ...(csp ? [csp] : [])],
     test: {
       environment: "jsdom",
       globals: true,

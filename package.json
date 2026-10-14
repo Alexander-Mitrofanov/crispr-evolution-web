@@ -1,6 +1,6 @@
 {
   "name": "crisprloci-v2",
-  "version": "2.12.2",
+  "version": "2.12.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,6 +20,7 @@
     "node": ">=22.12"
   },
   "dependencies": {
+    "igv": "3.8.10",
     "vue": "3.5.42"
   },
   "devDependencies": {

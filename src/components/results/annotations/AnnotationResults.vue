@@ -7,6 +7,7 @@ const props = defineProps({
   tracr: { type: Object, required: true },
   arrays: { type: Array, default: () => [] },
   view: { type: String, default: "all" },
+  showMap: { type: Boolean, default: true },
 });
 const heading = computed(
   () =>
@@ -62,7 +63,7 @@ const forSource = (rows, id) => (rows || []).filter((row) => row.source_id === i
       </div>
     </div>
     <details
-      v-if="showOverview && sources.length"
+      v-if="showMap && showOverview && sources.length"
       class="result-details"
     >
       <summary>Genomic context</summary>

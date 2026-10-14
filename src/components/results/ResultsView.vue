@@ -2,6 +2,8 @@
 import { computed, nextTick, ref, useId, watch } from "vue";
 
 import { normalizePublicResult, useAdapterMembership } from "../../features/results/index.js";
+import { genomeAvailable } from "../../features/genome/index.js";
+import GenomeExplorer from "./genome/GenomeExplorer.vue";
 import { asArray } from "../../utils/formatting.js";
 import { mergeAdapterMembership } from "../../utils/results.js";
 import AppIcon from "../common/AppIcon.vue";
@@ -95,8 +97,17 @@ const cas = computed(() => summary.value.casandra || { status: "not_requested" }
 const tracr = computed(() => summary.value.tracrrna || { status: "not_requested" });
 const tabId = useId();
 const selectedTab = ref("overview");
+const genomeOpened = ref(false);
+const genomeReady = ref(false);
+const hasGenome = computed(
+  () =>
+    props.credential?.jobId === props.job?.job_id &&
+    Boolean(props.credential?.accessToken) &&
+    genomeAvailable(props.job?.mode, props.job?.artifacts),
+);
 const tabs = computed(() => [
   { id: "overview", label: "Overview" },
+  ...(hasGenome.value ? [{ id: "genome", label: "Genome & locus" }] : []),
   ...(annotationMode.value && ["loci", "cas"].includes(props.job?.mode)
     ? [{ id: "cas", label: "Cas systems" }]
     : []),
@@ -141,7 +152,18 @@ const warnings = computed(() => asArray(summary.value.warnings));
 
 watch([() => props.job?.job_id, () => props.job?.mode], () => {
   selectedTab.value = "overview";
+  genomeOpened.value = false;
+  genomeReady.value = false;
 });
+watch(selectedTab, (value) => {
+  if (value === "genome") genomeOpened.value = true;
+});
+
+function openGenomeEvidence() {
+  selectedTab.value =
+    { loci: "arrays", detection: "arrays", protospacer: "protospacer" }[props.job.mode] ||
+    props.job.mode;
+}
 
 async function navigateTabs(event, index) {
   const last = tabs.value.length - 1;
@@ -239,6 +261,24 @@ async function navigateTabs(event, index) {
       :hidden="activeTab !== tab.id"
       tabindex="0"
     >
+      <button
+        v-if="tab.id === 'overview' && hasGenome"
+        type="button"
+        @click="selectedTab = 'genome'"
+      >
+        Explore genome context
+      </button>
+      <GenomeExplorer
+        v-if="tab.id === 'genome' && genomeOpened"
+        :key="job.job_id"
+        :job-id="job.job_id"
+        :mode="job.mode"
+        :access-token="credential.accessToken"
+        :artifacts="job.artifacts"
+        :active="activeTab === 'genome'"
+        @open-evidence="openGenomeEvidence"
+        @ready="genomeReady = $event"
+      />
       <ResultSynopsis
         v-if="
           tab.id === 'overview' &&
@@ -267,6 +307,7 @@ async function navigateTabs(event, index) {
         :tracr="tracr"
         :arrays="arrays"
         :view="tab.id"
+        :show-map="!hasGenome || !genomeReady"
       />
       <LeaderResults
         v-if="['leader', 'loci'].includes(job.mode) && ['overview', 'leader'].includes(tab.id)"
