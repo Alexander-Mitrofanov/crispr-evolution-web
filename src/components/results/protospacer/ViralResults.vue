@@ -2,6 +2,7 @@
 import { computed, ref, useId } from "vue";
 const props = defineProps({
   available: Boolean,
+  compact: Boolean,
   completed: { type: Boolean, default: null },
   outcome: { type: String, default: null },
   reference: { type: Object, required: true },
@@ -89,7 +90,7 @@ const accessionUrl = (a) => `https://www.ncbi.nlm.nih.gov/nuccore/${encodeURICom
         records
       </p>
       <details
-        v-if="candidates.length"
+        v-if="candidates.length && !compact"
         class="viral-candidates"
         open
       >
@@ -118,7 +119,7 @@ const accessionUrl = (a) => `https://www.ncbi.nlm.nih.gov/nuccore/${encodeURICom
           </li>
         </ul>
       </details>
-      <template v-if="matches.length"
+      <template v-if="matches.length && !compact"
         ><label :for="filterId">Filter displayed matches by spacer, accession or title</label
         ><input
           :id="filterId"
@@ -179,7 +180,7 @@ const accessionUrl = (a) => `https://www.ncbi.nlm.nih.gov/nuccore/${encodeURICom
           No displayed matches contain that text.
         </p>
       </template>
-      <details v-if="skipped.length">
+      <details v-if="skipped.length && !compact">
         <summary>Skipped spacers ({{ skipped.length }} shown)</summary>
         <ul>
           <li
@@ -206,7 +207,11 @@ const accessionUrl = (a) => `https://www.ncbi.nlm.nih.gov/nuccore/${encodeURICom
         This is a limited preview. Download viral-matches.tsv or viral-matches.json for the complete
         validated result.
       </p>
-      <details>
+      <p v-if="compact">
+        Open Viral matches for reference evidence, skipped-query reasons and alignments. Complete
+        validated evidence is available in Files &amp; methods.
+      </p>
+      <details v-if="!compact">
         <summary>Reference identity and method</summary>
         <p>
           Coordinates are 1-based inclusive on the forward reference. Both strands are searched. PAM

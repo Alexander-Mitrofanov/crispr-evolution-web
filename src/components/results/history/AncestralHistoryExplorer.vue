@@ -393,5 +393,8 @@ const chooseHypothesis = (kind) => {
     :newick="fallbackTree"
     :group="group"
     :reported-by-default="reportedByDefault"
+    :status-label="
+      comparison ? 'Displayed hypothesis model tree' : 'Input orientation; not compared'
+    "
   />
 </template>

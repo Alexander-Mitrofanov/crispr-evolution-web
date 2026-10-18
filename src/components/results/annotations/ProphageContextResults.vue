@@ -8,6 +8,7 @@ const props = defineProps({
   sourceArrays: { type: Array, default: () => [] },
   sourceSpacers: { type: Array, default: () => [] },
   sourceInventoryComplete: Boolean,
+  searchPolicy: { type: Object, default: () => ({}) },
   counts: { type: Object, default: () => ({}) },
   regionsTruncated: Boolean,
   matchesTruncated: Boolean,
@@ -49,6 +50,15 @@ const searchStatus = (status) =>
         assessed for prophages. Records shorter than 20,000 nt are not assessed by this pinned
         Phigaro workflow. Spacer matching remains a separate same-record analysis.
       </p>
+      <p v-if="searchPolicy.complete === true">
+        Completed exact full-length search of unambiguous {{ searchPolicy.minLength }}–{{
+          searchPolicy.maxLength
+        }}
+        nt spacers from {{ searchPolicy.queryCategories.join(" / ") }} arrays, on both strands of
+        the same source record. Matches overlapping any reported array are excluded. PAM
+        compatibility and targeting activity are not assessed.
+      </p>
+      <p v-else>Source-spacer search policy or completion is not reported.</p>
       <p v-if="counts.assessed_sources === 0">
         No source records were assessed for prophages; this is not a negative prediction.
       </p>

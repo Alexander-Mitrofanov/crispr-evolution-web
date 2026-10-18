@@ -148,8 +148,8 @@
       "name": "CRISPRtracrRNA",
       "modes": ["tracrrna", "loci"],
       "description": "Screen covariance models or run the complete locus workflow.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/CRISPRtracrRNA-v3/blob/9811f27d202582345bf54e5c34c911c269135992/README.md",
-      "revision": "9811f27d202582345bf54e5c34c911c269135992",
+      "documentation": "https://github.com/Alexander-Mitrofanov/CRISPRtracrRNA-v3/blob/9307e26677335ac4d2cf67fbd3c9294c9a08f7f4/README.md",
+      "revision": "9307e26677335ac4d2cf67fbd3c9294c9a08f7f4",
       "cli_modes": [
         {
           "name": "run --mode model",
@@ -278,8 +278,8 @@
       "name": "SpacerPlacer",
       "modes": ["reconstruction"],
       "description": "Reconstruct ancestral spacer arrays and compare deletion models.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/SpacerPlacer/blob/0e4c22494829f8c3a3a7bf6b78203314651826c9/README.md",
-      "revision": "0e4c22494829f8c3a3a7bf6b78203314651826c9",
+      "documentation": "https://github.com/Alexander-Mitrofanov/SpacerPlacer/blob/2a91510a8ec98e02507921b56e94df16cf6e0bd5/README.md",
+      "revision": "2a91510a8ec98e02507921b56e94df16cf6e0bd5",
       "cli_modes": [
         {
           "name": "--input_type ccdb",
@@ -365,8 +365,8 @@
       "name": "evOr",
       "modes": ["orientation"],
       "description": "Compare array orientations and reconstruct the selected orientation.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/evOr/blob/5120465837e37acb0dc39baae7a71c5ad94d3843/README.md",
-      "revision": "5120465837e37acb0dc39baae7a71c5ad94d3843",
+      "documentation": "https://github.com/Alexander-Mitrofanov/evOr/blob/505dafe5bc1134d935b33dfd1de7d9872a6eeae3/README.md",
+      "revision": "505dafe5bc1134d935b33dfd1de7d9872a6eeae3",
       "cli_modes": [
         {
           "name": "crispr-evor --input_type ccdb",
@@ -613,8 +613,8 @@
       "name": "CRISPRspacer",
       "modes": ["protospacer", "viral_search"],
       "description": "Search an immutable observed-spacer collection or a viral reference.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/CRISPRspacer/blob/15298183a59b3027957a247d00323df759477f4e/README.md",
-      "revision": "15298183a59b3027957a247d00323df759477f4e",
+      "documentation": "https://github.com/Alexander-Mitrofanov/CRISPRspacer/blob/ddea3f5da9d5ff6a33802046bdb0e0a762029d23/README.md",
+      "revision": "ddea3f5da9d5ff6a33802046bdb0e0a762029d23",
       "cli_modes": [
         {
           "name": "database-search",
@@ -693,8 +693,8 @@
       "name": "SpacePHARER",
       "modes": ["spacer_association"],
       "description": "Combine translated and nucleotide spacer evidence within explicit groups against an immutable phage reference database.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/SpacePHARER/blob/4f264252846acef7e0d291209e3e5e3f6faf306c/README.md",
-      "revision": "4f264252846acef7e0d291209e3e5e3f6faf306c",
+      "documentation": "https://github.com/Alexander-Mitrofanov/SpacePHARER/blob/8dabb0d0f4d7c880854d8cf0190215e09b1b641d/README.md",
+      "revision": "8dabb0d0f4d7c880854d8cf0190215e09b1b641d",
       "cli_modes": [
         {
           "name": "spacepharer associate",
@@ -765,8 +765,8 @@
       "name": "clinker-v2",
       "modes": ["locus_compare"],
       "description": "Compare source-verified CDS translations and local gene organization.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/clinker-v2/blob/87dd54db5787725054fa2ea0f645e207a7374d07/README.md",
-      "revision": "87dd54db5787725054fa2ea0f645e207a7374d07",
+      "documentation": "https://github.com/Alexander-Mitrofanov/clinker-v2/blob/1526377ef54bedaae2980c4013c6de91805cf59a/README.md",
+      "revision": "1526377ef54bedaae2980c4013c6de91805cf59a",
       "cli_modes": [
         {
           "name": "clinker-v2 compare",
@@ -786,8 +786,8 @@
       "name": "Phigaro-v2",
       "modes": ["prophage_context"],
       "description": "Predict source-bound prophage regions with the pinned pVOG reference.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/Phigaro-v2/blob/b4f32844b83167afa3ee1b1d6dea994d487bd7ec/README.md",
-      "revision": "b4f32844b83167afa3ee1b1d6dea994d487bd7ec",
+      "documentation": "https://github.com/Alexander-Mitrofanov/Phigaro-v2/blob/0fae62b856a6b76d716a2dca230ced12e4221e9f/README.md",
+      "revision": "0fae62b856a6b76d716a2dca230ced12e4221e9f",
       "cli_modes": [
         {
           "name": "phigaro-v2 predict",
@@ -816,8 +816,8 @@
       "name": "ISEScan-v2",
       "modes": ["insertion_context"],
       "description": "Predict insertion-sequence context with pinned native models.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/ISEScan-v2/blob/74d7969e3eb7d3958a326cbf5ad65a03b6bbfa71/README.md",
-      "revision": "74d7969e3eb7d3958a326cbf5ad65a03b6bbfa71",
+      "documentation": "https://github.com/Alexander-Mitrofanov/ISEScan-v2/blob/30877d2ca43f042a4789c4185859e97d4d9a1a7a/README.md",
+      "revision": "30877d2ca43f042a4789c4185859e97d4d9a1a7a",
       "cli_modes": [
         {
           "name": "isescan-v2",
@@ -837,8 +837,8 @@
       "name": "DefenseFinder-v2",
       "modes": ["defense_context"],
       "description": "Assess known defense systems using frozen HMM and system-rule models.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/DefenseFinder-v2/blob/ff7c62f12051eaaa47e71d4829bd7a86ffbb7846/README.md",
-      "revision": "ff7c62f12051eaaa47e71d4829bd7a86ffbb7846",
+      "documentation": "https://github.com/Alexander-Mitrofanov/DefenseFinder-v2/blob/f579941ca35fb4bd26fcd4c35fcffc23df9d91a2/README.md",
+      "revision": "f579941ca35fb4bd26fcd4c35fcffc23df9d91a2",
       "cli_modes": [
         {
           "name": "defense-context",
@@ -858,8 +858,8 @@
       "name": "RNAalifold-v2",
       "modes": ["rna_family"],
       "description": "Align an oriented homologous RNA family and predict comparative pairing evidence.",
-      "documentation": "https://github.com/Alexander-Mitrofanov/RNAalifold-v2/blob/d5bc9ffdc117896515db3c6cd73de2444d16b35a/README.md",
-      "revision": "d5bc9ffdc117896515db3c6cd73de2444d16b35a",
+      "documentation": "https://github.com/Alexander-Mitrofanov/RNAalifold-v2/blob/0498c888203ba7bd6a8e6c6e35a27229adc61d1e/README.md",
+      "revision": "0498c888203ba7bd6a8e6c6e35a27229adc61d1e",
       "cli_modes": [
         {
           "name": "rnaalifold-v2",

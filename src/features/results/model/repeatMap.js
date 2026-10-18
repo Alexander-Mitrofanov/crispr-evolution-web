@@ -16,6 +16,8 @@ export function normalizeRepeatMap(value) {
   return {
     available: r.available === true && r.execution_completed === true,
     namespace: text(reference.namespace),
+    maxDistance: count(r.policy?.max_distance),
+    topK: count(r.policy?.top_k),
     referenceSha256: text(reference.file_sha256),
     truncated: r.results_truncated === true,
     counts: Object.fromEntries(
@@ -33,12 +35,17 @@ export function normalizeRepeatMap(value) {
         status: text(row.status),
         distance: count(row.best_distance),
         hitCount: count(row.best_hit_count),
+        reportedHitCount: count(row.reported_hit_count),
         truncated: row.hits_truncated === true,
+        previewTruncated:
+          asList(row.hits).length > 100 ||
+          (count(row.reported_hit_count) !== null &&
+            row.reported_hit_count > Math.min(asList(row.hits).length, 100)),
         family: label(asRecord(row.annotations)?.family),
         motif: label(asRecord(row.annotations)?.motif),
         hits: asList(row.hits)
           .filter(asRecord)
-          .slice(0, 20)
+          .slice(0, 100)
           .map((h) =>
             Object.fromEntries(
               ["reference_id", "orientation", "query_aligned", "reference_aligned"].map((k) => [

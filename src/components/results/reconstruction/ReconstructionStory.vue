@@ -25,7 +25,7 @@ const comparison = computed(() =>
 const decision = computed(() =>
   comparison.value
     ? comparisonDecisionFor(comparison.value, orientation.value).label
-    : "Unresolved",
+    : "Input orientation; not compared",
 );
 const reportedByDefault = computed(() => decision.value === "Unresolved");
 const tree = computed(() => {
@@ -43,6 +43,9 @@ const tree = computed(() => {
       <div>
         <small>Reconstructed group {{ index + 1 }}</small>
         <h4>{{ group }}</h4>
+        <p v-if="!comparison">
+          Input orientation; not compared. Tree inferred from arrays with an uncalibrated scale.
+        </p>
       </div>
       <span>{{ formatNumber(reconstructionMetric(row, "leaves")) }} leaves</span>
     </div>

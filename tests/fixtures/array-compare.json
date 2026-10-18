@@ -222,10 +222,12 @@
         "isolates": 2
       },
       "interpretation": "Observed sharing only; source-forward order is not inferred acquisition order or a phylogeny.",
-      "origin_semantics": "Uploaded source descriptors and origin coordinates are annotations; source genomes were not independently verified in this comparison.",
+      "origin_semantics": "Uploaded source descriptors, origin coordinates, categories, model scores and boundary annotations are client-supplied metadata; source genomes and claimed producers were not independently verified in this comparison.",
       "available": true,
       "arrays_truncated": false,
-      "edges_truncated": false
+      "edges_truncated": false,
+      "coordinate_system": "1-based-inclusive-source-forward",
+      "score_semantics": "uncalibrated-model-score"
     }
   },
   "artifacts": []

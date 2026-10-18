@@ -266,7 +266,7 @@
           "min_shared": 1,
           "order": "supplied"
         },
-        "origin_semantics": "Uploaded source descriptors and origin coordinates are annotations; source genomes were not independently verified in this comparison.",
+        "origin_semantics": "Uploaded source descriptors, origin coordinates, categories, model scores and boundary annotations are client-supplied metadata; source genomes and claimed producers were not independently verified in this comparison.",
         "schema": {
           "name": "crisprloci.array-comparison",
           "version": "1.0.0"
@@ -297,7 +297,9 @@
         "tool": {
           "name": "CCTK",
           "version": "2.0.2"
-        }
+        },
+        "coordinate_system": "1-based-inclusive-source-forward",
+        "score_semantics": "uncalibrated-model-score"
       },
       "casandra": {
         "cassettes": [],

@@ -10,6 +10,20 @@ import {
   text,
 } from "./contextValues.js";
 
+function pairTypeCounts(value) {
+  const mapping = asRecord(value);
+  if (!mapping || Object.keys(mapping).length > 25) return null;
+  const entries = Object.entries(mapping);
+  if (
+    entries.some(
+      ([key, number]) =>
+        !/^[ACGU-]{2}$/.test(key) || !Number.isSafeInteger(number) || number < 0 || number > 50,
+    )
+  )
+    return null;
+  return Object.fromEntries(entries);
+}
+
 export function normalizeRnaFamily(value) {
   const doc = asRecord(value) || {};
   return {
@@ -47,7 +61,7 @@ export function normalizeRnaFamily(value) {
       noncanonical_sequences: count(row.noncanonical_sequences),
       gapped_sequences: count(row.gapped_sequences),
       compensatory_sequence_pairs: count(row.compensatory_sequence_pairs),
-      pair_types: labels(row.pair_types, 16),
+      pair_types: pairTypeCounts(row.pair_types),
     })),
     warnings: labels(doc.warnings, 50),
   };

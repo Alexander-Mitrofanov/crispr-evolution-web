@@ -79,7 +79,9 @@ describe("Vue submission policy", () => {
     const notice = screen.getByRole("note", { name: /sequence privacy and retention/i });
     expect(notice).toHaveTextContent(/service operator/i);
     expect(notice).toHaveTextContent(/not end-to-end encryption/i);
-    expect(notice).toHaveTextContent(/72 hours after the run finishes/i);
+    expect(notice).toHaveTextContent(/results are available as soon as the analysis completes/i);
+    expect(notice).not.toHaveTextContent(/72 hours/i);
+    expect(notice).toHaveTextContent(/each job shows its expiry time/i);
     expect(notice).toHaveTextContent(
       /personal, clinical, controlled, or unpublished sensitive sequences/i,
     );

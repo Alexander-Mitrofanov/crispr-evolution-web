@@ -174,8 +174,9 @@ const changedCount = computed(() => toolOptionCount(props.mode, props.modelValue
             >Refine α/ρ deletion-parameter estimates; orientation ΔlnL is unchanged. On this public
             service, if a group/direction-specific ρ correction has no finite fit, that fit alone
             uses uncorrected ρ estimates and records a warning instead of failing the job. The
-            affected deletion-rate estimates and IDM/BDM LRT remain uncorrected; strict
-            all-corrections-or-error is a separate CLI policy.</small
+            affected deletion-rate estimates remain uncorrected. Optimizer likelihoods and the
+            IDM/BDM LRT are unchanged by ρ correction; strict all-corrections-or-error is a separate
+            CLI policy.</small
           ></span
         >
         <div

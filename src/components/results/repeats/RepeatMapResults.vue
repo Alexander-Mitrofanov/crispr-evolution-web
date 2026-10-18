@@ -3,6 +3,8 @@ import { computed, ref } from "vue";
 const props = defineProps({
   available: Boolean,
   namespace: { type: String, default: null },
+  maxDistance: { type: Number, default: null },
+  topK: { type: Number, default: null },
   referenceSha256: { type: String, default: null },
   counts: { type: Object, required: true },
   results: { type: Array, required: true },
@@ -36,9 +38,10 @@ const display = (v) => v ?? "Not reported";
         {{ display(counts.unsupported_count) }} unsupported
       </p>
       <p>
-        Exact matches recover reference annotations. Near matches are candidates within three global
-        edits; they do not assign a family or motif. Reference-relative orientation is not
-        transcription strand. No hit does not establish biological novelty.
+        Exact matches recover reference annotations. Near matches are candidates within
+        {{ display(maxDistance) }} global edits; they do not assign a family or motif.
+        Reference-relative orientation is not transcription strand. No hit does not establish
+        biological novelty. Native reporting limit: {{ display(topK) }} best ties per repeat.
       </p>
       <p v-if="compact">Open Repeat matches for the sequence evidence and reference identity.</p>
       <template v-else>
@@ -74,7 +77,13 @@ const display = (v) => v ?? "Not reported";
             }}<span v-if="row.motif.values.length"> ({{ row.motif.values.join(", ") }})</span>
           </p>
           <p v-if="row.truncated">
-            Only the first 20 tied hits are displayed. Annotation evidence includes every best tie.
+            Native reporting retained {{ display(row.reportedHitCount) }} of
+            {{ display(row.hitCount) }} best ties. Annotation evidence includes every best tie.
+          </p>
+          <p v-if="row.previewTruncated">
+            Browser preview displays {{ row.hits.length }} of
+            {{ display(row.reportedHitCount) }} reported hits; complete reported evidence is in the
+            downloads.
           </p>
           <details v-if="row.hits.length">
             <summary>Reference alignments</summary>

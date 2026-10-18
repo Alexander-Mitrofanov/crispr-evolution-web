@@ -22,7 +22,9 @@ export const ANALYSIS_MODES = [
     short: "Phigaro · candidate regions and source-spacer matches",
     description:
       "Locate candidate prophage regions and inspect exact matches from detected spacers within the submitted sequences. " +
-      "Sequence matches and region overlap do not establish active targeting.",
+      "Submit one coherent genome/assembly or closely related strains: Prodigal trains jointly across eligible records in single mode, genetic code 11. " +
+      "Unrelated genomes can change predictions for unchanged records. " +
+      "The 20,000 nt cutoff is eligibility, not a validated accuracy guarantee. Sequence matches and region overlap do not establish active targeting.",
     minimumRecords: 1,
     tools: ["Phigaro", "CRISPRidentify v2"],
     requiresAdvertisement: true,
@@ -95,12 +97,12 @@ export const ANALYSIS_MODES = [
   {
     id: "repeat_map",
     title: "Map repeats to reference families",
-    short: "CRISPRmap v2 · annotated reference evidence",
+    short: "CRISPRmap independent historical-reference mapper · annotated reference evidence",
     description:
       "Compare up to 100 DNA repeats, at most 200 bases each, with a frozen annotated reference. " +
       "Recover exact labels and inspect near matches within three global edits, with conflicting or missing labels retained.",
     minimumRecords: 1,
-    tools: ["CRISPRmap v2"],
+    tools: ["CRISPRmap independent historical-reference mapper"],
     requiresAdvertisement: true,
   },
   {
@@ -261,7 +263,11 @@ export const STAGES = [
     label: "Classify repeat subtypes",
     detail: "RepeatTyper · preserved model evidence",
   },
-  { id: "crisprmap", label: "Map repeat references", detail: "CRISPRmap v2" },
+  {
+    id: "crisprmap",
+    label: "Map repeat references",
+    detail: "CRISPRmap independent historical-reference mapper",
+  },
   { id: "crisprrepeat", label: "Analyze repeat evidence", detail: "CRISPRrepeat · ViennaRNA" },
   {
     id: "crisprspacer",
@@ -271,7 +277,7 @@ export const STAGES = [
   {
     id: "spacepharer",
     label: "Associate spacer groups",
-    detail: "SpacePHARER · calibrated target/control evidence",
+    detail: "SpacePHARER · target/control calibration",
   },
   { id: "package_results", label: "Package results", detail: "Reports, provenance, and archive" },
 ];

@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 from urllib.parse import urlsplit
 from playwright.sync_api import expect, sync_playwright
+from offline_example import check_offline_example
 
 ROOT=Path(__file__).resolve().parents[1]
 TOKEN='a'*43
@@ -48,7 +49,9 @@ def check(origin,output):
                 route.fulfill(status=202 if request.method=='POST' else 200,headers=headers,content_type='application/json',body=json.dumps(data))
             page.route('https://analysis.example.org/**',api)
             page.goto(origin);page.wait_for_load_state('networkidle')
-            expect(page.get_by_role('link',name='Associate spacer groups with phages',exact=True)).to_have_count(0)
+            check_offline_example(page, state, link='Associate spacer groups with phages', input_label='Spacer sequences', sequence=json.dumps(packet), submit='Compute')
+            page.goto(origin)
+            page.wait_for_load_state("networkidle")
             state['advertised']=True;page.reload();page.wait_for_load_state('networkidle')
             page.get_by_role('link',name='Associate spacer groups with phages',exact=True).click()
             input=page.get_by_label('Spacer sequences',exact=True)

@@ -45,6 +45,8 @@ export function normalizeArrayCompare(value) {
     .map((e) => ({ a: e.a, b: e.b, shared: e.nshared, jaccard: e.jaccard }));
   return {
     available: doc.available === true && doc.execution_completed === true,
+    coordinateSystem: text(doc.coordinate_system),
+    scoreSemantics: text(doc.score_semantics),
     arrays,
     edges,
     isolates: asList(doc.isolates).filter((id) => typeof id === "string"),

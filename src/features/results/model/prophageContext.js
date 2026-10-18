@@ -17,6 +17,19 @@ export function normalizeProphageContext(value) {
   const doc = asRecord(value) || {};
   return {
     available: available(doc),
+    searchPolicy: {
+      scope: text(doc.search_policy?.scope),
+      queryCategories: labels(doc.search_policy?.query_categories, 5),
+      queryAlphabet: text(doc.search_policy?.query_alphabet),
+      minLength: count(doc.search_policy?.min_query_length),
+      maxLength: count(doc.search_policy?.max_query_length),
+      method: text(doc.search_policy?.method),
+      arrayExclusion: text(doc.search_policy?.array_exclusion),
+      complete: flag(doc.search_policy?.search_complete),
+      truncated: flag(doc.search_policy?.results_truncated),
+      pam: text(doc.search_policy?.pam),
+      targetingActivity: text(doc.search_policy?.targeting_activity),
+    },
     counts: counts(doc.counts, [
       "sources",
       "assessed_sources",

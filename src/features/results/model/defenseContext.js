@@ -20,6 +20,7 @@ export function normalizeDefenseContext(value) {
     casContext: casRelations(doc.cas_context),
     counts: counts(doc.counts, ["sources", "genes", "systems", "components", "hits"]),
     systemsTruncated: doc.systems_truncated === true,
+    componentsTruncated: doc.components_truncated === true,
     hitsTruncated: doc.hits_truncated === true,
     systems: rows(doc.systems).map((row) => ({
       id: text(row.id),
@@ -36,7 +37,7 @@ export function normalizeDefenseContext(value) {
       id: text(row.id),
       source_id: text(row.source_id),
       ...interval(row),
-      strand: strand(row.strand),
+      strand: row.strand === 1 ? "+" : row.strand === -1 ? "-" : strand(row.strand),
       position: count(row.position),
       translation_table: count(row.translation_table),
     })),

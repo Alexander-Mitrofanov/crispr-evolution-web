@@ -158,8 +158,9 @@ const citations = [
     title:
       "CRISPRmap: an automated classification of repeat conservation in prokaryotic adaptive immune systems",
     doi: "https://doi.org/10.1093/nar/gkt606",
-    source: "https://rna.informatik.uni-freiburg.de/CRISPRmap/",
-    sourceLabel: "Original website",
+    source: "https://github.com/Alexander-Mitrofanov/CRISPRmap-v2",
+    sourceLabel: "Independent mapper source",
+    note: "The paper describes the original CRISPRmap. This independent historical-reference mapper does not recreate its classification pipeline.",
   },
   {
     tool: "CRISPRspacer",

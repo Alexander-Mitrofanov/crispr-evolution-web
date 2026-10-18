@@ -221,20 +221,17 @@ const {
         <AppIcon name="shield" />
         <p>
           <strong>Non-sensitive research data only.</strong> Sequences are sent to the service
-          operator. Results are deleted
-          {{
-            service.expiresHours
-              ? `${service.expiresHours} hours after the run finishes`
-              : "under the configured retention policy"
-          }}.
+          operator. Results are available as soon as the analysis completes. Download a copy to
+          keep.
         </p>
         <details class="privacy-details">
           <summary>Data privacy</summary>
           <p>
             The job token protects retrieval; it is not end-to-end encryption from the operator. Do
             not submit personal, clinical, controlled, or unpublished sensitive sequences; use an
-            institutionally approved private route. The bundled example is matched locally and is
-            never submitted while its input and options match the stored result.
+            institutionally approved private route. Results are stored temporarily; each job shows
+            its expiry time. The bundled example is matched locally and is never submitted while its
+            input and options match the stored result.
           </p>
         </details>
       </div>

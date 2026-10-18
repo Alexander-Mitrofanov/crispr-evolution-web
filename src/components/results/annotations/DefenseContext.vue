@@ -9,6 +9,7 @@ const props = defineProps({
   genes: { type: Array, default: () => [] },
   counts: { type: Object, default: () => ({}) },
   systemsTruncated: { type: Boolean, default: false },
+  componentsTruncated: { type: Boolean, default: false },
   hitsTruncated: { type: Boolean, default: false },
 });
 const geneMap = computed(() => new Map(props.genes.map((gene) => [gene.id, gene])));
@@ -82,8 +83,11 @@ const score = (value) =>
           </tbody>
         </table>
       </div>
-      <details v-if="components.length">
+      <details v-if="components.length || componentsTruncated">
         <summary>Inspect component assignments</summary>
+        <p v-if="componentsTruncated">
+          Component preview is limited; the download contains all component assignments.
+        </p>
         <ul>
           <li
             v-for="(item, index) in components"

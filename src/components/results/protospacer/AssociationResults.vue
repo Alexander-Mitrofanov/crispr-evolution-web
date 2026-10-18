@@ -50,7 +50,8 @@ const status = (v) =>
         Native empirical FDR is estimated. Acceptance requires FDR at or below {{ show(fdr) }}.
       </p>
       <p>
-        Native score populations: {{ show(calibrationCounts.target) }} target and
+        Calibration pools scores across all groups in this run; group membership and support remain
+        separate. Run-wide pooled score populations: {{ show(calibrationCounts.target) }} target and
         {{ show(calibrationCounts.control) }} control scores. A combined score is not a probability.
       </p>
       <p>

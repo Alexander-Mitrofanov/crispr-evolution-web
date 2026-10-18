@@ -9,6 +9,7 @@ import re
 from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
+from offline_example import check_offline_example
 
 ROOT = Path(__file__).resolve().parents[1]
 TOKEN = "a" * 43
@@ -62,7 +63,9 @@ def check(origin, output):
             page.route("https://analysis.example.org/**", api)
             page.goto(origin)
             page.wait_for_load_state("networkidle")
-            expect(page.get_by_role("link", name="Map repeats to reference families", exact=True)).to_have_count(0)
+            check_offline_example(page, state, link='Map repeats to reference families', input_label='Repeat sequences', sequence=FASTA, submit='Compute')
+            page.goto(origin)
+            page.wait_for_load_state("networkidle")
             state["advertised"] = True
             page.reload()
             page.wait_for_load_state("networkidle")

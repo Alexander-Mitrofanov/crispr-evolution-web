@@ -22,11 +22,13 @@ const treePolicy = computed(
     orientation.value?.tree_policy ||
     reconstruction.value?.tree_policy ||
     props.summary?.pipeline?.stages?.spacerplacer?.tree_source ||
-    "not_reported",
+    (reconstruction.value ? "estimated_from_arrays_uncalibrated_scale" : "not_reported"),
 );
 const deletionCount = (row) => row.deletions;
 const noDeletionGroups = computed(() =>
-  rows.value.filter((row) => Number(deletionCount(row)) === 0).map((row) => row.name),
+  rows.value
+    .filter((row) => typeof deletionCount(row) === "number" && deletionCount(row) === 0)
+    .map((row) => row.name),
 );
 </script>
 
@@ -75,9 +77,13 @@ const noDeletionGroups = computed(() =>
         /></span>
         <div>
           <strong>Tree policy used: {{ String(treePolicy).replaceAll("_", " ") }}</strong>
-          <p>
+          <p v-if="orientation?.comparisons?.length">
             Decisive groups report the supported hypothesis. Unresolved groups retain input order
             only as a reporting default.
+          </p>
+          <p v-else>
+            Input orientation; not compared. The tree is inferred from the supplied arrays, with an
+            uncalibrated branch scale.
           </p>
         </div>
       </div>

@@ -402,6 +402,8 @@ async function navigateTabs(event, index) {
         :available="summary.repeat_map.available"
         :namespace="summary.repeat_map.namespace"
         :reference-sha256="summary.repeat_map.referenceSha256"
+        :max-distance="summary.repeat_map.maxDistance"
+        :top-k="summary.repeat_map.topK"
         :counts="summary.repeat_map.counts"
         :results="summary.repeat_map.results"
         :truncated="summary.repeat_map.truncated"
@@ -409,6 +411,7 @@ async function navigateTabs(event, index) {
       />
       <ViralResults
         v-if="viralMode && ['overview', 'viral'].includes(tab.id)"
+        :compact="tab.id === 'overview'"
         :available="summary.viral_search.available"
         :completed="summary.viral_search.execution_completed"
         :outcome="summary.viral_search.outcome"

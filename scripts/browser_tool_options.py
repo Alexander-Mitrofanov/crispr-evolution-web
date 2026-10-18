@@ -11,6 +11,9 @@ from playwright.sync_api import expect, sync_playwright
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = json.loads((ROOT / "src/contracts/tool-options-v1.json").read_text())
 MODES = sorted({mode for tool in CATALOG["tools"] for mode in tool["modes"]})
+FIXED_MODES = {
+    "locus_compare", "prophage_context", "insertion_context", "defense_context", "rna_family",
+}
 
 
 def check(origin, output):
@@ -66,8 +69,12 @@ def check(origin, output):
             def visit(mode):
                 page.goto(f"{origin}/?method={mode}")
                 page.wait_for_load_state("networkidle")
+                if mode in FIXED_MODES:
+                    expect(page.locator(".advanced")).to_have_count(0)
+                    return False
                 expect(page.locator(".advanced")).not_to_have_attribute("open", "")
                 expect(page.locator(".tool-options-tool[open]")).to_have_count(0)
+                return True
 
             def open_tool(name):
                 root = page.locator(".advanced > summary")
@@ -75,8 +82,8 @@ def check(origin, output):
                 page.locator(".tool-options-tool > summary").filter(has_text=name).click()
 
             for mode in MODES:
-                visit(mode)
-                assert page.locator(".tool-options-tool").count() > 0
+                if visit(mode):
+                    assert page.locator(".tool-options-tool").count() > 0
             visit("detection")
             page.locator("#fasta-input").fill(">a\nACGTACGT\n")
             # Native disclosures must also work with the keyboard.
@@ -142,7 +149,7 @@ def check(origin, output):
                         "status": "passed",
                         "api": "intercepted local fixtures; no scientific jobs submitted",
                         "checks": [
-                            "collapsed menu for every workflow",
+                            "collapsed configurable menus and no menu for fixed workflows",
                             "keyboard disclosure operation",
                             "exact CLI flags and changed defaults",
                             "range and cross-field validation",

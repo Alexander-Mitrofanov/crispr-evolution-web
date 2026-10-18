@@ -11,6 +11,7 @@ import re
 from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
+from offline_example import check_offline_example
 
 ROOT = Path(__file__).resolve().parents[1]
 FASTA = ">target_A\nAAACGTTGCAACGATTCGAGTCTTGACTCGAATCGTTGCAACGTCC\n"
@@ -73,19 +74,23 @@ def check(origin: str, output: Path):
             page.route("https://analysis.example.org/**", api)
             page.goto(origin)
             page.wait_for_load_state("networkidle")
-            expect(page.get_by_role("link", name="Spacer searches", exact=True)).to_have_count(0)
+            check_offline_example(page, state, link='Spacer searches', input_label='Contigs or small genomes', sequence=FASTA, submit='Search references')
+            page.goto(origin)
+            page.wait_for_load_state("networkidle")
             page.goto(origin + "/?method=protospacer")
             page.wait_for_load_state("networkidle")
             page.get_by_label("Contigs or small genomes", exact=True).fill(FASTA)
             expect(page.get_by_role("button", name="Search references", exact=True)).to_be_disabled()
             page.get_by_text("Review input requirements", exact=True).click()
-            expect(page.get_by_text(re.compile("^Reference spacer search unavailable on this service"))).to_be_visible()
+            expect(page.get_by_role("button", name=re.compile("^Find spacers in my sequence")).get_by_text("Reference unavailable on this server; precomputed example available", exact=True)).to_be_visible()
+            expect(page.get_by_text("Selected analysis unavailable on this service", exact=False)).to_be_visible()
 
             state["advertised"] = True
             page.goto(origin)
             page.wait_for_load_state("networkidle")
             page.get_by_role("link", name="Spacer searches", exact=True).click()
-            expect(page.get_by_text("Analysis options", exact=True)).to_have_count(0)
+            expect(page.get_by_text("Analysis options", exact=True)).to_be_visible()
+            expect(page.get_by_label("Reference path", exact=False)).to_have_count(0)
             page.get_by_label("Upload FASTA file", exact=True).set_input_files({
                 "name": "synthetic-target.fasta", "mimeType": "text/plain", "buffer": FASTA.encode(),
             })
