@@ -1,9 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="CRISPR Evolution Workbench">
-  <rect width="64" height="64" rx="14" fill="#102822"/>
-  <g transform="translate(13 11) skewX(-8)">
-    <rect width="8" height="31" rx="3" y="7" fill="#b5f080"/>
-    <rect width="8" height="39" rx="3" x="11" fill="#79d6b3"/>
-    <rect width="8" height="34" rx="3" x="22" y="5" fill="#f4bf5f"/>
-    <rect width="8" height="42" rx="3" x="33" y="1" fill="#f07862"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">CRISPRloci: a C surrounding a repeat-and-spacer array</title>
+  <rect width="64" height="64" rx="14" fill="#292b2f"/>
+  <path d="M42 14H30a18 18 0 0 0 0 36h12" fill="none" stroke="#e0abbc" stroke-width="7" stroke-linecap="round"/>
+  <path d="M27 32h28" fill="none" stroke="#e0abbc" stroke-width="3"/>
+  <g fill="#fff">
+    <rect x="24" y="26" width="8" height="12" rx="2"/>
+    <rect x="37" y="26" width="8" height="12" rx="2"/>
+    <rect x="50" y="26" width="8" height="12" rx="2"/>
   </g>
 </svg>

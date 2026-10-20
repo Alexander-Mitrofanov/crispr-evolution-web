@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { igvStyleHashes } from "./scripts/igv-csp.mjs";
 import { auditIgvVendor } from "./scripts/igv-vendor.mjs";
+import { socialMetadata } from "./scripts/social-metadata.mjs";
 
 function normalizeBase(value) {
   const trimmed = String(value || "/").trim();
@@ -80,7 +81,12 @@ export default defineConfig(({ command, mode }) => {
       !process.env.VITE_API_BASE_URL
         ? { "import.meta.env.VITE_API_BASE_URL": JSON.stringify("http://127.0.0.1:8000") }
         : {},
-    plugins: [vue(), auditIgvVendor(), ...(csp ? [csp] : [])],
+    plugins: [
+      vue(),
+      auditIgvVendor(),
+      socialMetadata(process.env.VITE_SITE_URL || env.VITE_SITE_URL || undefined),
+      ...(csp ? [csp] : []),
+    ],
     test: {
       environment: "jsdom",
       globals: true,

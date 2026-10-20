@@ -7,9 +7,8 @@
   .brand-copy small {
     color: #000;
   }
-  .brand-symbol::before,
-  .brand-symbol span {
-    background: #000;
+  .brand-symbol {
+    filter: grayscale(1);
   }
   .hero::before,
   .hero::after,

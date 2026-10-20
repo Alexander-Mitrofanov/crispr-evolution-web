@@ -204,3 +204,24 @@ The build also runs scripts/scan-public-example.mjs. The scanner validates every
 Production origin is chosen at deployment; no production site is changed by this migration.
 
 API origin: configured by the operator at build time.
+
+## Brand and link previews
+
+`public/favicon.svg` is the shared source for the header mark and browser icon:
+a rose C enclosing three repeats connected by spacers. The artwork uses the
+site's charcoal, rose and white palette and the bundled IBM Plex Sans typeface.
+`public/favicon.ico` includes 16, 32 and 48 px fallbacks; the Apple touch icon is
+180 px. `public/brand/social-preview.png` is a 1200 × 630 sharing card.
+
+To regenerate the committed raster assets after editing the mark or
+`scripts/branding/social-card.html`, run `python scripts/render_brand_assets.py`
+in an environment with Python Playwright and Chromium. Image generation is not
+part of the normal frontend build.
+
+Open Graph and Twitter image tags are emitted into the built HTML, so previews
+work without JavaScript. `VITE_SITE_URL` selects the absolute public frontend URL,
+including its project path. It defaults to the public site documented in the
+parent repository. The Pages workflow derives it from the repository; set the
+`VITE_SITE_URL` repository variable when using a custom domain. For a local build
+targeting another host, set both `VITE_SITE_URL` and `VITE_BASE_PATH` to that site's
+URL and path. This setting is independent of the API origin.

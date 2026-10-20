@@ -8,9 +8,8 @@
     gap: 9px;
   }
   .brand-symbol {
-    width: 38px;
-    transform: scale(0.86);
-    transform-origin: left center;
+    width: 36px;
+    height: 36px;
   }
   .brand-copy strong {
     font-size: 1.375rem;
