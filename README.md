@@ -207,9 +207,10 @@ API origin: configured by the operator at build time.
 
 ## Brand and link previews
 
-`public/brand/logo.svg` is the standalone, transparent logo source: three repeats
-connected by a sequence line and framed by curved locus boundaries. The symbol
-contains no letters, words or tagline. `public/brand/logo.png` is a transparent
+`public/brand/logo.svg` is the standalone, transparent logo source: two offset
+genomic arrows with aligned notches, representing corresponding features across
+loci. Its two filled shapes also work in one color. The symbol contains no
+letters, words or tagline. `public/brand/logo.png` is a transparent
 512 px export. `public/brand/logo-on-dark.svg` is the rose and white variant used
 in the header, with the site name rendered separately as ordinary HTML text.
 `public/favicon.ico` includes 16, 32 and 48 px fallbacks; the Apple touch icon is

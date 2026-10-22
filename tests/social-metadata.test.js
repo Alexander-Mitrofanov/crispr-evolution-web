@@ -14,7 +14,7 @@ describe("static sharing metadata", () => {
     (url) => {
       const tags = metadata(url);
       expect(tags["og:url"]).toBe(url);
-      expect(tags["og:image"]).toBe(`${url}brand/social-preview.png?v=3`);
+      expect(tags["og:image"]).toBe(`${url}brand/social-preview.png?v=4`);
       expect(tags["twitter:image"]).toBe(tags["og:image"]);
       expect(tags["og:image:type"]).toBe("image/png");
       expect(tags["og:image:width"]).toBe("1200");
@@ -25,7 +25,7 @@ describe("static sharing metadata", () => {
 
   it("keeps a project path when the configured site has no trailing slash", () => {
     expect(metadata("https://example.org/workbench")["og:image"]).toBe(
-      "https://example.org/workbench/brand/social-preview.png?v=3",
+      "https://example.org/workbench/brand/social-preview.png?v=4",
     );
   });
 
