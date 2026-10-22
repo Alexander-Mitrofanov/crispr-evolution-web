@@ -207,13 +207,16 @@ API origin: configured by the operator at build time.
 
 ## Brand and link previews
 
-`public/favicon.svg` is the shared source for the header mark and browser icon:
-a rose C enclosing three repeats connected by spacers. The artwork uses the
-site's charcoal, rose and white palette and the bundled IBM Plex Sans typeface.
+`public/brand/logo.svg` is the standalone, transparent logo source: three repeats
+connected by a sequence line and framed by curved locus boundaries. The symbol
+contains no letters, words or tagline. `public/brand/logo.png` is a transparent
+512 px export. `public/brand/logo-on-dark.svg` is the rose and white variant used
+in the header, with the site name rendered separately as ordinary HTML text.
 `public/favicon.ico` includes 16, 32 and 48 px fallbacks; the Apple touch icon is
-180 px. `public/brand/social-preview.png` is a 1200 × 630 sharing card.
+180 px. `public/brand/social-preview.png` is a 1200 × 630 sharing card showing
+only the symbol. The page title and description remain in the link metadata.
 
-To regenerate the committed raster assets after editing the mark or
+To regenerate the committed variants and raster assets after editing `logo.svg` or
 `scripts/branding/social-card.html`, run `python scripts/render_brand_assets.py`
 in an environment with Python Playwright and Chromium. Image generation is not
 part of the normal frontend build.

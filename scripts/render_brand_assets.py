@@ -17,8 +17,16 @@ def main():
     parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     public = root / "public"
-    (public / "brand").mkdir(exist_ok=True)
-    mark = (public / "favicon.svg").read_text()
+    brand = public / "brand"
+    mark = (brand / "logo.svg").read_text()
+    inverse = mark.replace("#922c49", "#e0abbc").replace("#292b2f", "#ffffff")
+    (brand / "logo-on-dark.svg").write_text(inverse)
+    favicon = inverse.replace(
+        "</title>",
+        '</title>\n  <rect width="64" height="64" rx="14" fill="#292b2f"/>',
+        1,
+    )
+    (public / "favicon.svg").write_text(favicon)
 
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
@@ -29,13 +37,20 @@ def main():
             page.locator("img").evaluate("image => image.decode()")
             page.screenshot(path=str(public / "brand/social-preview.png"))
 
+            page.set_viewport_size({"width": 512, "height": 512})
+            page.set_content(
+                "<style>html,body{margin:0;background:transparent}"
+                "svg{display:block;width:100vw;height:100vh}</style>" + mark
+            )
+            page.screenshot(path=str(brand / "logo.png"), omit_background=True)
+
             icons = []
             for size in (16, 32, 48, 180):
                 page.set_viewport_size({"width": size, "height": size})
                 background = "#292b2f" if size == 180 else "transparent"
                 page.set_content(
                     f"<style>html,body{{margin:0;background:{background}}}"
-                    "svg{display:block;width:100vw;height:100vh}</style>" + mark
+                    "svg{display:block;width:100vw;height:100vh}</style>" + favicon
                 )
                 pixels = page.screenshot(omit_background=size != 180)
                 if size == 180:
@@ -51,7 +66,7 @@ def main():
             (public / "favicon.ico").write_bytes(directory + b"".join(pixels for _, pixels in icons))
         finally:
             browser.close()
-    print("Rendered social-preview.png (1200×630), apple-touch-icon.png (180×180), favicon.ico.")
+    print("Rendered standalone logo.png (512×512, transparent), dark SVG, sharing card and icons.")
 
 
 if __name__ == "__main__":

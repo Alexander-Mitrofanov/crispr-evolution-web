@@ -1,7 +1,7 @@
 const defaultSiteUrl = "https://alexander-mitrofanov.github.io/crispr-evolution-web/";
 const imageAlt =
-  "CRISPRloci v2. A rose C encloses a white repeat-and-spacer array. " +
-  "CRISPR arrays, Cas systems and evolutionary histories.";
+  "CRISPRloci symbol: three white repeats connected by a rose sequence line, " +
+  "framed by two curved rose boundaries on charcoal. No lettering.";
 
 export function socialMetadata(value = defaultSiteUrl) {
   let site;
@@ -14,7 +14,7 @@ export function socialMetadata(value = defaultSiteUrl) {
     throw new Error("VITE_SITE_URL must use HTTPS without credentials, query, or fragment.");
   }
   site.pathname = `${site.pathname.replace(/\/+$/u, "")}/`;
-  const image = new URL("brand/social-preview.png", site).href;
+  const image = new URL("brand/social-preview.png?v=3", site).href;
   return {
     name: "public-social-metadata",
     transformIndexHtml() {

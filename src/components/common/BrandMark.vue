@@ -10,7 +10,7 @@ const publicBase = import.meta.env.BASE_URL;
   >
     <img
       class="brand-symbol"
-      :src="`${publicBase}favicon.svg?v=2`"
+      :src="`${publicBase}brand/logo-on-dark.svg?v=3`"
       width="40"
       height="40"
       alt=""

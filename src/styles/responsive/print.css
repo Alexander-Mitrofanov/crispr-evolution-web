@@ -8,7 +8,7 @@
     color: #000;
   }
   .brand-symbol {
-    filter: grayscale(1);
+    filter: brightness(0);
   }
   .hero::before,
   .hero::after,
