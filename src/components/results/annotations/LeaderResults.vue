@@ -28,6 +28,14 @@ const location = (row) =>
       CRISPRleader v2 currently extracts context only. Leader prediction is unavailable. Neither
       side is selected; window length is an extraction setting, not a biological boundary.
     </p>
+    <p
+      v-if="evidence.motif_analysis?.status === 'unavailable'"
+      class="annotation-notice"
+    >
+      Leader motif analysis is unavailable while library reuse permission and biological validation
+      are pending. Motif hits were not assessed. A motif match would not establish a complete leader
+      boundary, transcription direction or activity.
+    </p>
     <template v-if="evidence.status === 'completed'">
       <div class="annotation-counts">
         <div>

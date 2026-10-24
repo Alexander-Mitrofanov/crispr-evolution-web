@@ -13,7 +13,7 @@ import {
   text,
 } from "./contextValues.js";
 
-export function normalizeDefenseContext(value) {
+function evidence(value) {
   const doc = asRecord(value) || {};
   return {
     available: available(doc),
@@ -47,6 +47,10 @@ export function normalizeDefenseContext(value) {
       profile: text(row.profile),
       status: text(row.status),
       score: metric(row.score),
+      gatheringThreshold: {
+        sequence: metric(row.gathering_threshold?.sequence),
+        domain: metric(row.gathering_threshold?.domain),
+      },
       i_evalue: metric(row.i_evalue),
       profile_coverage: probability(row.profile_coverage),
     })),
@@ -54,11 +58,31 @@ export function normalizeDefenseContext(value) {
       gene_id: text(row.gene_id),
       profile: text(row.profile),
       i_evalue: metric(row.i_evalue),
+      gatheringThreshold: {
+        sequence: metric(row.gathering_threshold?.sequence),
+        domain: metric(row.gathering_threshold?.domain),
+      },
       score: metric(row.score),
       profile_coverage: probability(row.profile_coverage),
       sequence_coverage: probability(row.sequence_coverage),
       protein_start: count(row.protein_start),
       protein_end: count(row.protein_end),
     })),
+  };
+}
+
+export function normalizeDefenseContext(value) {
+  const doc = asRecord(value) || {};
+  const anti = asRecord(doc.antidefense) || {};
+  const status = ["completed", "unavailable", "not_run", "failed"].includes(anti.status)
+    ? anti.status
+    : "not_run";
+  return {
+    ...evidence(doc),
+    antidefense: {
+      ...evidence(anti),
+      available: status === "completed" && available(anti),
+      status,
+    },
   };
 }

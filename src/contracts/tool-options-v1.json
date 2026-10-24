@@ -880,6 +880,55 @@
           "description": "Inputs, outputs, pinned scientific policy and bounded execution are assigned by the isolated worker."
         }
       ]
+    },
+    {
+      "id": "rscape",
+      "name": "R-scape-v2",
+      "modes": ["rna_family"],
+      "description": "Test statistical covariation across all alignment-column pairs when the native capability is installed.",
+      "documentation": "https://github.com/Alexander-Mitrofanov/R-scape-v2/blob/b11d1cd1759f3a18265a2fc302374c093d496551/README.md",
+      "revision": "b11d1cd1759f3a18265a2fc302374c093d496551",
+      "cli_modes": [
+        {
+          "name": "rscape-v2",
+          "description": "Native all-pairs test with no supplied structural prior."
+        }
+      ],
+      "flags": [],
+      "managed": [
+        {
+          "flags": ["--input", "--output", "--rscape", "--timeout-seconds"],
+          "description": "The isolated worker supplies the validated RNA alignment, fixed E-value0.05 policy, native executable and bounded CPU execution."
+        }
+      ]
+    },
+    {
+      "id": "antidefensefinder",
+      "name": "AntiDefenseFinder-v2",
+      "modes": ["defense_context"],
+      "description": "ADF-only anti-defense and associated candidates with exact source proteins; noncommercial research use. Functional inhibition is not assessed.",
+      "documentation": "https://github.com/Alexander-Mitrofanov/AntiDefenseFinder-v2/blob/fcc99681c0f6ba17763483219de7aa155cb3689b/README.md",
+      "revision": "fcc99681c0f6ba17763483219de7aa155cb3689b",
+      "cli_modes": [
+        {
+          "name": "antidefensefinder-v2",
+          "description": "Native HMMER and MacSyFinder scan of 178 ADF profiles."
+        }
+      ],
+      "flags": [],
+      "managed": [
+        {
+          "flags": [
+            "--input",
+            "--source-report",
+            "--output",
+            "--models-dir",
+            "--hmmer",
+            "--workers"
+          ],
+          "description": "The isolated worker supplies validated proteins, pinned ADF3.1.0 models and GA thresholds, at most four native workers and a 900-second stage deadline."
+        }
+      ]
     }
   ]
 }

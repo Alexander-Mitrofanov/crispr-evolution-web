@@ -1,9 +1,11 @@
 <script setup>
 import { computed } from "vue";
+import CiceroResults from "./CiceroResults.vue";
 import { formatNumber, finiteMetric } from "../../../utils/formatting.js";
 
 const props = defineProps({
   cas: { type: Object, required: true },
+  pam: { type: Object, default: () => ({ status: "not_run", predictions: null }) },
   tracr: { type: Object, required: true },
   arrays: { type: Array, default: () => [] },
   view: { type: String, default: "all" },
@@ -150,6 +152,10 @@ const forSource = (rows, id) => (rows || []).filter((row) => row.source_id === i
       </figure>
     </details>
     <template v-if="hasCas && ['all', 'cas'].includes(view)">
+      <CiceroResults
+        :status="pam.status"
+        :predictions="pam.predictions"
+      />
       <h4>Cas cassettes</h4>
       <p class="annotation-lead">
         Model: {{ cas.model || "Not reported" }}. Classification confidence is a model output, not

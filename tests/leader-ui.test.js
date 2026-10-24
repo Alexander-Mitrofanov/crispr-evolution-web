@@ -109,3 +109,23 @@ it("keeps scientific warnings visible and retains routine publication notes with
   await fireEvent.click(screen.getByText("Publication notes (1)", { exact: true }));
   expect(screen.getByText(/Worker log omitted/)).toBeVisible();
 });
+
+it("distinguishes unavailable motif analysis from zero hits and preserves old jobs", async () => {
+  const value = job();
+  value.summary.crisprleader.motif_analysis = {
+    status: "unavailable",
+    hit_count: null,
+    hits: null,
+  };
+  render(ResultsView, { props: { job: value } });
+  const panel = screen.getByRole("tabpanel", { name: "Overview", exact: true });
+  expect(within(panel).getByText(/Leader motif analysis is unavailable/)).toBeVisible();
+  expect(within(panel).getByText(/Motif hits were not assessed/)).toBeVisible();
+  const legacy = normalizePublicResult(job().summary);
+  expect(legacy.crisprleader.motif_analysis.status).toBe("not_run");
+  expect(legacy.crisprleader.motif_analysis.hit_count).toBeNull();
+  const forged = normalizePublicResult({
+    crisprleader: { motif_analysis: { status: "completed", hit_count: 0, hits: [] } },
+  });
+  expect(forged.crisprleader.motif_analysis.hit_count).toBeNull();
+});

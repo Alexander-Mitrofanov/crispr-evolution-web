@@ -1,4 +1,5 @@
 import { normalizeArrayCompare } from "./arrayCompare.js";
+import { normalizeCicero } from "./cicero.js";
 import { normalizeLocusCompare } from "./locusCompare.js";
 import { normalizeProphageContext } from "./prophageContext.js";
 import { normalizeInsertionContext } from "./insertionContext.js";
@@ -27,6 +28,7 @@ export function normalizePublicResult(value, context = {}) {
     ...provenance,
     ...normalizeWarnings({ ...summary, ...provenance }),
     adapter: normalizeAdapter(summary),
+    cicero: normalizeCicero(summary.cicero),
     detection: normalizeDetection(summary),
     crisprleader: normalizeLeader(summary.crisprleader),
     repeats: normalizeRepeats(summary.repeats),

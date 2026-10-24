@@ -17,6 +17,14 @@ export function normalizeProphageContext(value) {
   const doc = asRecord(value) || {};
   return {
     available: available(doc),
+    genomad: {
+      status: doc.genomad?.status === "unavailable" ? "unavailable" : "not_run",
+      available: false,
+      classificationCount: null,
+      classifications: null,
+      provirusCount: null,
+      proviruses: null,
+    },
     searchPolicy: {
       scope: text(doc.search_policy?.scope),
       queryCategories: labels(doc.search_policy?.query_categories, 5),

@@ -15,6 +15,11 @@ export function normalizeLeader(value) {
   const report = asRecord(value) || {};
   return {
     status: report.status || "not_requested",
+    motif_analysis: {
+      status: report.motif_analysis?.status === "unavailable" ? "unavailable" : "not_run",
+      hit_count: null,
+      hits: null,
+    },
     array_count: count(report.array_count),
     context_count: count(report.context_count),
     flank_length: count(report.flank_length),

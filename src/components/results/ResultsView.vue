@@ -31,7 +31,6 @@ import DownloadsPanel from "./publication/DownloadsPanel.vue";
 import SequenceHandoff from "./publication/SequenceHandoff.vue";
 import ProvenancePanel from "./publication/ProvenancePanel.vue";
 import ReconstructionResults from "./reconstruction/ReconstructionResults.vue";
-
 const props = defineProps({
   job: { type: Object, default: null },
   credential: { type: Object, default: null },
@@ -304,6 +303,7 @@ async function navigateTabs(event, index) {
           ['overview', 'cas', 'tracrrna'].includes(tab.id)
         "
         :cas="cas"
+        :pam="summary.cicero"
         :tracr="tracr"
         :arrays="arrays"
         :view="tab.id"
@@ -362,6 +362,7 @@ async function navigateTabs(event, index) {
       </template>
       <DefenseContext
         v-if="job.mode === 'defense_context' && ['overview', 'defense_context'].includes(tab.id)"
+        :antidefense="summary.defense_context.antidefense"
         :available="summary.defense_context.available"
         :systems="summary.defense_context.systems"
         :components="summary.defense_context.components"
@@ -379,6 +380,7 @@ async function navigateTabs(event, index) {
           :fold="summary.rna_family.fold"
           :alignment="summary.rna_family.alignment"
           :pairs="summary.rna_family.pairs"
+          :covariation="summary.rna_family.covariation"
           :warnings="summary.rna_family.warnings"
         />
         <p v-else>Validated RNA-family evidence is unavailable.</p>

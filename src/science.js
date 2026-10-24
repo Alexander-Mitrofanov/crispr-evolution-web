@@ -43,12 +43,13 @@ export const ANALYSIS_MODES = [
   {
     id: "defense_context",
     title: "Survey the defense repertoire",
-    short: "DefenseFinder · system rules and component evidence",
+    short: "DefenseFinder · AntiDefenseFinder · system and component evidence",
     description:
       "Inspect modeled defense systems and individual profile hits on the submitted sequences. " +
-      "Model release 1.2.3 provides a defined reference scope; predictions do not establish activity or a complete genome-wide repertoire.",
+      "Defense model release 1.2.3 and anti-defense model release 3.1.0 (ADF) provide defined scopes. " +
+      "Anti-defense matches do not prove inhibition of the submitted Cas system. Noncommercial research use.",
     minimumRecords: 1,
-    tools: ["DefenseFinder", "CasAndra"],
+    tools: ["DefenseFinder", "AntiDefenseFinder", "CasAndra"],
     requiresAdvertisement: true,
   },
   {
@@ -245,6 +246,16 @@ export const STAGES = [
     label: "Survey defense systems",
     detail: "DefenseFinder · pinned model rules",
   },
+  {
+    id: "antidefensefinder",
+    label: "Inspect anti-defense candidates",
+    detail: "AntiDefenseFinder · ADF models and native HMM evidence",
+  },
+  {
+    id: "rscape",
+    label: "Test RNA covariation",
+    detail: "R-scape · all-pairs statistical evidence",
+  },
   { id: "rnaalifold", label: "Compare RNA family", detail: "MAFFT · ViennaRNA consensus folding" },
   { id: "detect_arrays", label: "Detect arrays", detail: "CRISPRidentify v2" },
   { id: "adapt_arrays", label: "Prepare arrays", detail: "Normalizing accepted calls" },
@@ -294,9 +305,10 @@ export function stagesForMode(mode) {
       "validate_input",
       "annotate_cas",
       "defensefinder",
+      "antidefensefinder",
       "package_results",
     ],
-    rna_family: ["queued", "validate_input", "rnaalifold", "package_results"],
+    rna_family: ["queued", "validate_input", "rnaalifold", "rscape", "package_results"],
     array_compare: ["queued", "validate_input", "cctk", "package_results"],
     spacer_association: ["queued", "validate_input", "spacepharer", "package_results"],
     repeat_type: ["queued", "validate_input", "repeattyper", "package_results"],

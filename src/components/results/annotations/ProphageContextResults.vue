@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from "vue";
+import GenomadStatus from "./GenomadStatus.vue";
 const props = defineProps({
   available: Boolean,
   regions: { type: Array, default: () => [] },
@@ -13,6 +14,7 @@ const props = defineProps({
   regionsTruncated: Boolean,
   matchesTruncated: Boolean,
   compact: Boolean,
+  genomad: { type: Object, default: () => ({ status: "not_run" }) },
 });
 const shownRegions = computed(() => props.regions.slice(0, props.compact ? 5 : 100));
 const shownMatches = computed(() => props.matches.slice(0, props.compact ? 5 : 100));
@@ -39,6 +41,7 @@ const searchStatus = (status) =>
       Candidate regions and exact sequence matches provide genomic context. Neither region overlap
       nor a match demonstrates active CRISPR targeting.
     </p>
+    <GenomadStatus :status="genomad.status" />
     <p v-if="!available">Validated prophage-context evidence is unavailable.</p>
     <template v-else>
       <p>

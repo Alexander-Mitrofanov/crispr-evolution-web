@@ -5,6 +5,7 @@ defineProps({
   fold: { type: Object, default: () => ({}) },
   alignment: { type: Array, default: () => [] },
   pairs: { type: Array, default: () => [] },
+  covariation: { type: Object, default: () => ({}) },
   warnings: { type: Array, default: () => [] },
 });
 const numeric = (value, digits = 2) =>
@@ -83,6 +84,52 @@ const numeric = (value, digits = 2) =>
       Dots indicate unpaired columns; matching parentheses indicate a predicted pair. Consensus N
       denotes a tied column.
     </p>
+    <h4>Statistical covariation (R-scape)</h4>
+    <template v-if="covariation.available">
+      <p v-if="covariation.status === 'uninformative'">
+        The alignment has almost constant covariation scores. Statistical significance could not be
+        assessed; the significant-pair count is not reported as zero.
+      </p>
+      <p v-else>
+        {{ covariation.counts?.significant_pairs ?? "Not reported" }} significant pairs across
+        {{ covariation.counts?.tested_pairs ?? "Not reported" }} pair tests (E-value ≤ 0.05).
+      </p>
+      <p>
+        R-scape tests all alignment-column pairs without using the RNAalifold fold as a prior.
+        Pair-level power estimates are reported for significant pairs. Whole-family power is not
+        estimated; zero significant pairs does not establish lack of structure or RNA activity.
+      </p>
+      <div
+        v-if="covariation.pairs?.length"
+        class="table-scroll"
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>Alignment columns</th>
+              <th>E-value</th>
+              <th>Inferred substitutions</th>
+              <th>Estimated pair power</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="pair in covariation.pairs"
+              :key="`${pair.left}-${pair.right}`"
+            >
+              <td>{{ pair.left }}–{{ pair.right }}</td>
+              <td>{{ pair.evalue === null ? "Not reported" : pair.evalue.toExponential(3) }}</td>
+              <td>{{ pair.substitutions ?? "Not reported" }}</td>
+              <td>{{ numeric(pair.power, 2) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p v-if="covariation.pairs_truncated">
+        Download the complete report for all significant pairs.
+      </p>
+    </template>
+    <p v-else>Statistical covariation was not run for this result.</p>
     <h4>Pairing evidence</h4>
     <p>
       Coordinates refer to alignment columns, starting at 1. Pair probabilities describe the model
@@ -139,6 +186,11 @@ const numeric = (value, digits = 2) =>
 </template>
 
 <style scoped>
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 .rna-family-metrics {
   display: flex;
   flex-wrap: wrap;

@@ -1,7 +1,9 @@
 <script setup>
 import { computed } from "vue";
+import AntiDefenseContext from "./AntiDefenseContext.vue";
 
 const props = defineProps({
+  antidefense: { type: Object, default: () => ({}) },
   available: { type: Boolean, default: false },
   systems: { type: Array, default: () => [] },
   components: { type: Array, default: () => [] },
@@ -115,6 +117,7 @@ const score = (value) =>
         </ul>
       </details>
     </template>
+    <AntiDefenseContext v-bind="antidefense" />
   </section>
 </template>
 

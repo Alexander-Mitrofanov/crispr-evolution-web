@@ -63,6 +63,23 @@ export function normalizeRnaFamily(value) {
       compensatory_sequence_pairs: count(row.compensatory_sequence_pairs),
       pair_types: pairTypeCounts(row.pair_types),
     })),
+    covariation: {
+      available: doc.covariation?.available === true,
+      status: text(doc.covariation?.status),
+      counts: counts(doc.covariation?.counts, [
+        "possible_pairs",
+        "tested_pairs",
+        "significant_pairs",
+      ]),
+      pairs_truncated: doc.covariation?.pairs_truncated === true,
+      pairs: rows(doc.covariation?.pairs, 500).map((row) => ({
+        left: count(row.left),
+        right: count(row.right),
+        evalue: metric(row.evalue),
+        substitutions: count(row.substitutions),
+        power: probability(row.power),
+      })),
+    },
     warnings: labels(doc.warnings, 50),
   };
 }
