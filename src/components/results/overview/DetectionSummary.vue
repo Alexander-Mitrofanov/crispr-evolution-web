@@ -64,6 +64,17 @@ const ordered = computed(() =>
     >
       No CRISPR array calls were reported.
     </div>
+    <p
+      v-if="arrays.length"
+      class="array-preview-scope"
+    >
+      Array detail preview: {{ arrays.length }} records ({{
+        [...new Set(arrays.map((row) => row.category || "Unclassified"))].join(", ")
+      }}). Category totals above cover all reported calls; this table contains only records retained
+      in the published preview. Categories absent from this table have no row-level detail in this
+      preview. Consult the available outputs in Files &amp; methods for retained evidence; omitted
+      artifacts are listed separately.
+    </p>
     <div
       v-if="arrays.length"
       class="table-wrap"

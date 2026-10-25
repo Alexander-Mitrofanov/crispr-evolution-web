@@ -64,11 +64,6 @@ const strand = (value) =>
         ><span>Target bases</span>
       </div>
     </div>
-    <p class="annotation-lead">
-      CRISPR-array overlap is unknown; source-array copies may be included. PAM compatibility is not
-      evaluated. Strand is relative to the submitted forward sequence, not a predicted transcription
-      direction. Multiple occurrences are not independent biological confirmation.
-    </p>
     <p
       v-if="available && searchComplete === true && outcome === 'no_assessable_windows'"
       class="annotation-empty"
@@ -85,66 +80,83 @@ const strand = (value) =>
       No matches to eligible reference spacers were reported in the submitted linear sequences under
       this exact-match policy. This does not establish absence of other protospacers.
     </p>
-    <dl class="protospacer-reference">
-      <div>
-        <dt>Reference collection</dt>
-        <dd>{{ reference.name || "Not reported" }}</dd>
-      </div>
-      <div>
-        <dt>Source release</dt>
-        <dd>{{ reference.source_release || "Not reported" }}</dd>
-      </div>
-      <div>
-        <dt>Eligible reference spacers</dt>
-        <dd>{{ count(reference.eligible_record_count) }} / {{ count(reference.record_count) }}</dd>
-      </div>
-    </dl>
+    <p class="reference-identity">
+      <strong>Reference:</strong> {{ reference.name || "Not reported" }} ·
+      {{ reference.source_release || "release not reported" }}. CRISPR-array overlap and PAM
+      compatibility are not assessed.
+    </p>
     <template v-if="!compact">
-      <p class="annotation-lead">
-        Reference spacers with ambiguous bases or outside the supported length range are excluded.
-        Ambiguous target windows are skipped; incomplete sequence remains unassessed.
-      </p>
-      <dl class="protospacer-reference">
-        <div>
-          <dt>Spacer length range</dt>
-          <dd>{{ count(reference.min_length) }}–{{ count(reference.max_length) }} nt</dd>
-        </div>
-        <div>
-          <dt>Excluded ambiguous spacers</dt>
-          <dd>{{ count(reference.skipped_ambiguous) }}</dd>
-        </div>
-        <div>
-          <dt>Excluded spacer lengths</dt>
-          <dd>{{ count(reference.skipped_length) }}</dd>
-        </div>
-        <div>
-          <dt>Ambiguous target seed windows</dt>
-          <dd>{{ count(counts.ambiguous_seed_windows) }}</dd>
-        </div>
-        <div>
-          <dt>Source file SHA-256</dt>
-          <dd>
-            <code>{{ reference.source_file_sha256 || "Not reported" }}</code>
-          </dd>
-        </div>
-        <div>
-          <dt>Database SHA-256</dt>
-          <dd>
-            <code>{{ reference.database_sha256 || "Not reported" }}</code>
-          </dd>
-        </div>
-        <div v-if="reference.source_url">
-          <dt>Reference source</dt>
-          <dd>
-            <a
-              :href="reference.source_url"
-              target="_blank"
-              rel="noopener noreferrer"
-              >Research spacer collection</a
-            >
-          </dd>
-        </div>
-      </dl>
+      <details class="reference-provenance">
+        <summary>Reference provenance, exclusions and checksums</summary>
+        <dl class="protospacer-reference">
+          <div>
+            <dt>Reference collection</dt>
+            <dd>{{ reference.name || "Not reported" }}</dd>
+          </div>
+          <div>
+            <dt>Source release</dt>
+            <dd>{{ reference.source_release || "Not reported" }}</dd>
+          </div>
+          <div>
+            <dt>Eligible reference spacers</dt>
+            <dd>
+              {{ count(reference.eligible_record_count) }} / {{ count(reference.record_count) }}
+            </dd>
+          </div>
+        </dl>
+
+        <p class="annotation-lead">
+          CRISPR-array overlap is unknown; source-array copies may be included. PAM compatibility is
+          not evaluated. Strand is relative to the submitted forward sequence, not a predicted
+          transcription direction. Multiple occurrences are not independent biological confirmation.
+        </p>
+
+        <p class="annotation-lead">
+          Reference spacers with ambiguous bases or outside the supported length range are excluded.
+          Ambiguous target windows are skipped; incomplete sequence remains unassessed.
+        </p>
+        <dl class="protospacer-reference">
+          <div>
+            <dt>Spacer length range</dt>
+            <dd>{{ count(reference.min_length) }}–{{ count(reference.max_length) }} nt</dd>
+          </div>
+          <div>
+            <dt>Excluded ambiguous spacers</dt>
+            <dd>{{ count(reference.skipped_ambiguous) }}</dd>
+          </div>
+          <div>
+            <dt>Excluded spacer lengths</dt>
+            <dd>{{ count(reference.skipped_length) }}</dd>
+          </div>
+          <div>
+            <dt>Ambiguous target seed windows</dt>
+            <dd>{{ count(counts.ambiguous_seed_windows) }}</dd>
+          </div>
+          <div>
+            <dt>Source file SHA-256</dt>
+            <dd>
+              <code>{{ reference.source_file_sha256 || "Not reported" }}</code>
+            </dd>
+          </div>
+          <div>
+            <dt>Database SHA-256</dt>
+            <dd>
+              <code>{{ reference.database_sha256 || "Not reported" }}</code>
+            </dd>
+          </div>
+          <div v-if="reference.source_url">
+            <dt>Reference source</dt>
+            <dd>
+              <a
+                :href="reference.source_url"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Research spacer collection</a
+              >
+            </dd>
+          </div>
+        </dl>
+      </details>
       <p
         v-if="truncated"
         class="annotation-notice"
@@ -203,6 +215,19 @@ const strand = (value) =>
 </template>
 
 <style scoped>
+.reference-provenance {
+  margin-block: 16px;
+  font-size: 0.9rem;
+}
+.reference-provenance summary {
+  min-height: 44px;
+  cursor: pointer;
+  padding-block: 12px;
+}
+.reference-identity {
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
 .protospacer-results h3 {
   margin-top: 0;
 }

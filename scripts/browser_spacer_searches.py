@@ -91,7 +91,7 @@ def check(origin, output):
         assert page.evaluate('document.documentElement.scrollWidth<=window.innerWidth+1')
         page.evaluate('window.scrollTo(0,0)')
         page.screenshot(path=output/'viral-mobile.png',full_page=True)
-        page.get_by_role('tab',name='Files & methods',exact=True).click()
+        page.get_by_role('combobox',name='Result section',exact=True).select_option('files')
         with page.expect_download() as result:
             page.get_by_role('button',name='Complete viral matches',exact=False).click()
         result.value.save_as(output/'viral-matches.tsv')

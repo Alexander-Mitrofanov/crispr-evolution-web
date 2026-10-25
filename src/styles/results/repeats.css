@@ -7,8 +7,8 @@
   line-height: 1.6;
 }
 .repeat-molecule {
-  margin: 0 0 1.5rem;
-  padding: 1rem;
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid var(--line);
 }
 .repeat-molecule legend {
@@ -182,4 +182,79 @@
   overflow-x: auto;
   padding: 0.75rem;
   background: var(--surface-subtle);
+}
+
+.repeat-record-picker {
+  display: grid;
+  gap: 8px;
+  font-weight: 600;
+}
+.repeat-record-picker select,
+.repeat-filter input {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  min-height: 44px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line-dark);
+  border-radius: var(--radius-sm);
+}
+.repeat-selection-status {
+  overflow-wrap: anywhere;
+  font-size: 0.875rem;
+  padding: 10px 12px;
+  background: var(--action-soft);
+}
+.repeat-record-table summary {
+  padding-block: 12px;
+  cursor: pointer;
+}
+.repeat-record-table .annotation-scroll {
+  max-height: 30rem;
+}
+.repeat-radio-target {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.repeat-instance-table td label {
+  cursor: pointer;
+}
+.pair-support-scale {
+  display: grid;
+  grid-template-columns: minmax(9rem, 1fr) minmax(60px, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.8rem;
+  margin-block: 12px;
+}
+.pair-gradient {
+  height: 12px;
+}
+.pair-gradient.isolated {
+  background: linear-gradient(to right, #f0f4f5, #087b78);
+}
+.pair-gradient.context {
+  background: linear-gradient(to right, #f0f4f5, #3158a5);
+}
+.repeat-filter {
+  display: grid;
+  gap: 8px;
+  max-width: 32rem;
+  margin-block: 16px;
+  font-weight: 600;
+}
+.repeat-outcome {
+  display: inline-block;
+  padding: 4px 8px;
+  background: var(--surface-subtle);
+  border-left: 3px solid var(--action);
+  font-size: 0.875rem;
+  font-weight: 600;
 }

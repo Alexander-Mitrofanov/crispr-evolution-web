@@ -7,6 +7,7 @@ export const ANALYSIS_MODES = [
   {
     id: "locus_compare",
     title: "Compare gene neighborhoods",
+    resultTitle: "Gene-neighborhood comparison",
     short: "clinker · source-verified proteins and gene order",
     description:
       "Compare 2–8 related genomic neighborhoods, up to 50,000 nt each. " +
@@ -19,6 +20,7 @@ export const ANALYSIS_MODES = [
   {
     id: "prophage_context",
     title: "Inspect prophage and spacer context",
+    resultTitle: "Prophage and spacer context",
     short: "Phigaro · candidate regions and source-spacer matches",
     description:
       "Locate candidate prophage regions and inspect exact matches from detected spacers within the submitted sequences. " +
@@ -32,6 +34,7 @@ export const ANALYSIS_MODES = [
   {
     id: "insertion_context",
     title: "Inspect insertion-sequence context",
+    resultTitle: "Insertion-sequence context",
     short: "ISEScan · mobile-element boundary evidence",
     description:
       "Locate insertion-sequence candidates and inspect their relationship to locus organization. " +
@@ -43,6 +46,7 @@ export const ANALYSIS_MODES = [
   {
     id: "defense_context",
     title: "Survey the defense repertoire",
+    resultTitle: "Defense repertoire",
     short: "DefenseFinder · AntiDefenseFinder · system and component evidence",
     description:
       "Inspect modeled defense systems and individual profile hits on the submitted sequences. " +
@@ -55,6 +59,7 @@ export const ANALYSIS_MODES = [
   {
     id: "rna_family",
     title: "Compare an RNA family",
+    resultTitle: "RNA family",
     short: "MAFFT · RNAalifold consensus structure",
     description:
       "Supply 2–50 homologous RNA or DNA sequences, 30–500 nt each, in matching 5′→3′ orientation. " +
@@ -66,6 +71,7 @@ export const ANALYSIS_MODES = [
   {
     id: "array_compare",
     title: "Compare observed arrays",
+    resultTitle: "Observed array comparison",
     short: "CCTK · ordered spacers and sharing networks",
     description:
       "Reuse detection arrays.json to compare observed spacer order and shared DNA identities. " +
@@ -77,6 +83,7 @@ export const ANALYSIS_MODES = [
   {
     id: "spacer_association",
     title: "Associate spacer groups with phages",
+    resultTitle: "Spacer-group association",
     short: "SpacePHARER · translated and nucleotide evidence",
     description:
       "Compare explicitly grouped spacers with an installed phage reference database. " +
@@ -88,6 +95,7 @@ export const ANALYSIS_MODES = [
   {
     id: "repeat_type",
     title: "Predict repeat subtypes",
+    resultTitle: "Repeat subtype prediction",
     short: "RepeatTyper · repeat-derived subtype evidence",
     description:
       "Classify up to 1000 DNA repeats, at most 200 bases each, with a frozen 37-class model. Inspect uncertain and unsupported sequences alongside native model scores.",
@@ -98,6 +106,7 @@ export const ANALYSIS_MODES = [
   {
     id: "repeat_map",
     title: "Map repeats to reference families",
+    resultTitle: "Repeat reference mapping",
     short: "CRISPRmap independent historical-reference mapper · annotated reference evidence",
     description:
       "Compare up to 100 DNA repeats, at most 200 bases each, with a frozen annotated reference. " +
@@ -109,6 +118,7 @@ export const ANALYSIS_MODES = [
   {
     id: "viral_search",
     title: "Find viruses for my spacers",
+    resultTitle: "Viral spacer search",
     short: "Spacer sequences against viral RefSeq",
     description:
       "Search supplied CRISPR spacers against viral reference sequences, including phages. Results retain candidate matches and their sequence evidence.",
@@ -120,6 +130,7 @@ export const ANALYSIS_MODES = [
     id: "loci",
     number: "",
     title: "Annotate a CRISPR locus",
+    resultTitle: "CRISPR locus annotation",
     short: "Arrays, Cas systems, tracrRNA & leader context",
     description:
       "Combine array detection, Cas cassette classification, tracrRNA candidates and leader context windows. Leader prediction is not yet available.",
@@ -130,6 +141,7 @@ export const ANALYSIS_MODES = [
     id: "leader",
     number: "",
     title: "Extract leader context",
+    resultTitle: "Leader context",
     short: "CRISPRleader v2 · context only",
     description:
       "Extract source-verified windows on both sides of accepted CRISPR arrays. Leader prediction is unavailable in this development release.",
@@ -140,6 +152,7 @@ export const ANALYSIS_MODES = [
     id: "cas",
     number: "",
     title: "Find Cas systems",
+    resultTitle: "Cas system annotation",
     short: "CasAndra",
     description:
       "Detect Cas proteins and classify nearby cassettes. Report exact genomic coordinates and model evidence.",
@@ -150,6 +163,7 @@ export const ANALYSIS_MODES = [
     id: "tracrrna",
     number: "",
     title: "Screen tracrRNA models",
+    resultTitle: "tracrRNA model screening",
     short: "CRISPRtracrRNA v3",
     description:
       "Screen Type II or Type V-K covariance models. These model-supported candidates do not establish complete transcript boundaries.",
@@ -160,6 +174,7 @@ export const ANALYSIS_MODES = [
     id: "detection",
     number: "",
     title: "Detect arrays",
+    resultTitle: "CRISPR array detection",
     short: "CRISPRidentify v2",
     description:
       "Locate and categorize candidate CRISPR arrays in one or more DNA records. No evolutionary history is inferred.",
@@ -170,6 +185,7 @@ export const ANALYSIS_MODES = [
     id: "repeat_context",
     number: "",
     title: "Compare repeats in array context",
+    resultTitle: "Repeat array-context comparison",
     short: "Observed repeats · isolated and local RNA folding",
     description:
       "Detect arrays and compare each observed repeat's predicted pairing in isolation and in array context. Both DNA orientation hypotheses are retained.",
@@ -180,6 +196,7 @@ export const ANALYSIS_MODES = [
     id: "repeats",
     number: "",
     title: "Analyze repeat sequences",
+    resultTitle: "Repeat sequence analysis",
     short: "Repeat-only DNA or RNA · structural evidence",
     description:
       "Fold supplied repeats and inspect their predicted pair support. DNA retains both orientation hypotheses; " +
@@ -191,6 +208,7 @@ export const ANALYSIS_MODES = [
     id: "protospacer",
     number: "",
     title: "Find spacers in my sequence",
+    resultTitle: "Reference spacer search",
     short: "Exact matches to reference spacers",
     description:
       "Compare uploaded DNA with the installed 2017 research spacer collection hosted by NCBI. " +
@@ -203,6 +221,7 @@ export const ANALYSIS_MODES = [
     id: "reconstruction",
     number: "",
     title: "Evolution & reconstruction",
+    resultTitle: "Evolutionary reconstruction",
     short: "SpacerPlacer",
     description:
       "Detect arrays, form comparable groups, and reconstruct ancestral spacer content on an estimated distance tree.",
@@ -213,6 +232,7 @@ export const ANALYSIS_MODES = [
     id: "orientation",
     number: "",
     title: "Orientation-aware evolution",
+    resultTitle: "Orientation-aware evolution",
     short: "CRISPR-evOr",
     badge: "Recommended for related isolates",
     description:

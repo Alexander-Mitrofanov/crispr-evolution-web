@@ -1,0 +1,43 @@
+@media (max-width: 680px) {
+  .annotation-scroll:has(.annotation-table)::before {
+    content: none;
+  }
+  .annotation-table:has(td[data-label]),
+  .annotation-table:has(td[data-label]) tbody,
+  .annotation-table:has(td[data-label]) tr {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+  .annotation-table:has(td[data-label]) thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .annotation-table:has(td[data-label]) tr {
+    border: 1px solid var(--line);
+    margin-bottom: 16px;
+  }
+  .annotation-table td[data-label] {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+    gap: 10px;
+    max-width: none;
+    white-space: normal;
+    padding: 10px;
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+  }
+  .annotation-table td[data-label]::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .annotation-table td[data-label] > * {
+    min-width: 0;
+  }
+}

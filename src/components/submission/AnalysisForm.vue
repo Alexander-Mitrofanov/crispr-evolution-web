@@ -36,9 +36,19 @@ const {
   requestBytes,
   precomputedPolicyMatches,
   ready,
+  optionIssues,
+  validationIssues,
   loadExample,
   submit,
 } = useAnalysisForm(props, emit);
+function focusIssue(field) {
+  const target = document.getElementById(field);
+  for (let parent = target?.parentElement; parent; parent = parent.parentElement) {
+    if (parent.tagName === "DETAILS") parent.open = true;
+  }
+  target?.focus();
+  target?.scrollIntoView?.({ block: "center", behavior: "smooth" });
+}
 </script>
 
 <template>
@@ -96,7 +106,7 @@ const {
       >
         <h3
           id="input-step-heading"
-          class="section-title"
+          class="sr-only"
         >
           Sequences
         </h3>
@@ -114,7 +124,7 @@ const {
             />
             {{
               mode === "rna_family"
-                ? "DNA — family members in matching orientation"
+                ? "DNA — matching orientation"
                 : "DNA repeats — both orientation hypotheses"
             }}</label
           >
@@ -127,19 +137,21 @@ const {
             />
             {{
               mode === "rna_family"
-                ? "RNA — family members in transcribed 5′→3′ order"
+                ? "RNA — transcribed 5′→3′ order"
                 : "RNA repeats — transcribed 5′→3′ sequence"
             }}</label
           >
-          <p v-if="mode === 'repeats'">
-            Up to 1,000 repeats, 200 nt per record, within the service limits. Use T for DNA and U
-            for RNA; mixed T/U input is rejected.
-          </p>
-          <p v-else>
-            2–50 unambiguous sequences, 30–500 nt each, within service limits. At least two distinct
-            sequences are required. Exact duplicates receive one folding weight. Supply comparable
-            boundaries; homology and orientation are not inferred.
-          </p>
+          <details class="molecule-guidance">
+            <summary>Molecule and family requirements</summary>
+            <p v-if="mode === 'repeats'">
+              Use T for DNA and U for RNA; mixed T/U input is rejected. Ambiguous bases remain
+              explicit.
+            </p>
+            <p v-else>
+              At least two distinct sequences are required. Exact duplicates receive one folding
+              weight. Supply comparable boundaries; homology and orientation are not inferred.
+            </p>
+          </details>
         </fieldset>
         <AssociationGrouping
           v-if="mode === 'spacer_association'"
@@ -150,6 +162,8 @@ const {
             v-model:sequence="sequence"
             v-model:filename="filename"
             :inspection="inspection"
+            :limits="inputLimits"
+            :minimum-records="selectedMode.minimumRecords"
             :array-input="mode === 'array_compare'"
             :repeat-input="['repeats', 'repeat_map', 'repeat_type'].includes(mode)"
             :family-input="mode === 'rna_family'"
@@ -169,6 +183,9 @@ const {
             :service="service"
             :request-bytes="requestBytes"
             :precomputed="precomputedPolicyMatches"
+            :ready="ready"
+            :has-input="Boolean(sequence.trim())"
+            :option-issues="optionIssues"
           />
         </div>
       </section>
@@ -194,6 +211,7 @@ const {
         <AdvancedOptions
           v-model="options"
           :mode="mode"
+          :invalid-count="optionIssues.length"
         />
       </section>
       <div
@@ -234,6 +252,28 @@ const {
             input and options match the stored result.
           </p>
         </details>
+      </div>
+      <div
+        v-if="validationIssues.length && (sequence || optionIssues.length)"
+        class="submission-blockers"
+        role="status"
+      >
+        <strong>Before you can continue</strong>
+        <ul>
+          <li
+            v-for="(issue, index) in validationIssues"
+            :key="index"
+          >
+            <button
+              v-if="issue.field"
+              type="button"
+              @click="focusIssue(issue.field)"
+            >
+              {{ issue.message }}
+            </button>
+            <span v-else>{{ issue.message }}</span>
+          </li>
+        </ul>
       </div>
       <div class="submit-bar">
         <div>

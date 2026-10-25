@@ -79,7 +79,7 @@ def check(origin,output):
                 page.get_by_role('button',name=re.compile('spacer-associations.tsv')).click()
             saved=output/'spacer-associations.tsv';download.value.save_as(saved);assert saved.read_bytes()==TABLE
             page.set_viewport_size({'width':390,'height':844})
-            page.get_by_role('tab',name='Associations',exact=True).click()
+            page.get_by_role('combobox',name='Result section',exact=True).select_option('associations')
             panel.get_by_text('Supporting spacer occurrences and alignments',exact=True).first.click()
             panel.get_by_text('Reference provenance',exact=True).click()
             assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth+1')
@@ -97,7 +97,7 @@ def check(origin,output):
                           'selection_policy':'Synthetic display check; not a biological reference.'},
             }
             page.reload();page.wait_for_load_state('networkidle')
-            page.get_by_role('tab',name='Associations',exact=True).click()
+            page.get_by_role('combobox',name='Result section',exact=True).select_option('associations')
             expect(panel.get_by_text(re.compile('32,510 genomes.*2,147,483,648 bases.*Broad phage reference'))).to_be_visible()
             panel.get_by_text('Reference provenance',exact=True).click()
             expect(panel.get_by_text('Collection: NCBI GenBank and RefSeq',exact=True)).to_be_visible()
@@ -110,7 +110,7 @@ def check(origin,output):
                 'genomes':[{'id':'historical-target','length':1234,'sha256':'d'*64}],
             }
             page.reload();page.wait_for_load_state('networkidle')
-            page.get_by_role('tab',name='Associations',exact=True).click()
+            page.get_by_role('combobox',name='Result section',exact=True).select_option('associations')
             expect(panel.get_by_text(re.compile('1 genome.*1,234 bases'))).to_be_visible()
             panel.get_by_text('Reference provenance',exact=True).click()
             expect(panel.get_by_text('Collection: Not reported',exact=True)).to_be_visible()

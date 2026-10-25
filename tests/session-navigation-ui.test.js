@@ -46,7 +46,7 @@ async function openExample() {
   await fireEvent.click(screen.getByRole("link", { name: "Orientation-aware evolution" }));
   await fireEvent.click(screen.getByRole("button", { name: "Load example" }));
   await fireEvent.click(await screen.findByRole("button", { name: "View precomputed result" }));
-  await screen.findByRole("heading", { name: "Analysis results" });
+  await screen.findByRole("heading", { name: "Orientation-aware evolution results" });
 }
 
 describe("navigation from an existing example session", () => {
@@ -60,7 +60,9 @@ describe("navigation from an existing example session", () => {
 
     expect(await screen.findByRole("heading", { name: "Queued" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cancel job" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Analysis results" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Orientation-aware evolution results" }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByRole("textbox", { name: /contigs/i })).not.toBeInTheDocument();
     expect(window.location.hash).toBe(`#job=${job.job_id}.${token}`);
     expect(window.history.length).toBe(historyLength);
@@ -74,7 +76,9 @@ describe("navigation from an existing example session", () => {
     const historyLength = window.history.length;
     await fireEvent.click(screen.getByRole("button", { name: "View precomputed result" }));
 
-    expect(await screen.findByRole("heading", { name: "Analysis results" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Orientation-aware evolution results" }),
+    ).toBeInTheDocument();
     expect(api.submit).not.toHaveBeenCalled();
     expect(window.history.length).toBe(historyLength);
   });

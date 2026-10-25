@@ -80,17 +80,17 @@ const location = (row) =>
                 v-for="row in evidence.contexts"
                 :key="`${row.source_id}:${row.id}`"
               >
-                <td>
+                <td data-label="Contig / array">
                   {{ row.source_id ?? "Not available" }} / {{ row.array_id ?? "Not available" }}
                 </td>
-                <td>{{ row.side ?? "Not available" }}</td>
-                <td>{{ location(row) }}</td>
-                <td>{{ row.strand ?? "Not available" }}</td>
-                <td>
+                <td data-label="Side">{{ row.side ?? "Not available" }}</td>
+                <td data-label="Interval [start, end)">{{ location(row) }}</td>
+                <td data-label="Sequence strand">{{ row.strand ?? "Not available" }}</td>
+                <td data-label="Available / requested nt">
                   {{ metric(row.available_length) }} / {{ metric(row.requested_length)
                   }}<small v-if="row.truncated_reason">Clipped at contig boundary</small>
                 </td>
-                <td>
+                <td data-label="Sequence evidence">
                   <details class="leader-sequence">
                     <summary>View sequences</summary>
                     <p>Context</p>

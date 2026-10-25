@@ -20,6 +20,20 @@ const rows = computed(() =>
   ),
 );
 const display = (v) => v ?? "Not reported";
+const stateLabel = (value) =>
+  ({
+    exact: "Exact reference match",
+    near: "Near-match candidate",
+    no_hit: "No reference hit",
+    unsupported: "Unsupported input",
+    historical_association: "Historical association",
+    not_assessed: "Not assessed",
+    predicted: "Model prediction",
+    uncertain: "Uncertain model result",
+    unassigned: "Unassigned",
+    assigned: "Assigned reference annotation",
+    ambiguous: "Ambiguous reference annotation",
+  })[value] || (value ? value.replaceAll("_", " ") : "Not reported");
 </script>
 <template>
   <section
@@ -45,7 +59,7 @@ const display = (v) => v ?? "Not reported";
       </p>
       <p v-if="compact">Open Repeat matches for the sequence evidence and reference identity.</p>
       <template v-else>
-        <label
+        <label class="repeat-filter"
           >Filter displayed repeats
           <input
             v-model="filter"
@@ -60,7 +74,8 @@ const display = (v) => v ?? "Not reported";
           :key="row.id"
           class="repeat-instance"
         >
-          <h4>{{ row.id }} · {{ row.status || "Not reported" }}</h4>
+          <h4>{{ row.id }}</h4>
+          <p class="repeat-outcome">{{ stateLabel(row.status) }}</p>
           <p>
             <code>{{ row.sequence }}</code>
           </p>
@@ -69,11 +84,11 @@ const display = (v) => v ?? "Not reported";
             {{ display(row.hitCount) }}
           </p>
           <p>
-            Family: {{ row.family.value ?? "Unassigned" }} · {{ row.family.status || "Not assessed"
+            Family: {{ row.family.value ?? "Unassigned" }} · {{ stateLabel(row.family.status)
             }}<span v-if="row.family.values.length"> ({{ row.family.values.join(", ") }})</span>
           </p>
           <p>
-            Motif: {{ row.motif.value ?? "Unassigned" }} · {{ row.motif.status || "Not assessed"
+            Motif: {{ row.motif.value ?? "Unassigned" }} · {{ stateLabel(row.motif.status)
             }}<span v-if="row.motif.values.length"> ({{ row.motif.values.join(", ") }})</span>
           </p>
           <p v-if="row.truncated">

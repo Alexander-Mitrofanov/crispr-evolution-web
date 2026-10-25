@@ -13,6 +13,9 @@ const props = defineProps({
   requestBytes: { type: Number, required: true },
   molecule: { type: String, default: "DNA" },
   precomputed: Boolean,
+  ready: Boolean,
+  hasInput: Boolean,
+  optionIssues: { type: Array, default: () => [] },
 });
 
 const checks = computed(() => {
@@ -30,6 +33,9 @@ const checks = computed(() => {
   const unique =
     inspection.records.length ===
     new Set(inspection.records.map((record) => record.identifier)).size;
+  const identifierError = inspection.errors.find((error) =>
+    /identifier.*(?:duplicated|collide)/i.test(error),
+  );
   const withinRecords = !limits.maxRecords || inspection.recordCount <= limits.maxRecords;
   const withinBases = !limits.maxBases || inspection.baseCount <= limits.maxBases;
   const withinRecordBases =
@@ -38,13 +44,17 @@ const checks = computed(() => {
   const withinRequest = !limits.maxRequestBytes || requestBytes <= limits.maxRequestBytes;
   return [
     {
-      ok: inspection.valid,
+      ok: inspection.valid ? true : props.hasInput ? false : null,
       label: inspection.valid ? `Valid IUPAC ${props.molecule} FASTA` : "Valid FASTA required",
       detail: inspection.errors[0],
     },
-    { ok: inspection.valid && unique, label: "Unique record identifiers" },
     {
-      ok: inspection.recordCount >= selectedMode.minimumRecords,
+      ok: identifierError || !unique ? false : inspection.valid ? true : null,
+      label: "Unique record identifiers",
+      detail: identifierError || (!inspection.valid ? "Pending valid sequence syntax." : null),
+    },
+    {
+      ok: inspection.valid ? inspection.recordCount >= selectedMode.minimumRecords : null,
       label: `${inspection.recordCount || 0} of ${selectedMode.minimumRecords} required input records`,
       detail:
         selectedMode.minimumRecords === 1
@@ -108,6 +118,7 @@ const checks = computed(() => {
       label: "Analysis service available",
       detail: service.state === "offline" ? service.message : null,
     },
+    ...props.optionIssues.map((issue) => ({ ok: false, label: issue.message })),
     ...(selectedMode.requiresAdvertisement
       ? [
           {
@@ -124,14 +135,23 @@ const checks = computed(() => {
 </script>
 
 <template>
-  <details class="readiness">
+  <details
+    class="readiness"
+    :class="
+      ready
+        ? 'readiness-ready'
+        : hasInput || optionIssues.length
+          ? 'readiness-review'
+          : 'readiness-pending'
+    "
+  >
     <summary>
       <span>{{
-        precomputed
+        precomputed && ready
           ? "Ready to view example"
-          : !inspection.recordCount
+          : !hasInput && !optionIssues.length
             ? "Input requirements"
-            : checks.every((item) => item.ok || item.recommended)
+            : ready
               ? "Ready to analyze"
               : "Review input requirements"
       }}</span>
@@ -140,7 +160,7 @@ const checks = computed(() => {
         >{{ selectedMode.minimumRecords }}+
         {{ selectedMode.minimumRecords === 1 ? "record" : "related records"
         }}<template v-if="limits.maxBases">
-          · {{ formatNumber(limits.maxBases) }} bases max</template
+          · {{ formatNumber(limits.maxBases) }} total bases service cap</template
         ></small
       >
     </summary>
@@ -148,11 +168,19 @@ const checks = computed(() => {
       <li
         v-for="item in checks"
         :key="item.label"
-        :class="item.ok ? 'ready' : item.recommended ? 'recommended' : 'not-ready'"
+        :class="
+          item.ok === null
+            ? 'pending'
+            : item.ok
+              ? 'ready'
+              : item.recommended
+                ? 'recommended'
+                : 'not-ready'
+        "
       >
         <span class="check-icon"
           ><AppIcon
-            :name="item.ok ? 'check' : item.recommended ? 'info' : 'warning'"
+            :name="item.ok ? 'check' : item.recommended || item.ok === null ? 'info' : 'warning'"
             :size="15" /></span
         ><span
           >{{ item.label }}<small v-if="item.detail">{{ item.detail }}</small></span

@@ -55,7 +55,7 @@
 .history-leaf-label {
   fill: #28483e;
   font:
-    600 11px ui-monospace,
+    600 12px ui-monospace,
     "SFMono-Regular",
     Consolas,
     "Liberation Mono",
@@ -64,7 +64,7 @@
 .history-axis-label {
   fill: #405a52;
   font:
-    700 10px ui-monospace,
+    700 12px ui-monospace,
     "SFMono-Regular",
     Consolas,
     "Liberation Mono",
@@ -75,7 +75,7 @@
 .history-column-label {
   fill: #405a52;
   font:
-    700 8px ui-monospace,
+    700 12px ui-monospace,
     "SFMono-Regular",
     Consolas,
     "Liberation Mono",

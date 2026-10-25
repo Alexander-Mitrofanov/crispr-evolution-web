@@ -42,6 +42,8 @@ export function parseNewick(value) {
       position += 1;
       node.name = readLabel(false);
     } else node.name = readLabel(true);
+    skip();
+    node.lengthReported = source[position] === ":";
     node.length = readLength();
     return node;
   };

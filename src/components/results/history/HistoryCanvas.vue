@@ -18,11 +18,9 @@ const emit = defineEmits(["select-node"]);
 const dataByName = computed(
   () => new Map(props.nodeData.map((node) => [String(node?.name), node])),
 );
-const cellSize = computed(() => (props.spacerOrder.length > 50 ? 10 : 13));
+const cellSize = 24;
 const arrayStart = 485;
-const width = computed(() =>
-  Math.max(930, arrayStart + props.spacerOrder.length * cellSize.value + 30),
-);
+const width = computed(() => Math.max(930, arrayStart + props.spacerOrder.length * cellSize + 30));
 const dataFor = (node) => dataByName.value.get(String(node?.name)) || {};
 const presentSpacers = (node) => new Set(asArray(dataFor(node).spacers).map(Number));
 const chooseNode = (node) => emit("select-node", String(node?.name || ""));

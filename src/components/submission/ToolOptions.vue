@@ -55,6 +55,11 @@ function reset(tool) {
           }}</small></span
         >
         <span
+          v-if="Object.keys(errors[tool.id] || {}).length"
+          class="option-error-count"
+          >{{ Object.keys(errors[tool.id]).length }} invalid</span
+        >
+        <span
           v-if="changedCount(tool)"
           class="tool-options-count"
           >{{ changedCount(tool) }} changed</span

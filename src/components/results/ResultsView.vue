@@ -1,12 +1,14 @@
 <script setup>
 import { computed, nextTick, ref, useId, watch } from "vue";
-
 import { normalizePublicResult, useAdapterMembership } from "../../features/results/index.js";
 import { genomeAvailable } from "../../features/genome/index.js";
 import GenomeExplorer from "./genome/GenomeExplorer.vue";
+import { ANALYSIS_MODES } from "../../science.js";
+import { exampleAssetsFor } from "../../example.js";
 import { asArray } from "../../utils/formatting.js";
 import { mergeAdapterMembership } from "../../utils/results.js";
-import AppIcon from "../common/AppIcon.vue";
+import ResultNotices from "./overview/ResultNotices.vue";
+import ResultsHeader from "./overview/ResultsHeader.vue";
 import LeaderResults from "./annotations/LeaderResults.vue";
 import RepeatResults from "./repeats/RepeatResults.vue";
 import RepeatTypeResults from "./repeats/RepeatTypeResults.vue";
@@ -27,6 +29,7 @@ import EvidenceMap from "./overview/EvidenceMap.vue";
 import PreflightSummary from "./overview/PreflightSummary.vue";
 import ResultSynopsis from "./overview/ResultSynopsis.vue";
 import OrientationResults from "./orientation/OrientationResults.vue";
+import ExampleDownloads from "./publication/ExampleDownloads.vue";
 import DownloadsPanel from "./publication/DownloadsPanel.vue";
 import SequenceHandoff from "./publication/SequenceHandoff.vue";
 import ProvenancePanel from "./publication/ProvenancePanel.vue";
@@ -50,7 +53,6 @@ const { artifactGroups, membershipStatus } = useAdapterMembership(
   currentJob,
   currentCredential,
 );
-
 const summary = computed(() => mergeAdapterMembership(sourceSummary.value, artifactGroups.value));
 const completed = computed(() =>
   ["completed", "completed_no_eligible_groups"].includes(props.job?.status),
@@ -148,6 +150,17 @@ const activeTab = computed(() =>
   tabs.value.some((tab) => tab.id === selectedTab.value) ? selectedTab.value : "overview",
 );
 const warnings = computed(() => asArray(summary.value.warnings));
+const methodTitle = computed(
+  () => ANALYSIS_MODES.find((mode) => mode.id === props.job?.mode)?.resultTitle || "Analysis",
+);
+const inputContext = computed(
+  () => props.exampleSnapshot?.example?.input || props.job?.input || {},
+);
+const exampleAssets = computed(
+  () =>
+    props.exampleSnapshot &&
+    exampleAssetsFor(props.job.mode, props.exampleSnapshot.example.submission_options),
+);
 
 watch([() => props.job?.job_id, () => props.job?.mode], () => {
   selectedTab.value = "overview";
@@ -186,17 +199,29 @@ async function navigateTabs(event, index) {
     class="results"
     aria-labelledby="results-heading"
   >
-    <div class="results-title">
-      <div>
-        <h2
-          id="results-heading"
-          tabindex="-1"
+    <ResultsHeader
+      :title="methodTitle"
+      :example="Boolean(exampleSnapshot)"
+      :filename="inputContext.filename"
+      :record-count="inputContext.record_count"
+    />
+    <label
+      class="result-section-picker"
+      :for="`${tabId}-section-select`"
+      >Result section
+      <select
+        :id="`${tabId}-section-select`"
+        v-model="selectedTab"
+      >
+        <option
+          v-for="tab in tabs"
+          :key="tab.id"
+          :value="tab.id"
         >
-          Analysis results
-        </h2>
-      </div>
-      <span class="complete-stamp"><AppIcon name="check" /> Completed</span>
-    </div>
+          {{ tab.label }}
+        </option>
+      </select>
+    </label>
     <div
       class="result-tabs"
       role="tablist"
@@ -217,39 +242,10 @@ async function navigateTabs(event, index) {
         {{ tab.label }}
       </button>
     </div>
-    <div
-      v-if="noEligible"
-      class="no-eligible"
-      role="status"
-    >
-      <AppIcon name="info" />
-      <div>
-        <strong>No eligible evolutionary groups</strong>
-        <p>
-          Detection completed. No group met the selected filters; evolution and orientation were not
-          evaluated.
-        </p>
-      </div>
-    </div>
-    <ul
-      v-if="warnings.length"
-      class="warning-list"
-      aria-label="Analysis warnings"
-    >
-      <li
-        v-for="(warning, index) in warnings"
-        :key="index"
-      >
-        <AppIcon
-          name="warning"
-          :size="18"
-        />
-        <span
-          ><strong>{{ warning.title || warning.code || "Analysis warning" }}</strong
-          >{{ warning.message || String(warning) }}</span
-        >
-      </li>
-    </ul>
+    <ResultNotices
+      :warnings="warnings"
+      :no-eligible="noEligible"
+    />
     <section
       v-for="tab in tabs"
       :id="`${tabId}-panel-${tab.id}`"
@@ -443,6 +439,10 @@ async function navigateTabs(event, index) {
       <ReconstructionResults
         v-if="tab.id === 'history'"
         :summary="summary"
+      />
+      <ExampleDownloads
+        v-if="tab.id === 'files' && exampleSnapshot"
+        :assets="exampleAssets"
       />
       <SequenceHandoff
         v-if="tab.id === 'files' && credential && !exampleSnapshot"

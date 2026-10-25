@@ -35,6 +35,7 @@
 @import "./responsive/mobile.css";
 @import "./responsive/compact.css";
 @import "./responsive/catalog.css";
+@import "./responsive/scientific-tables.css";
 @import "./responsive/sequence-search.css";
 @import "./responsive/accessibility.css";
 @import "./responsive/print.css";

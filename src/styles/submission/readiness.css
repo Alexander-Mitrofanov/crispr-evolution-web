@@ -72,3 +72,40 @@
   font-size: 0.75rem;
   line-height: 1.5;
 }
+
+.readiness > summary {
+  font-size: 0.9rem;
+}
+.readiness-ready > summary > span {
+  color: var(--green);
+  font-weight: 600;
+}
+.readiness-review > summary > span {
+  color: var(--danger);
+  font-weight: 600;
+}
+.readiness li.pending,
+.pending .check-icon {
+  color: var(--muted);
+}
+.submission-blockers {
+  padding: 14px 16px;
+  border-left: 3px solid var(--danger);
+  background: #fff5f2;
+  color: var(--danger);
+  margin-bottom: 16px;
+  font-size: 0.875rem;
+}
+.submission-blockers ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+.submission-blockers button {
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 4px 0;
+  text-align: left;
+  text-decoration: underline;
+  font: inherit;
+}

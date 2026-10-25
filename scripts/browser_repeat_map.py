@@ -76,11 +76,13 @@ def check(origin, output):
             page.get_by_role("button", name="Compute", exact=True).click()
             page.get_by_role("tab", name="Repeat matches", exact=True).click()
             panel = page.get_by_role("tabpanel", name="Repeat matches", exact=True)
-            expect(panel.get_by_text("exact · exact", exact=True)).to_be_visible()
-            expect(panel.get_by_text("negative · no_hit", exact=True)).to_be_visible()
+            expect(panel.get_by_role("heading", name="exact", exact=True)).to_be_visible()
+            expect(panel.get_by_text("Exact reference match", exact=True).first).to_be_visible()
+            expect(panel.get_by_text("No reference hit", exact=True)).to_be_visible()
             panel.get_by_label("Filter displayed repeats").fill("ambiguous")
-            expect(panel.get_by_text("ambiguous · unsupported", exact=True)).to_be_visible()
-            expect(panel.get_by_text("exact · exact", exact=True)).to_have_count(0)
+            expect(panel.get_by_role("heading", name="ambiguous", exact=True)).to_be_visible()
+            expect(panel.get_by_text("Unsupported input", exact=True)).to_be_visible()
+            expect(panel.get_by_role("heading", name="exact", exact=True)).to_have_count(0)
             panel.get_by_label("Filter displayed repeats").fill("")
             page.screenshot(path=output / "desktop.png", full_page=True)
             page.reload()
@@ -92,7 +94,9 @@ def check(origin, output):
             download.value.save_as(saved)
             assert saved.read_bytes() == TABLE
             page.set_viewport_size({"width": 390, "height": 844})
-            page.get_by_role("tab", name="Repeat matches", exact=True).click()
+            page.get_by_role(
+                "combobox", name="Result section", exact=True
+            ).select_option("repeat_map")
             panel.get_by_text("Reference alignments", exact=True).first.click()
             assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
             page.screenshot(path=output / "mobile.png", full_page=True)

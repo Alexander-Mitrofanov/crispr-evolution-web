@@ -12,7 +12,7 @@ import { inspectSequenceInput } from "./sequenceInput.js";
 import { normalizeJobCredential } from "../../jobStore.js";
 import { ANALYSIS_MODES, DEFAULT_CATEGORY_POLICY, analysisModeAvailable } from "../../science.js";
 import { buildSubmission } from "../../submission.js";
-import { toolOptionCount, validToolOptions } from "../../toolOptions.js";
+import { toolOptionCount, toolOptionErrors, toolsForMode } from "../../toolOptions.js";
 
 const INITIAL_OPTIONS = Object.freeze({
   categoryPolicy: DEFAULT_CATEGORY_POLICY,
@@ -131,31 +131,77 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
   const withinRequest = computed(
     () => !props.limits.maxRequestBytes || requestBytes.value <= props.limits.maxRequestBytes,
   );
-  const ready = computed(
-    () =>
-      inspection.value.valid &&
-      inspection.value.recordCount >= selectedMode.value.minimumRecords &&
-      (mode.value !== "rna_family" ||
-        (inspection.value.records.every(
+  const optionIssues = computed(() => {
+    const errors = toolOptionErrors(mode.value, options.value.toolOptions);
+    const issues = toolsForMode(mode.value, options.value.toolOptions).flatMap((tool) =>
+      tool.flags
+        .filter((field) => errors[tool.id]?.[field.flag])
+        .map((field) => ({
+          field: `tool-${tool.id}-${field.flag.replace(/^-+/, "")}`,
+          message: `${field.label}: ${errors[tool.id][field.flag]}`,
+        })),
+    );
+    if (
+      ["loci", "leader"].includes(mode.value) &&
+      !(
+        Number.isInteger(options.value.leaderFlankLength) &&
+        options.value.leaderFlankLength >= 1 &&
+        options.value.leaderFlankLength <= 5000
+      )
+    ) {
+      issues.push({
+        field: "leader-flank-length",
+        message: "Leader context window: enter a whole number from 1 to 5,000 nt.",
+      });
+    }
+    return issues;
+  });
+  // Submission and visible readiness use this single list of blocking reasons.
+  const validationIssues = computed(() => {
+    const issues = [...optionIssues.value];
+    const inputIssue = (message) => issues.push({ field: "fasta-input", message });
+    if (!inspection.value.valid) inputIssue(inspection.value.errors[0] || "Enter sequence input.");
+    else {
+      if (inspection.value.recordCount < selectedMode.value.minimumRecords)
+        inputIssue(`Supply at least ${selectedMode.value.minimumRecords} input records.`);
+      if (
+        mode.value === "rna_family" &&
+        (!inspection.value.records.every(
           (record) => record.sequence.length >= 30 && /^[ACGTU]+$/.test(record.sequence),
-        ) &&
+        ) ||
           new Set(inspection.value.records.map((record) => record.sequence.replaceAll("T", "U")))
-            .size >= 2)) &&
-      (precomputedPolicyMatches.value || withinLimits.value) &&
-      (precomputedPolicyMatches.value || withinRequest.value) &&
-      validToolOptions(mode.value, options.value.toolOptions) &&
-      (mode.value !== "spacer_association" ||
-        (validAssociationGrouping(sequence.value, options.value.associationGrouping) &&
-          (options.value.associationGrouping !== "per_record" ||
-            inspection.value.recordCount <= 100))) &&
-      (!["loci", "leader"].includes(mode.value) ||
-        (Number.isInteger(options.value.leaderFlankLength) &&
-          options.value.leaderFlankLength >= 1 &&
-          options.value.leaderFlankLength <= 5000)) &&
-      (props.service.state === "online" || precomputedPolicyMatches.value) &&
-      (precomputedPolicyMatches.value || analysisModeAvailable(mode.value, props.service)) &&
-      !props.hasActiveJob,
-  );
+            .size < 2)
+      )
+        inputIssue("Supply at least two distinct, unambiguous family sequences, 30–500 nt each.");
+    }
+    if (!precomputedPolicyMatches.value) {
+      if (!withinLimits.value)
+        inputIssue("Input exceeds the selected method’s record or sequence-length limit.");
+      if (!withinRequest.value) inputIssue("Input and options exceed the upload limit.");
+      if (props.service.state !== "online")
+        issues.push({
+          message:
+            "The analysis service is unavailable. A matching precomputed example can still be viewed.",
+        });
+      else if (!analysisModeAvailable(mode.value, props.service))
+        issues.push({ message: "This analysis is unavailable on the current service." });
+    }
+    if (
+      mode.value === "spacer_association" &&
+      (!validAssociationGrouping(sequence.value, options.value.associationGrouping) ||
+        (options.value.associationGrouping === "per_record" && inspection.value.recordCount > 100))
+    )
+      issues.push({
+        field: "association-grouping",
+        message: "Choose a compatible spacer grouping with no more than 100 groups.",
+      });
+    if (props.hasActiveJob)
+      issues.push({
+        message: "Another job is open. Save its recovery link, then finish or leave it.",
+      });
+    return issues;
+  });
+  const ready = computed(() => validationIssues.value.length === 0);
 
   async function loadExample() {
     const assets = exampleAssetsFor(mode.value, options.value);
@@ -273,6 +319,8 @@ export function useAnalysisForm(props, emit, client = api, fetcher = globalThis.
     requestBytes,
     precomputedPolicyMatches,
     ready,
+    optionIssues,
+    validationIssues,
     loadExample,
     submit,
   };

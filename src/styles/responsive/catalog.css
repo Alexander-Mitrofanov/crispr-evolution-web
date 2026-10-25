@@ -35,3 +35,51 @@
     gap: 0;
   }
 }
+
+@media (max-width: 680px) {
+  .catalog-table,
+  .catalog-table tbody,
+  .catalog-table tr {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+  .catalog-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .catalog-table tr {
+    border-bottom: 2px solid var(--line-dark);
+    padding-block: 8px;
+  }
+  .catalog-table td[data-label] {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    gap: 10px;
+    max-width: none;
+    min-width: 0;
+    padding: 8px 10px;
+    overflow-wrap: anywhere;
+  }
+  .catalog-table td[data-label]::before {
+    content: attr(data-label);
+    font-weight: 600;
+  }
+  .catalog-table td > * {
+    min-width: 0;
+  }
+  .catalog-table .catalog-sequence {
+    min-width: 0;
+  }
+  .catalog-evidence-heading {
+    flex-wrap: wrap;
+  }
+  .table-scroll-hint {
+    display: none;
+  }
+}

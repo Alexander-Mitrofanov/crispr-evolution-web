@@ -15,6 +15,8 @@ const props = defineProps({
   arrayInput: Boolean,
   familyInput: Boolean,
   locusInput: Boolean,
+  limits: { type: Object, default: () => ({}) },
+  minimumRecords: { type: Number, default: 1 },
   loadingExample: Boolean,
   showExample: { type: Boolean, default: true },
   exampleDisabled: Boolean,
@@ -76,7 +78,7 @@ async function onFile(event) {
           Upload arrays.json from detection. Each observed spacer counts toward the service record
           limit. Unknown orientation and uncertain boundaries are accepted.
         </p>
-        <p v-else>{{ molecule }} FASTA or a compatible sequence JSON from a previous analysis.</p>
+        <p v-else>{{ molecule }} FASTA or compatible sequence JSON.</p>
       </div>
       <button
         v-if="showExample"
@@ -120,12 +122,24 @@ async function onFile(event) {
       <span class="input-stats"
         ><b>{{ inspection.recordCount }}</b> records <i />
         <b>{{
-          repeatInput
+          repeatInput || familyInput
             ? `${inspection.baseCount.toLocaleString()} nt`
             : readableBases(inspection.baseCount)
         }}</b></span
       >
     </div>
+    <p
+      class="input-limits"
+      v-if="!arrayInput"
+    >
+      <strong>{{ molecule }}</strong> · {{ minimumRecords
+      }}<template v-if="limits.maxRecords">–{{ limits.maxRecords.toLocaleString() }}</template
+      ><template v-else>+</template> records
+      <template v-if="limits.maxRecordBases">
+        · {{ familyInput ? "30–" : "" }}{{ limits.maxRecordBases.toLocaleString() }} nt
+        {{ familyInput ? "per record" : "max per record" }}</template
+      >
+    </p>
     <textarea
       id="fasta-input"
       spellcheck="false"
@@ -135,9 +149,12 @@ async function onFile(event) {
           ? 'Paste detection arrays.json here'
           : repeatInput
             ? `>repeat_A\n${molecule === 'RNA' ? 'ACGU…' : 'ACGT…'}`
-            : '>isolate_A\nACGT…\n>isolate_B\nACGT…'
+            : familyInput
+              ? `>family_member_A\n${molecule === 'RNA' ? 'ACGU…' : 'ACGT…'}\n>family_member_B\n${molecule === 'RNA' ? 'GCAU…' : 'GCAT…'}`
+              : '>isolate_A\nACGT…\n>isolate_B\nACGT…'
       "
       aria-describedby="fasta-help fasta-errors"
+      :aria-invalid="sequence && !inspection.valid ? 'true' : undefined"
       @input="updateSequence($event.target.value)"
     />
     <div
@@ -152,6 +169,9 @@ async function onFile(event) {
         >{{ familyInput ? "Unambiguous" : "IUPAC" }} {{ molecule }} accepted. Input stays local
         until submission.<template v-if="repeatInput">
           Ambiguous bases remain visible; affected analyses may be unsupported.</template
+        ><template v-if="familyInput">
+          The placeholder illustrates FASTA syntax only; each complete family member needs 30–500
+          nt.</template
         ></span
       >
     </div>

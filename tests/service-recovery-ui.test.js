@@ -35,7 +35,7 @@ describe("analysis service recovery", () => {
     expect(screen.getByText("Service ready", { exact: true })).toBeInTheDocument();
     expect(screen.getByRole("textbox")).toHaveValue(">a\nACGT\n");
     expect(screen.getByRole("button", { name: "Compute", exact: true })).toBeEnabled();
-    expect(screen.getByText("1+ record · 10,000 bases max")).toBeInTheDocument();
+    expect(screen.getByText("1+ record · 10,000 total bases service cap")).toBeInTheDocument();
     await vi.advanceTimersByTimeAsync(60_000);
     expect(api.health).toHaveBeenCalledTimes(2);
   });

@@ -127,59 +127,99 @@ const interval = (row) =>
           Choose a repeat and orientation. Source intervals use zero-based, half-open coordinates on
           the submitted forward sequence.
         </p>
-        <div
-          class="annotation-scroll"
-          tabindex="0"
-          role="region"
-          aria-label="Repeat instances table"
+        <label
+          class="repeat-record-picker"
+          :for="`${heading}-record`"
+          >Repeat and orientation
+          <select
+            :id="`${heading}-record`"
+            :value="selected?.id"
+            @change="selectedId = $event.target.value"
+          >
+            <option
+              v-for="row in evidence.instances"
+              :key="row.id"
+              :value="row.id"
+            >
+              {{ row.source_id ?? "Not reported" }} / {{ row.array_id || "supplied repeat" }} /
+              {{ row.repeat_index ?? "" }} · {{ orientation(row.orientation) }}
+            </option>
+          </select>
+        </label>
+        <p
+          class="repeat-selection-status"
+          role="status"
         >
-          <table class="annotation-table repeat-instance-table">
-            <thead>
-              <tr>
-                <th scope="col">Inspect</th>
-                <th scope="col">Source / array / repeat</th>
-                <th scope="col">Orientation hypothesis</th>
-                <th scope="col">Source interval</th>
-                <th scope="col">Isolated support</th>
-                <th scope="col">Context support</th>
-                <th scope="col">Change</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="row in evidence.instances"
-                :key="row.id"
-                :class="{ 'repeat-selected': selected?.id === row.id }"
-              >
-                <td>
-                  <input
-                    type="radio"
-                    :name="`${heading}-instance`"
-                    :checked="selected?.id === row.id"
-                    :aria-label="`Inspect ${row.source_id}, ${row.array_id || 'supplied repeat'}, ${row.repeat_index ?? ''}, ${orientation(row.orientation)}`"
-                    @change="selectedId = row.id"
-                  />
-                </td>
-                <td>
-                  {{ row.source_id ?? "Not reported"
-                  }}<small v-if="row.array_id"
-                    >{{ row.array_id }} / {{ row.repeat_index ?? "Not reported" }}</small
-                  >
-                </td>
-                <td>{{ orientation(row.orientation) }}</td>
-                <td>{{ interval(row) }}</td>
-                <td>{{ metric(row.comparison.isolated_pair_support) }}</td>
-                <td>{{ metric(row.comparison.context_pair_support) }}</td>
-                <td>{{ metric(row.comparison.support_change) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+          Inspecting {{ selected.source_id }} / {{ selected.array_id || "supplied repeat" }} /
+          {{ selected.repeat_index ?? "" }} · {{ orientation(selected.orientation) }}
+        </p>
         <RepeatInstance
           v-if="selected"
           :key="selected.id"
           :instance="selected"
         />
+        <details class="repeat-record-table">
+          <summary>
+            Compare all {{ evidence.instances.length }} repeat / orientation records
+          </summary>
+          <div
+            class="annotation-scroll"
+            tabindex="0"
+            role="region"
+            aria-label="Repeat instances table"
+          >
+            <table class="annotation-table repeat-instance-table">
+              <thead>
+                <tr>
+                  <th scope="col">Inspect</th>
+                  <th scope="col">Source / array / repeat</th>
+                  <th scope="col">Orientation hypothesis</th>
+                  <th scope="col">Source interval</th>
+                  <th scope="col">Isolated support</th>
+                  <th scope="col">Context support</th>
+                  <th scope="col">Change</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="row in evidence.instances"
+                  :key="row.id"
+                  :class="{ 'repeat-selected': selected?.id === row.id }"
+                >
+                  <td data-label="Inspect">
+                    <label class="repeat-radio-target">
+                      <input
+                        :id="`${heading}-record-${row.id}`"
+                        type="radio"
+                        :name="`${heading}-instance`"
+                        :checked="selected?.id === row.id"
+                        :aria-label="`Inspect ${row.source_id}, ${row.array_id || 'supplied repeat'}, ${row.repeat_index ?? ''}, ${orientation(row.orientation)}`"
+                        @change="selectedId = row.id"
+                      /><span class="sr-only">Select repeat</span></label
+                    >
+                  </td>
+                  <td data-label="Source / array / repeat">
+                    <label :for="`${heading}-record-${row.id}`"
+                      >{{ row.source_id ?? "Not reported"
+                      }}<small v-if="row.array_id"
+                        >{{ row.array_id }} / {{ row.repeat_index ?? "Not reported" }}</small
+                      ></label
+                    >
+                  </td>
+                  <td data-label="Orientation hypothesis">{{ orientation(row.orientation) }}</td>
+                  <td data-label="Source interval">{{ interval(row) }}</td>
+                  <td data-label="Isolated support">
+                    {{ metric(row.comparison.isolated_pair_support) }}
+                  </td>
+                  <td data-label="Context support">
+                    {{ metric(row.comparison.context_pair_support) }}
+                  </td>
+                  <td data-label="Change">{{ metric(row.comparison.support_change) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
       </template>
     </template>
   </section>

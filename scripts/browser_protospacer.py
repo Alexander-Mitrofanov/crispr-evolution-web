@@ -101,6 +101,7 @@ def check(origin: str, output: Path):
             expect(panel.get_by_text("3–22", exact=True)).to_be_visible()
             expect(panel.get_by_text("25–44", exact=True)).to_be_visible()
             expect(panel.get_by_text("Reverse (−)", exact=True)).to_be_visible()
+            panel.get_by_text("Reference provenance, exclusions and checksums", exact=True).click()
             expect(panel.get_by_text("d" * 64, exact=True)).to_be_visible()
             expect(page.get_by_role("tab", name="Arrays", exact=True)).to_have_count(0)
             page.screenshot(path=output / "desktop.png", full_page=True)
@@ -117,7 +118,7 @@ def check(origin: str, output: Path):
             assert saved.read_bytes() == TABLE
 
             page.set_viewport_size({"width": 390, "height": 844})
-            page.get_by_role("tab", name="Protospacer matches", exact=True).click()
+            page.get_by_role("combobox", name="Result section", exact=True).select_option("protospacer")
             assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
             expect(panel.get_by_role("region", name="Protospacer match table")).to_be_visible()
             page.screenshot(path=output / "mobile.png", full_page=True)

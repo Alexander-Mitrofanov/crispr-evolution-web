@@ -176,11 +176,12 @@ describe("repeat evidence results", () => {
       panel.getByRole("img", { name: /Isolated and array-context pair-support matrix/ }),
     ).toBeInTheDocument();
     const selected = within(panel.getByRole("region", { name: "Selected repeat detail" }));
-    expect(selected.getByText("0.75")).toBeInTheDocument();
-    expect(selected.getByText("0.7")).toBeInTheDocument();
+    expect(selected.getByText("Isolated pair").parentElement).toHaveTextContent("0.7500");
+    expect(selected.getByText("0.7000")).toBeInTheDocument();
     await fireEvent.click(selected.getByText("Single-base accessibility and sequence positions"));
     const unpaired = within(selected.getByRole("region", { name: "Unpaired probabilities table" }));
     expect(unpaired.getAllByText("0.2500")).toHaveLength(9);
+    await fireEvent.click(panel.getByText("Compare all 2 repeat / orientation records"));
     await fireEvent.click(panel.getByRole("radio", { name: /Reverse-complement hypothesis/ }));
     expect(panel.getByRole("radio", { name: /Reverse-complement hypothesis/ })).toBeChecked();
     expect(screen.queryByRole("tab", { name: "Orientation", exact: true })).not.toBeInTheDocument();

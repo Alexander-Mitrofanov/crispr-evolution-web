@@ -142,3 +142,74 @@ textarea::placeholder {
 .field-errors p {
   margin: 8px 0 0;
 }
+
+.input-heading > div {
+  min-width: 0;
+}
+.input-limits {
+  margin: 12px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+}
+#fasta-input[aria-invalid="true"] {
+  border: 2px solid var(--danger);
+}
+#fasta-input:focus-visible {
+  outline-offset: -3px;
+}
+.molecule-guidance {
+  flex-basis: 100%;
+}
+.molecule-guidance summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+@media (max-width: 560px) {
+  .input-heading {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .input-heading .example-button {
+    align-self: flex-start;
+  }
+}
+
+.repeat-molecule {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 24px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+}
+.repeat-molecule .molecule-guidance {
+  flex-basis: 100%;
+}
+
+@media (max-width: 560px) {
+  .workflow:has(.spacer-workspace) .section-intro {
+    padding-bottom: 0;
+  }
+  .input-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 12px;
+  }
+  .input-heading > div {
+    display: contents;
+  }
+  .input-heading label {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .input-heading p {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin-top: 0;
+  }
+  .input-heading .example-button {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}

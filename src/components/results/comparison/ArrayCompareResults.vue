@@ -83,7 +83,7 @@ const show = (v) => v ?? "Not reported";
         class="sharing-graph"
       >
         <svg
-          viewBox="0 0 500 380"
+          viewBox="35 20 430 340"
           role="group"
           aria-label="Observed spacer sharing graph; numbered nodes correspond to arrays below"
         >
@@ -125,13 +125,35 @@ const show = (v) => v ?? "Not reported";
               :x="node.x"
               :y="node.y + 4"
               text-anchor="middle"
-              font-size="10"
+              font-size="14"
               :fill="selected === node.id ? '#ffffff' : '#143d43'"
             >
               {{ node.n }}
             </text>
           </g>
         </svg>
+        <div
+          class="sharing-node-key"
+          aria-label="Graph node identities"
+        >
+          <button
+            v-for="node in nodes"
+            :key="node.id"
+            type="button"
+            :aria-pressed="selected === node.id"
+            @click="selected = node.id"
+          >
+            <b>{{ node.n }}.</b> {{ name(node.id)
+            }}{{ isolates.includes(node.id) ? " · isolated" : "" }}
+          </button>
+        </div>
+        <p
+          v-if="selected"
+          role="status"
+        >
+          Selected: {{ name(selected) }}. Its ordered spacer slots and exact occurrence data are
+          shown below.
+        </p>
       </div>
       <p>
         Colored blocks share a DNA identity across shown slots in different arrays; dark blocks have
@@ -191,7 +213,7 @@ const show = (v) => v ?? "Not reported";
               x="12"
               y="30"
               text-anchor="middle"
-              font-size="9"
+              font-size="12"
               fill="#36454d"
             >
               {{ spacer.ordinal }}
@@ -257,8 +279,28 @@ const show = (v) => v ?? "Not reported";
   overflow-wrap: anywhere;
 }
 .sharing-graph {
-  max-width: 34rem;
-  margin-inline: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  max-width: 52rem;
+}
+.sharing-node-key {
+  display: grid;
+  gap: 8px;
+}
+.sharing-node-key button {
+  text-align: left;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--line-dark);
+  background: var(--paper);
+  overflow-wrap: anywhere;
+  color: var(--ink);
+}
+.sharing-node-key button[aria-pressed="true"] {
+  border-color: var(--action);
+  background: var(--action-soft);
 }
 .sharing-graph svg {
   display: block;
@@ -298,6 +340,15 @@ const show = (v) => v ?? "Not reported";
 .comparison-table td {
   padding: 0.6rem;
   text-align: left;
+}
+@media (max-width: 680px) {
+  .sharing-graph {
+    grid-template-columns: 1fr;
+  }
+  .sharing-graph svg {
+    max-width: 24rem;
+    margin-inline: auto;
+  }
 }
 @media (max-width: 480px) {
   .comparison-table table {

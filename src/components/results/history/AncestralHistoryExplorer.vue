@@ -159,7 +159,7 @@ const branchSummary = computed(
           `${publicNodeName(node.parent.name)} to ${publicNodeName(node.name)}:`,
           `${asArray(data?.gains).length} gains,`,
           `${historyLossCount(data)} losses,`,
-          `branch length ${formatNumber(node.length, 6)}`,
+          `branch length ${node.lengthReported ? formatNumber(node.length, 6) : "not reported"}`,
         ].join(" ");
       })
       .join("; ") || "No branch data available.",
@@ -302,33 +302,33 @@ const chooseHypothesis = (kind) => {
           ></small
         >
       </div>
-      <div
-        class="history-view-controls"
-        role="group"
-        aria-label="Ancestral history canvas view"
-      >
-        <span>Canvas view</span
-        ><button
-          type="button"
-          :class="{ active: fitCanvas }"
-          :aria-pressed="fitCanvas"
-          @click="fitCanvas = true"
-        >
-          Fit overview</button
-        ><button
-          type="button"
-          :class="{ active: !fitCanvas }"
-          :aria-pressed="!fitCanvas"
-          @click="fitCanvas = false"
-        >
-          Readable detail</button
-        ><small>{{
-          fitCanvas
-            ? "Full tree; switch to detail for labels."
-            : "Scroll horizontally to inspect every spacer."
-        }}</small>
-      </div>
     </details>
+    <div
+      class="history-view-controls"
+      role="group"
+      aria-label="Ancestral history canvas view"
+    >
+      <span>Canvas view</span
+      ><button
+        type="button"
+        :class="{ active: fitCanvas }"
+        :aria-pressed="fitCanvas"
+        @click="fitCanvas = true"
+      >
+        Fit overview</button
+      ><button
+        type="button"
+        :class="{ active: !fitCanvas }"
+        :aria-pressed="!fitCanvas"
+        @click="fitCanvas = false"
+      >
+        Readable detail</button
+      ><small>{{
+        fitCanvas
+          ? "Full tree; switch to detail for labels."
+          : "Scroll horizontally to inspect every spacer."
+      }}</small>
+    </div>
     <div
       v-if="exceedsSizeLimit"
       class="history-size-limit"

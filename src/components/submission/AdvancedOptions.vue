@@ -7,6 +7,7 @@ import ToolOptions from "./ToolOptions.vue";
 
 const props = defineProps({
   mode: { type: String, required: true },
+  invalidCount: { type: Number, default: 0 },
   modelValue: { type: Object, required: true },
 });
 const emit = defineEmits(["update:modelValue"]);
@@ -21,6 +22,11 @@ const changedCount = computed(() => toolOptionCount(props.mode, props.modelValue
     <summary>
       <span class="advanced-summary-copy"
         ><strong>Analysis options</strong
+        ><small
+          v-if="invalidCount"
+          class="option-error-count"
+          >{{ invalidCount }} invalid {{ invalidCount === 1 ? "option" : "options" }} — review
+          required</small
         ><small
           v-if="changedCount"
           class="advanced-changed-count"
@@ -68,10 +74,18 @@ const changedCount = computed(() => toolOptionCount(props.mode, props.modelValue
           max="5000"
           step="1"
           required
+          :aria-invalid="
+            !Number.isInteger(modelValue.leaderFlankLength) ||
+            modelValue.leaderFlankLength < 1 ||
+            modelValue.leaderFlankLength > 5000
+              ? 'true'
+              : undefined
+          "
+          aria-describedby="leader-window-help"
           :value="modelValue.leaderFlankLength"
           @input="update({ leaderFlankLength: Number($event.target.value) })"
         />
-        <small
+        <small id="leader-window-help"
           >1–5,000 nt; default 500. Both sides of Bona-fide and Possible arrays are retained. Leader
           prediction is unavailable; this window is not an inferred leader boundary.</small
         >
@@ -166,7 +180,7 @@ const changedCount = computed(() => toolOptionCount(props.mode, props.modelValue
       </div>
       <div
         v-if="['reconstruction', 'orientation'].includes(mode)"
-        class="option-column"
+        class="option-column option-policy"
       >
         <span
           ><strong>Deletion-parameter bias corrections</strong

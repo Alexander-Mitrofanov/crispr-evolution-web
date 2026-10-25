@@ -135,11 +135,19 @@ describe("source-verified shipped examples", () => {
       const stored = render(ResultsView, {
         props: { job: snapshot.job, exampleSnapshot: snapshot },
       });
-      const content = stored.container.textContent;
+      const scientificContent = (container) => {
+        const copy = container.cloneNode(true);
+        // Example provenance and file availability intentionally differ; scientific panels do not.
+        copy
+          .querySelectorAll(".results-context, .example-downloads")
+          .forEach((node) => node.remove());
+        return copy.textContent;
+      };
+      const content = scientificContent(stored.container);
       const tabs = screen.getAllByRole("tab").map((tab) => tab.textContent);
       stored.unmount();
       const live = render(ResultsView, { props: { job: snapshot.job } });
-      expect(live.container.textContent).toBe(content);
+      expect(scientificContent(live.container)).toBe(content);
       expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(tabs);
     },
   );

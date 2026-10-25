@@ -105,3 +105,20 @@ main {
   background: none;
   font-size: 0.875rem;
 }
+
+.method-group {
+  margin-top: 32px;
+}
+.method-group h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+.method-group .method-grid {
+  margin-top: 8px;
+}
+.method-group .method-link {
+  min-height: 88px;
+  padding-block: 14px;
+}

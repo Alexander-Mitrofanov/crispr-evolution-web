@@ -41,8 +41,9 @@ describe("repeat reference mapping", () => {
     expect(panel.getAllByText(/Family: Unassigned/).length).toBeGreaterThan(0);
     expect(panel.getByText(/No hit does not establish biological novelty/)).toBeInTheDocument();
     await fireEvent.update(panel.getByLabelText("Filter displayed repeats"), "negative");
-    expect(panel.getByText("negative · no_hit")).toBeInTheDocument();
-    expect(panel.queryByText("exact · exact")).not.toBeInTheDocument();
+    expect(panel.getByRole("heading", { name: "negative", exact: true })).toBeInTheDocument();
+    expect(panel.getByText("No reference hit")).toBeInTheDocument();
+    expect(panel.queryByRole("heading", { name: "exact", exact: true })).not.toBeInTheDocument();
   });
   it("does not turn missing output into zero matches", () => {
     render(ResultsView, { props: { job: { ...fixture, summary: { repeat_map: null } } } });

@@ -38,7 +38,7 @@ const validSelection = computed(
     first.value !== second.value,
 );
 const selected = computed(() => key(first.value, second.value));
-const display = (value) => (value == null ? "Not available" : String(value));
+const display = (value) => (value == null ? "Not available" : Number(value).toFixed(4));
 const isolatedValue = computed(() =>
   props.isolatedAvailable && validSelection.value
     ? (isolated.value.get(selected.value) ?? 0)
@@ -68,6 +68,22 @@ watch(
       <span class="repeat-context-key">Lower triangle: local array context</span>
       <span>Outlined cells: isolated MFE motif</span>
     </p>
+    <div
+      class="pair-support-scale"
+      aria-label="Pair support color scales, zero to one"
+    >
+      <span>Isolated pair probability</span
+      ><span
+        class="pair-gradient isolated"
+        aria-hidden="true"
+      ></span
+      ><span>0 — 0.5 — 1</span> <span>Mean context pair support</span
+      ><span
+        class="pair-gradient context"
+        aria-hidden="true"
+      ></span
+      ><span>0 — 0.5 — 1</span>
+    </div>
     <svg
       viewBox="0 0 626 626"
       role="img"
@@ -220,8 +236,10 @@ watch(
       </dl>
     </div>
     <p class="repeat-note">
-      Local context values average different windows. Do not sum them into a partner probability or
-      compare them as experimental accuracy.
+      Display values use four decimal places; full precision remains in the output and cell
+      tooltips. Missing completed evidence is labeled unavailable. Local context values average
+      different windows. Do not sum them into a partner probability or compare them as experimental
+      accuracy.
     </p>
   </section>
 </template>

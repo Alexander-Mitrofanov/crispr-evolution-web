@@ -20,6 +20,20 @@ const rows = computed(() =>
   ),
 );
 const display = (value) => value ?? "Not reported";
+const stateLabel = (value) =>
+  ({
+    exact: "Exact reference match",
+    near: "Near-match candidate",
+    no_hit: "No reference hit",
+    unsupported: "Unsupported input",
+    historical_association: "Historical association",
+    not_assessed: "Not assessed",
+    predicted: "Model prediction",
+    uncertain: "Uncertain model result",
+    unassigned: "Unassigned",
+    assigned: "Assigned reference annotation",
+    ambiguous: "Ambiguous reference annotation",
+  })[value] || (value ? value.replaceAll("_", " ") : "Not reported");
 </script>
 <template>
   <section
@@ -43,7 +57,7 @@ const display = (value) => value ?? "Not reported";
       </p>
       <p v-if="compact">Open Repeat subtypes for individual occurrences and model provenance.</p>
       <template v-else>
-        <label
+        <label class="repeat-filter"
           >Filter displayed repeats
           <input
             v-model="filter"
@@ -58,7 +72,8 @@ const display = (value) => value ?? "Not reported";
           :key="row.id"
           class="repeat-instance"
         >
-          <h4>{{ row.id }} · {{ row.status ?? "Not reported" }}</h4>
+          <h4>{{ row.id }}</h4>
+          <p class="repeat-outcome">{{ stateLabel(row.status) }}</p>
           <p>
             <code class="sequence-text">{{ row.sequence }}</code>
           </p>

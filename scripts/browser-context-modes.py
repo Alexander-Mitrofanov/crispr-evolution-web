@@ -241,7 +241,7 @@ def run(origin, output):
                 if mode == "rna_family":
                     page.get_by_role(
                         "radio",
-                        name="RNA — family members in transcribed 5′→3′ order",
+                        name="RNA — transcribed 5′→3′ order",
                         exact=True,
                     ).check()
                     textbox.fill(">one\n" + "ACGU" * 8 + "\n>two\n" + "ACGU" * 8 + "\n")

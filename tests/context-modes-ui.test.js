@@ -69,7 +69,7 @@ describe("connected context workflows", () => {
       .spyOn(api, "submit")
       .mockResolvedValue({ job_id: "c".repeat(32), access_token: "a".repeat(43) });
     render(AnalysisForm, { props: { initialMode: "rna_family", service, limits } });
-    await fireEvent.click(screen.getByRole("radio", { name: /RNA — family members/ }));
+    await fireEvent.click(screen.getByRole("radio", { name: /RNA — transcribed/ }));
     const input = screen.getByRole("textbox");
     const button = screen.getByRole("button", { name: "Compute", exact: true });
     for (const sequence of [

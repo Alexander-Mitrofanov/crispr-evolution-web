@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 
 import { layoutNewick } from "../../../utils/newick.js";
 
@@ -11,6 +11,21 @@ const props = defineProps({
   statusLabel: { type: String, default: "" },
 });
 const emit = defineEmits(["select-node"]);
+const inspectedNode = ref(null);
+watch(
+  () => props.newick,
+  () => {
+    inspectedNode.value = null;
+  },
+);
+function inspectNode(node) {
+  inspectedNode.value = node;
+  emit("select-node", node.name);
+}
+const isSelected = (node) =>
+  inspectedNode.value
+    ? node.id === inspectedNode.value.id
+    : Boolean(props.selectedNode) && String(node.name) === props.selectedNode;
 const provisional = computed(() => layoutNewick(props.newick, 100));
 const height = computed(() => Math.max(190, (provisional.value?.leaves.length || 1) * 58 + 58));
 const layout = computed(() => layoutNewick(props.newick, height.value));
@@ -35,6 +50,16 @@ const displayLabel = computed(
       <span>{{ displayLabel }}</span
       ><small>Branch lengths scaled when available</small>
     </div>
+    <p
+      v-if="inspectedNode"
+      class="tree-node-inspector"
+      role="status"
+    >
+      <strong>Selected {{ inspectedNode.children.length ? "internal node" : "leaf" }}:</strong>
+      {{ inspectedNode.name || `node ${inspectedNode.id}` }}<br />Branch length:
+      {{ inspectedNode.lengthReported ? inspectedNode.length : "Not reported" }}. Full identity is
+      shown; ancestral spacer data is unavailable in this tree-only view.
+    </p>
     <svg
       :viewBox="`0 0 720 ${height}`"
       role="img"
@@ -69,16 +94,18 @@ const displayLabel = computed(
         role="button"
         tabindex="0"
         :aria-label="`Inspect node ${node.name || `node ${node.id}`}`"
-        @click="emit('select-node', node.name)"
-        @keydown.enter.prevent="emit('select-node', node.name)"
+        @click="inspectNode(node)"
+        @keydown.enter.prevent="inspectNode(node)"
+        @keydown.space.prevent="inspectNode(node)"
       >
+        <title>{{ node.name || `node ${node.id}` }}</title>
         <circle
           :cx="node.x"
           :cy="node.y"
-          :r="String(node.name) === selectedNode ? 7 : node.children.length ? 4 : 5"
+          :r="isSelected(node) ? 7 : node.children.length ? 4 : 5"
           :class="[
             node.children.length ? 'tree-node' : 'tree-leaf-node',
-            { selected: String(node.name) === selectedNode },
+            { selected: isSelected(node) },
           ]"
         />
         <text

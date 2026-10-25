@@ -185,13 +185,15 @@ const forSource = (rows, id) => (rows || []).filter((row) => row.source_id === i
               v-for="row in cas.cassettes"
               :key="`${row.source_id}:${row.id}`"
             >
-              <td>{{ row.source_id }}</td>
-              <td>{{ location(row) }}</td>
-              <td>{{ row.class ?? "Unassigned" }}</td>
-              <td>{{ row.type ?? "Unassigned" }} / {{ row.subtype ?? "Unassigned" }}</td>
-              <td>{{ metric(row.cas_gene_count) }}</td>
-              <td>{{ row.method ?? "Not reported" }}</td>
-              <td>{{ metric(row.confidence) }}</td>
+              <td data-label="Contig">{{ row.source_id }}</td>
+              <td data-label="Interval">{{ location(row) }}</td>
+              <td data-label="Class">{{ row.class ?? "Unassigned" }}</td>
+              <td data-label="Type / subtype">
+                {{ row.type ?? "Unassigned" }} / {{ row.subtype ?? "Unassigned" }}
+              </td>
+              <td data-label="Cas genes">{{ metric(row.cas_gene_count) }}</td>
+              <td data-label="Method">{{ row.method ?? "Not reported" }}</td>
+              <td data-label="Confidence">{{ metric(row.confidence) }}</td>
             </tr>
           </tbody>
         </table>
@@ -227,13 +229,15 @@ const forSource = (rows, id) => (rows || []).filter((row) => row.source_id === i
               v-for="row in cas.genes"
               :key="`${row.source_id}:${row.id}`"
             >
-              <td>{{ row.source_id }}</td>
-              <td>{{ row.id }}</td>
-              <td>{{ location(row) }}</td>
-              <td>{{ row.strand }}</td>
-              <td>{{ row.profile ?? "Not reported" }}</td>
-              <td>{{ row.type ?? "Unassigned" }} / {{ row.subtype ?? "Unassigned" }}</td>
-              <td>{{ metric(row.score_margin) }}</td>
+              <td data-label="Contig">{{ row.source_id }}</td>
+              <td data-label="Protein">{{ row.id }}</td>
+              <td data-label="Interval">{{ location(row) }}</td>
+              <td data-label="Strand">{{ row.strand }}</td>
+              <td data-label="Profile">{{ row.profile ?? "Not reported" }}</td>
+              <td data-label="Type / subtype">
+                {{ row.type ?? "Unassigned" }} / {{ row.subtype ?? "Unassigned" }}
+              </td>
+              <td data-label="Score margin">{{ metric(row.score_margin) }}</td>
             </tr>
           </tbody>
         </table>
@@ -289,14 +293,16 @@ const forSource = (rows, id) => (rows || []).filter((row) => row.source_id === i
               v-for="row in tracr.candidates"
               :key="row.id"
             >
-              <td>{{ row.source_id }}</td>
-              <td>{{ row.id }}</td>
-              <td>{{ location(row) }}</td>
-              <td>{{ row.strand }}</td>
-              <td>{{ row.origin ?? "Not reported" }}</td>
-              <td>{{ row.evidence_class ?? "Not reported" }}</td>
-              <td>{{ metric(row.score) }}</td>
-              <td>{{ row.evalue == null ? "Not available" : row.evalue.toExponential(2) }}</td>
+              <td data-label="Contig">{{ row.source_id }}</td>
+              <td data-label="Candidate">{{ row.id }}</td>
+              <td data-label="Interval">{{ location(row) }}</td>
+              <td data-label="Strand">{{ row.strand }}</td>
+              <td data-label="Origin">{{ row.origin ?? "Not reported" }}</td>
+              <td data-label="Evidence">{{ row.evidence_class ?? "Not reported" }}</td>
+              <td data-label="Score">{{ metric(row.score) }}</td>
+              <td data-label="Model E-value">
+                {{ row.evalue == null ? "Not available" : row.evalue.toExponential(2) }}
+              </td>
             </tr>
           </tbody>
         </table>

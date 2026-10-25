@@ -47,7 +47,8 @@ describe("RepeatTyper", () => {
     expect(panel.getByText(/winning label falls below/)).toBeInTheDocument();
     expect(panel.getByText(/no prediction was made/)).toBeInTheDocument();
     await fireEvent.update(panel.getByLabelText("Filter displayed repeats"), "ambiguous");
-    expect(panel.getByText("ambiguous · unsupported")).toBeInTheDocument();
+    expect(panel.getByRole("heading", { name: "ambiguous", exact: true })).toBeInTheDocument();
+    expect(panel.getByText("Unsupported input")).toBeInTheDocument();
     expect(panel.queryByText("duplicate · predicted")).not.toBeInTheDocument();
   });
   it("never converts missing or invalid scientific scores into zeros", () => {

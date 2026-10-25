@@ -117,3 +117,24 @@
 .publication-notes {
   overflow-wrap: anywhere;
 }
+
+.annotation-table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 22rem;
+}
+.annotation-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.annotation-scroll {
+  scrollbar-width: auto;
+}
+.annotation-scroll:has(.annotation-table)::before {
+  content: "Scroll sideways for all columns on narrow screens.";
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding-bottom: 8px;
+}

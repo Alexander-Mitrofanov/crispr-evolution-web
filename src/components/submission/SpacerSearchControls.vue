@@ -1,4 +1,5 @@
 <script setup>
+import { useId } from "vue";
 import { analysisModeAvailable } from "../../science.js";
 defineProps({
   mode: { type: String, required: true },
@@ -6,6 +7,7 @@ defineProps({
   service: { type: Object, required: true },
 });
 defineEmits(["direction", "update:mismatches"]);
+const directionId = useId();
 const directions = [
   {
     id: "protospacer",
@@ -28,6 +30,27 @@ const directions = [
     class="spacer-workspace"
     aria-label="Spacer search direction"
   >
+    <label
+      class="spacer-direction-picker"
+      :for="directionId"
+      >Search direction
+      <select
+        :id="directionId"
+        :value="mode"
+        @change="$emit('direction', $event.target.value)"
+      >
+        <option
+          v-for="item in directions"
+          :key="item.id"
+          :value="item.id"
+        >
+          {{ item.title }}
+        </option>
+      </select>
+      <small v-if="!analysisModeAvailable(mode, service)"
+        >Reference unavailable on this server; precomputed example available</small
+      >
+    </label>
     <div class="spacer-directions">
       <button
         v-for="item in directions"
@@ -42,7 +65,7 @@ const directions = [
           ><span>{{ item.input }}</span
           ><span aria-hidden="true">→</span><span>{{ item.reference }}</span></span
         >
-        <span>{{ item.detail }}</span>
+
         <small v-if="!analysisModeAvailable(item.id, service)"
           >Reference unavailable on this server; precomputed example available</small
         >
@@ -53,12 +76,7 @@ const directions = [
       class="spacer-method-note"
     >
       <div>
-        <strong>Paste one spacer per FASTA record</strong>
-        <p>
-          18–80 nt, using A, C, G and T. Shorter or ambiguous spacers are reported as skipped. Viral
-          RefSeq includes phages and other viruses; individual records may represent genome
-          segments.
-        </p>
+        <strong>Spacer FASTA · 18–80 nt per record, A/C/G/T.</strong>
       </div>
       <label for="viral-mismatches"
         >Maximum substitutions
@@ -73,32 +91,40 @@ const directions = [
         </select>
         <small>Full-length, ungapped alignments on both strands.</small>
       </label>
-      <p class="spacer-interpretation">
-        BLAST can miss matches, including alignments it clips at the ends. Candidate viral matches
-        do not establish infection or host range.
-      </p>
+      <details class="spacer-interpretation">
+        <summary>Search interpretation and limits</summary>
+        <p>
+          Shorter or ambiguous spacers are reported as skipped. Viral RefSeq includes phages and
+          other viruses; individual records may represent genome segments. BLAST can miss matches,
+          including alignments it clips at the ends. Candidate viral matches do not establish
+          infection or host range.
+        </p>
+      </details>
     </div>
     <div
       v-else
       class="spacer-method-note"
     >
       <div>
-        <strong>Paste target DNA, such as a contig or small genome</strong>
-        <p>
-          Search the NCBI-hosted 2017 research spacer collection for exact matches on both strands.
-          This collection is a fixed research snapshot.
-        </p>
+        <strong>Target DNA · exact matches to reference spacers on both strands</strong>
       </div>
-      <p class="spacer-interpretation">
-        Targets are searched as linear sequences. Array overlap and PAM compatibility are not
-        assessed; matches do not establish functional targeting.
-      </p>
+      <details class="spacer-interpretation">
+        <summary>Search interpretation and limits</summary>
+        <p>
+          Search the NCBI-hosted 2017 research spacer collection, a fixed research snapshot. Targets
+          are searched as linear sequences. Array overlap and PAM compatibility are not assessed;
+          matches do not establish functional targeting.
+        </p>
+      </details>
     </div>
   </section>
 </template>
 <style scoped>
+.spacer-direction-picker {
+  display: none;
+}
 .spacer-workspace {
-  margin: 1.5rem 0 2rem;
+  margin: 1rem 0;
 }
 .spacer-directions {
   display: grid;
@@ -108,8 +134,8 @@ const directions = [
 .spacer-directions button {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  padding: 1.3rem;
+  gap: 0.4rem;
+  padding: 0.8rem;
   text-align: left;
   background: white;
   color: var(--ink);
@@ -118,7 +144,7 @@ const directions = [
 }
 .spacer-directions button[aria-pressed="true"] {
   border: 2px solid var(--action);
-  padding: calc(1.3rem - 1px);
+  padding: calc(0.8rem - 1px);
   background: #f0f8f7;
 }
 .spacer-directions button:disabled {
@@ -145,12 +171,12 @@ const directions = [
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 1rem 2rem;
-  padding: 1.5rem 0 0;
+  padding: 0.75rem 0 0;
 }
 .spacer-method-note p {
   max-width: 70ch;
   margin: 0.5rem 0 0;
-  line-height: 1.65;
+  line-height: 1.45;
   color: var(--ink-soft);
 }
 .spacer-method-note label {
@@ -175,10 +201,51 @@ const directions = [
   font-size: 0.9rem;
 }
 @media (max-width: 680px) {
-  .spacer-directions,
+  .spacer-directions {
+    display: none;
+  }
+  .spacer-direction-picker {
+    display: grid;
+    gap: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .spacer-direction-picker select {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 10px;
+    border: 1px solid var(--line-dark);
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    background: var(--paper);
+    font: inherit;
+  }
+  .spacer-direction-picker small {
+    font-weight: 400;
+  }
   .spacer-method-note {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
+  .spacer-method-note strong {
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .spacer-method-note label {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    font-size: 0.875rem;
+  }
+  .spacer-method-note label small {
+    grid-column: 1 / -1;
+  }
+  .spacer-method-note select {
+    width: 100%;
+    min-width: 0;
+  }
+
   .spacer-flow {
     flex-wrap: wrap;
   }

@@ -414,3 +414,55 @@
   font-size: 0.8rem;
   padding-block: 10px;
 }
+
+.catalog-table td {
+  max-width: 20rem;
+  overflow-wrap: anywhere;
+}
+.catalog-record-link {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.catalog-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.table-scroll-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.catalog-evidence-panel {
+  border: 1px solid var(--action);
+  background: var(--action-soft);
+  margin-top: 16px;
+  padding: 16px;
+  overflow-wrap: anywhere;
+}
+.catalog-evidence-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.catalog-evidence-heading h4 {
+  min-width: 0;
+  margin: 0;
+}
+.catalog-evidence-heading button {
+  flex: 0 0 auto;
+  min-height: 44px;
+}
+.catalog-evidence-panel dl {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+.catalog-evidence-panel dt {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.catalog-evidence-panel dd {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+}

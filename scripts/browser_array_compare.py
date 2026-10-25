@@ -145,7 +145,9 @@ def check(origin, output):
             download.value.save_as(output / "array-sharing.tsv")
             assert (output / "array-sharing.tsv").read_bytes() == TABLE
             page.set_viewport_size({"width": 390, "height": 844})
-            page.get_by_role("tab", name="Array comparison", exact=True).click()
+            page.get_by_role(
+                "combobox", name="Result section", exact=True
+            ).select_option("array_compare")
             panel.locator(".observed-array").first.locator("summary").click()
             assert page.evaluate(
                 "document.documentElement.scrollWidth <= window.innerWidth + 1"
@@ -161,7 +163,9 @@ def check(origin, output):
             state["job"]["summary"]["array_compare"]["edges_truncated"] = True
             page.reload()
             page.wait_for_load_state("networkidle")
-            page.get_by_role("tab", name="Array comparison", exact=True).click()
+            page.get_by_role(
+                "combobox", name="Result section", exact=True
+            ).select_option("array_compare")
             expect(
                 panel.get_by_text(
                     "No sharing links in this preview; download the full comparison.",
